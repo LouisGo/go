@@ -1,0 +1,38 @@
+{
+  "name": "louisgo",
+  "version": "0.0.0",
+  "description": "轻量级 AI 编程 Harness",
+  "type": "module",
+  "bin": {
+    "louisgo": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "format": "prettier --write \"*.{json,ts}\" \"{src,tests}/**/*.ts\"",
+    "format:check": "prettier --check \"*.{json,ts}\" \"{src,tests}/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "start": "node ./dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.5.2",
+  "dependencies": {
+    "commander": "^14.0.1",
+    "gray-matter": "^4.0.3",
+    "zod": "^4.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "prettier": "^3.7.4",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.14"
+  }
+}
