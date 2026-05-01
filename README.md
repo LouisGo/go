@@ -104,4 +104,4 @@ AI 不应每次全量读取所有文档。
 
 ## 下一步
 
-当前建议继续 `docs/06-roadmap.md` 的 T008，实现 `.louisgo/` 模板生成。
+当前建议继续 `docs/06-roadmap.md` 的 T009，实现 `louisgo init`。

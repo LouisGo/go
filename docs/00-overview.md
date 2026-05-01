@@ -25,7 +25,7 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 
 ## 当前阶段
 
-当前处于 MVP 代码实现阶段，已完成 T001-T007。
+当前处于 MVP 代码实现阶段，已完成 T001-T008。
 
 已完成：
 
@@ -44,6 +44,7 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 - Markdown Front Matter 读写
 - 安全写入
 - ROADMAP 解析
+- `.louisgo/` 初始文件模板生成
 
 尚未完成：
 
@@ -207,12 +208,12 @@ AI 不应默认读取所有文档。
 当前下一步任务：
 
 ```text
-T008 实现模板生成
+T009 实现 `louisgo init`
 ```
 
-开始 T008 前建议读取：
+开始 T009 前建议读取：
 
-- `docs/05-task-breakdown.md` 中 T008
+- `docs/05-task-breakdown.md` 中 T009
 - `docs/04-harness-protocol.md`
 - `docs/03-architecture.md` 中 `louisgo init`
 - `docs/08-decision-log.md` 中 D012、D016-D018
