@@ -23,7 +23,7 @@
 ## P2 脚手架和状态检查
 
 - [x] T008 实现模板生成
-- [ ] T009 实现 `louisgo init`
+- [x] T009 实现 `louisgo init`
 - [ ] T010 实现协议完整性检查
 - [ ] T011 实现 `louisgo status`
 

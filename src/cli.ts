@@ -2,9 +2,18 @@
 
 import { Command } from "commander";
 import { realpathSync } from "node:fs";
+import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
-export function createCli(): Command {
+import { registerInitCommand } from "./commands/init.js";
+
+export interface CliOptions {
+  readonly cwd?: string;
+  readonly now?: () => Date;
+  readonly stdout?: Writable;
+}
+
+export function createCli(options: CliOptions = {}): Command {
   const program = new Command();
 
   program
@@ -12,6 +21,8 @@ export function createCli(): Command {
     .description("轻量级 AI 编程 Harness")
     .version("0.0.0")
     .showHelpAfterError();
+
+  registerInitCommand(program, options);
 
   return program;
 }
