@@ -6,6 +6,7 @@ import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
 import { registerInitCommand } from "./commands/init.js";
+import { registerStatusCommand } from "./commands/status.js";
 
 export interface CliOptions {
   readonly cwd?: string;
@@ -23,6 +24,7 @@ export function createCli(options: CliOptions = {}): Command {
     .showHelpAfterError();
 
   registerInitCommand(program, options);
+  registerStatusCommand(program, options);
 
   return program;
 }

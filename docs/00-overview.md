@@ -25,7 +25,7 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 
 ## 当前阶段
 
-当前处于 MVP 代码实现阶段，已完成 T001-T010。
+当前处于 MVP 代码实现阶段，已完成 T001-T011。
 
 已完成：
 
@@ -47,11 +47,11 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 - `.louisgo/` 初始文件模板生成
 - `louisgo init`
 - 协议完整性检查
+- `louisgo status`
 
 尚未完成：
 
 - `.louisgo/` 脚手架
-- `louisgo status`
 - Git 和验证逻辑
 - 会话工作流命令
 - 端到端测试
@@ -208,15 +208,15 @@ AI 不应默认读取所有文档。
 当前下一步任务：
 
 ```text
-T011 实现 `louisgo status`
+T012 实现 Git 基础能力
 ```
 
-开始 T011 前建议读取：
+开始 T012 前建议读取：
 
-- `docs/05-task-breakdown.md` 中 T011
+- `docs/05-task-breakdown.md` 中 T012
 - `docs/04-harness-protocol.md`
-- `docs/03-architecture.md` 中 `louisgo status`
-- `docs/08-decision-log.md` 中 D012、D016-D018
+- `docs/03-architecture.md` 中 `diff_hash` 设计和验证流程
+- `docs/08-decision-log.md` 中 D010-D013、D019
 - `docs/06-roadmap.md`
 
 ## 给 AI 的执行约束

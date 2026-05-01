@@ -104,4 +104,4 @@ AI 不应每次全量读取所有文档。
 
 ## 下一步
 
-当前建议继续 `docs/06-roadmap.md` 的 T011，实现 `louisgo status`。
+当前建议继续 `docs/06-roadmap.md` 的 T012，实现 Git 基础能力。

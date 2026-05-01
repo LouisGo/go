@@ -29,6 +29,7 @@ describe("协议完整性检查", () => {
       complete: true,
       mode: "assist",
       recoverySource: "none",
+      verificationStatus: "missing",
       hasConfirmReq: false,
       adrDrafts: [],
       issues: [],

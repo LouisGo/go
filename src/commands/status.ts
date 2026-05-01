@@ -1,0 +1,22 @@
+import type { Command } from "commander";
+import type { Writable } from "node:stream";
+
+import { formatStatusReport } from "../output/reporter.js";
+import { checkProtocolStatus, type StatusServiceOptions } from "../services/status-service.js";
+
+export interface RegisterStatusCommandOptions extends StatusServiceOptions {
+  readonly stdout?: Writable;
+}
+
+export function registerStatusCommand(
+  program: Command,
+  options: RegisterStatusCommandOptions = {},
+): void {
+  program
+    .command("status")
+    .description("查看 LouisGo 协议状态")
+    .action(async () => {
+      const status = await checkProtocolStatus(options);
+      (options.stdout ?? process.stdout).write(formatStatusReport(status));
+    });
+}

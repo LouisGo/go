@@ -12,7 +12,9 @@ import {
   handoffFrontMatterSchema,
   missionFrontMatterSchema,
   quickSaveFrontMatterSchema,
+  testResultsSchema,
   type LouisGoMode,
+  type VerificationStatus,
 } from "../protocol/schemas.js";
 
 export const protocolIssueCodes = {
@@ -23,6 +25,7 @@ export const protocolIssueCodes = {
 
 export type ProtocolIssueCode = (typeof protocolIssueCodes)[keyof typeof protocolIssueCodes];
 export type RecoverySource = "quick_save" | "handoff" | "none";
+export type StatusVerificationState = VerificationStatus | "unchecked";
 
 export interface ProtocolIssue {
   readonly code: ProtocolIssueCode;
@@ -38,6 +41,7 @@ export interface ProtocolStatus {
   readonly mode: LouisGoMode | null;
   readonly currentTask: RoadmapTask | null;
   readonly recoverySource: RecoverySource;
+  readonly verificationStatus: StatusVerificationState;
   readonly hasConfirmReq: boolean;
   readonly adrDrafts: readonly string[];
 }
@@ -71,6 +75,7 @@ export async function checkProtocolStatus(
     mode,
     currentTask,
     recoverySource: await detectRecoverySource(paths),
+    verificationStatus: await readVerificationStatus(paths, issues),
     hasConfirmReq: await pathExists(paths.confirmReq),
     adrDrafts: await listAdrDrafts(paths),
   };
@@ -200,6 +205,30 @@ async function listAdrDrafts(paths: ProtocolPaths): Promise<string[]> {
     .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
     .map((entry) => entry.name)
     .sort();
+}
+
+async function readVerificationStatus(
+  paths: ProtocolPaths,
+  issues: ProtocolIssue[],
+): Promise<StatusVerificationState> {
+  if (!(await pathExists(paths.testResults))) {
+    return "missing";
+  }
+
+  try {
+    const parsed = testResultsSchema.parse(JSON.parse(await readFile(paths.testResults, "utf8")));
+    return parsed.status;
+  } catch {
+    issues.push(
+      createIssue(
+        paths,
+        protocolIssueCodes.frontMatterInvalid,
+        paths.testResults,
+        "test-results.json 格式错误",
+      ),
+    );
+    return "unchecked";
+  }
 }
 
 async function pathExists(filePath: string): Promise<boolean> {
