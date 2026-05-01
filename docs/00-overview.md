@@ -20,6 +20,8 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 - 可验证的事实来源。
 - 可审阅的正式交接。
 - 可见的 AI 自主模式。
+- 可见的歧义确认请求。
+- 可审阅的架构决策草稿。
 
 ## 当前阶段
 
@@ -59,6 +61,9 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 - 路线图任务必须使用稳定任务 ID。
 - 验证结果必须能判断是否过期。
 - `HANDOFF.md` 由草稿提升生成，不强制验证状态为 `passed`。
+- `CONFIRM_REQ.md` 进入 MVP 协议，用于承载未解决确认请求。
+- `.louisgo/ADR/draft/` 进入 MVP 协议，用于承载架构决策草稿。
+- 生产者可以触发验证，但不能判定自身产出质量。
 
 详细原因见 `docs/08-decision-log.md`。
 
@@ -125,7 +130,7 @@ AI 不应默认读取所有文档。
 - `docs/05-task-breakdown.md` 中 T003-T007
 - `docs/04-harness-protocol.md`
 - `docs/03-architecture.md` 的协议层设计
-- `docs/08-decision-log.md` 中 D008-D011
+- `docs/08-decision-log.md` 中 D008-D011、D017-D018
 
 ### 实现 T008-T011：脚手架和状态检查
 
@@ -134,7 +139,7 @@ AI 不应默认读取所有文档。
 - `docs/05-task-breakdown.md` 中 T008-T011
 - `docs/04-harness-protocol.md`
 - `docs/03-architecture.md` 中 `louisgo init` 和 `louisgo status`
-- `docs/08-decision-log.md` 中 D012、D016
+- `docs/08-decision-log.md` 中 D012、D016-D018
 
 ### 实现 T012-T016：Git、diff hash 和验证
 
@@ -143,17 +148,17 @@ AI 不应默认读取所有文档。
 - `docs/05-task-breakdown.md` 中 T012-T016
 - `docs/03-architecture.md` 中 `diff_hash` 设计和验证流程
 - `docs/04-harness-protocol.md` 中 `test-results.json`
-- `docs/08-decision-log.md` 中 D010-D013
+- `docs/08-decision-log.md` 中 D010-D013、D019
 
 ### 实现 T017-T021：会话工作流命令
 
 读取：
 
 - `docs/05-task-breakdown.md` 中 T017-T021
-- `docs/04-harness-protocol.md` 中 `QUICK_SAVE.md`、`HANDOFF_DRAFT.md`、`HANDOFF.md`
+- `docs/04-harness-protocol.md` 中 `QUICK_SAVE.md`、`CONFIRM_REQ.md`、`HANDOFF_DRAFT.md`、`HANDOFF.md`、ADR
 - `docs/03-architecture.md` 中 `pause`、`finish`、`handoff promote`
 - `docs/07-open-questions.md` 中 Q006-Q008
-- `docs/08-decision-log.md` 中 D014-D015
+- `docs/08-decision-log.md` 中 D014-D015、D017-D018
 
 注意：
 

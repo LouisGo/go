@@ -34,6 +34,9 @@ MVP 只聚焦一个问题：
 - 使用 `$start`、`$pause`、`$resume`、`$finish` 表达 AI 工作流指令。
 - 使用 `test-results.json`、Git HEAD 和 `diff_hash` 判断验证结果是否新鲜。
 - 使用 `HANDOFF_DRAFT.md` 和 `HANDOFF.md` 区分 AI 草稿与用户确认状态。
+- 使用 `CONFIRM_REQ.md` 让歧义确认可见、可恢复。
+- 使用 `ADR/draft/` 和正式 ADR 记录架构决策门禁。
+- 允许 AI 触发验证，但不允许 AI 用自述替代验证或用户确认。
 
 ## 技术栈
 

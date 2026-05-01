@@ -137,6 +137,7 @@ louisgo handoff promote
 作用：
 
 - 创建 `.louisgo/` 目录。
+- 创建 `.louisgo/ADR/draft/` 目录。
 - 创建必需模板文件。
 - 创建 `.louisgo/scripts/verify.sh`。
 - 创建 `.louisgo/scripts/verify.ps1`。
@@ -236,11 +237,15 @@ MVP 可以从单包结构开始：
 │   │   ├── schemas.ts
 │   │   ├── paths.ts
 │   │   ├── frontmatter.ts
+│   │   ├── confirm-req.ts
+│   │   ├── adr.ts
 │   │   └── diff-hash.ts
 │   └── templates/
 │       ├── mission.ts
 │       ├── roadmap.ts
 │       ├── capabilities.ts
+│       ├── confirm-req.ts
+│       ├── adr-draft.ts
 │       └── verify-script.ts
 ├── tests/
 └── docs/

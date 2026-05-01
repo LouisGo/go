@@ -37,7 +37,7 @@
 
 ## P4 会话工作流命令
 
-- [ ] T017 实现 QUICK_SAVE 协议读写
+- [ ] T017 实现 QUICK_SAVE 和 CONFIRM_REQ 协议读写
 - [ ] T018 实现 `louisgo pause`
 - [ ] T019 实现 HANDOFF_DRAFT 生成
 - [ ] T020 实现 `louisgo finish`
@@ -53,5 +53,5 @@
 
 - [ ] S1 完成 T001-T011：初始化 `.louisgo/` 并查看状态
 - [ ] S2 完成 T012-T016：运行验证并判断结果是否新鲜
-- [ ] S3 完成 T017-T021：暂停、收尾和提升 handoff
+- [ ] S3 完成 T017-T021：暂停、处理确认请求、收尾和提升 handoff
 - [ ] S4 完成 T022-T024：端到端测试、文档和发布准备

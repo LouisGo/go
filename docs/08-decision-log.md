@@ -69,8 +69,9 @@
 决策：
 
 - AI 工作流显式指令使用 `$` 前缀。
-- MVP 指令为 `$start`、`$pause`、`$resume`、`$finish`。
-- 后续预留 `$delegate`、`$merge`、`$review`、`$decide`。
+- MVP 基础指令为 `$start`、`$pause`、`$resume`、`$finish`。
+- `$decide` 的文件协议进入 MVP，独立 CLI 命令后续实现。
+- 后续预留 `$delegate`、`$merge`、`$review`。
 
 原因：
 
@@ -126,7 +127,8 @@
 
 影响：
 
-- MVP 不实现 `delegate`、`merge`、`review`、`decide` 的实际命令。
+- MVP 不实现 `delegate`、`merge`、`review` 的实际命令。
+- `$decide` 的独立 CLI 命令后续实现，但 `CONFIRM_REQ.md` 文件协议进入 MVP。
 - 架构只预留扩展点。
 
 ## D006 使用 Node.js + TypeScript 实现 CLI
@@ -365,3 +367,72 @@
 
 - T009 是 MVP 的关键任务。
 - README 必须以 `npx louisgo init` 作为主要入口。
+
+## D017 `CONFIRM_REQ.md` 进入 MVP 协议
+
+状态：`accepted`
+
+日期：2026-05-01
+
+决策：
+
+- `.louisgo/CONFIRM_REQ.md` 进入 MVP 协议。
+- 独立 `louisgo decide` CLI 命令后续实现。
+
+原因：
+
+- 歧义确认是 v3.5 的关键体验之一。
+- 如果确认状态只存在于聊天中，就会削弱“文件即契约”。
+- `assist` 模式要求关键点先确认，因此确认请求必须可见、可恢复、可交接。
+
+影响：
+
+- `$start` 发现 `CONFIRM_REQ.md` 时必须优先提示。
+- `$finish` 必须把未解决确认请求转存到 `HANDOFF_DRAFT.md`。
+- T017-T020 必须覆盖确认请求协议和收尾行为。
+
+## D018 ADR 草稿目录进入 MVP 协议
+
+状态：`accepted`
+
+日期：2026-05-01
+
+决策：
+
+- `.louisgo/ADR/draft/` 进入 MVP 协议。
+- 正式 ADR 使用 `.louisgo/ADR/NNN-title.md`。
+- MVP 可以不实现独立 ADR CLI 命令。
+
+原因：
+
+- v3.5 要求人类守卫架构决策。
+- `docs/08-decision-log.md` 只记录 LouisGo 自身设计，不等同于被安装项目的 ADR 门禁。
+- 架构变更如果只存在聊天中，会破坏长期项目记忆。
+
+影响：
+
+- `louisgo init` 必须创建 `.louisgo/ADR/draft/`。
+- `status` 应提示存在未确认 ADR 草稿。
+- `$finish` 应提示 ADR 草稿仍需用户确认。
+
+## D019 生产者可以触发验证，但不能判定自身质量
+
+状态：`accepted`
+
+日期：2026-05-01
+
+决策：
+
+- 生成代码的 AI 可以触发验证命令。
+- AI 不能把自己的自述或判断作为完成依据。
+- 任务完成只能来自验证事实、独立审查或用户确认。
+
+原因：
+
+- v3.5 的生产者与审查者分离原则需要在单 AI MVP 中落地。
+- 完全禁止生产者触发测试不现实，但必须禁止生产者自判质量。
+
+影响：
+
+- `auto` 模式可以运行验证，但不能仅凭自述勾选任务完成。
+- `ROADMAP.md` 完成状态必须基于事实或用户确认。

@@ -26,8 +26,12 @@ MVP 约定所有 Harness 文件放在仓库根目录的 `.louisgo/` 下：
 ├── HANDOFF_DRAFT.md
 ├── QUICK_SAVE.md
 ├── BLOCKER.md
+├── CONFIRM_REQ.md
 ├── CAPABILITIES.md
 ├── test-results.json
+├── ADR/
+│   ├── draft/
+│   └── 001-title.md
 └── scripts/
     ├── verify.sh
     └── verify.ps1
@@ -45,8 +49,11 @@ MVP 约定所有 Harness 文件放在仓库根目录的 `.louisgo/` 下：
 | 交接草稿 | `HANDOFF_DRAFT.md` | AI | 部分检查 |
 | 快速恢复 | `QUICK_SAVE.md` | AI | 部分检查 |
 | 阻塞记录 | `BLOCKER.md` | AI | 人类检查为主 |
+| 决策请求 | `CONFIRM_REQ.md` | AI | 部分检查 |
 | 能力声明 | `CAPABILITIES.md` | 用户或脚手架 | 部分检查 |
 | 验证结果 | `test-results.json` | `verify.sh` 或 `verify.ps1` | 必须检查 |
+| ADR 草稿 | `ADR/draft/*.md` | AI 或用户 | 部分检查 |
+| 正式 ADR | `ADR/*.md` | 用户确认 | 部分检查 |
 | 验证入口 | `scripts/verify.sh` | 用户或脚手架 | 通过执行检查 |
 | Windows 验证入口 | `scripts/verify.ps1` | 用户或脚手架 | 通过执行检查 |
 
@@ -73,7 +80,7 @@ updated_at: 2026-05-01T20:00:00+08:00
 
 - Front Matter 用于机器读取。
 - 正文用于人类审阅。
-- AI 可以更新草稿和快速保存文件。
+- AI 可以更新交接草稿、快速保存、确认请求和 ADR 草稿。
 - AI 不能绕过用户确认直接把草稿变成正式交接。
 
 ## 任务 ID
@@ -161,6 +168,11 @@ updated_at: 2026-05-01T20:00:00+08:00
 ## 禁止事项
 
 ## 确认规则
+
+## ADR 规则
+
+- 涉及公开 API、数据模型、新技术栈或跨模块边界的架构决策，必须先创建 ADR 草稿。
+- ADR 草稿经用户确认后，才能成为正式 ADR。
 ```
 
 ### `ROADMAP.md`
@@ -310,6 +322,114 @@ saved_at: 2026-05-01T20:00:00+08:00
 - 未解决阻塞必须写入 `HANDOFF_DRAFT.md` 的遗留问题。
 - 后续是否清理 `BLOCKER.md` 由具体命令策略决定，但清理前必须保证状态已被交接草稿捕获。
 
+### `CONFIRM_REQ.md`
+
+用途：
+
+- 保存当前未解决的歧义确认请求。
+- 让确认状态从聊天记录中显式落到仓库文件。
+- `$finish` 时若仍未解决，必须转存到 `HANDOFF_DRAFT.md` 的遗留问题。
+
+写入权限：
+
+- AI 可以在触发确认规则时创建或更新。
+- 用户选择后，AI 应删除该文件并继续执行。
+- 同一时间 MVP 只允许一个未解决确认请求。
+
+建议结构：
+
+```markdown
+---
+schema: louisgo-confirm-req-v1
+mode: assist
+task_id: T001
+status: open
+created_at: 2026-05-01T20:00:00+08:00
+---
+
+# Confirm Request
+
+## 背景
+
+## 选项
+
+- A. 选项说明
+- B. 选项说明
+- C. 选项说明
+- D. 我重新说明需求
+
+## 建议
+```
+
+规则：
+
+- 选项必须清楚表达取舍，不得只列技术名词。
+- 如果有推荐选项，应说明推荐原因。
+- `status` MVP 固定使用 `open`；用户选择后删除文件，不保留 closed 状态。
+- `$start` 发现该文件存在时，必须优先提示用户处理。
+
+### `ADR/draft/*.md` 和 `ADR/*.md`
+
+用途：
+
+- 记录架构决策。
+- 保证影响项目长期方向的决策先经用户确认，再进入正式项目记忆。
+
+写入权限：
+
+- AI 可以创建 `ADR/draft/*.md` 草稿。
+- 用户可以编辑草稿。
+- 正式 `ADR/*.md` 代表用户确认后的决策。
+
+触发条件：
+
+- 公开 API 或协议变更。
+- 数据模型或持久化格式变更。
+- 新技术栈、关键依赖或架构分层变更。
+- 影响多个模块边界的设计决策。
+
+草稿建议结构：
+
+```markdown
+---
+schema: louisgo-adr-v1
+status: draft
+adr_id: null
+created_at: 2026-05-01T20:00:00+08:00
+confirmed_at: null
+---
+
+# ADR Draft: 标题
+
+## 背景
+
+## 决策
+
+## 影响
+
+## 备选方案
+```
+
+正式 ADR 建议结构：
+
+```markdown
+---
+schema: louisgo-adr-v1
+status: accepted
+adr_id: ADR-001
+created_at: 2026-05-01T20:00:00+08:00
+confirmed_at: 2026-05-01T21:00:00+08:00
+---
+
+# ADR-001 标题
+```
+
+规则：
+
+- AI 不能把 ADR 草稿直接视为已确认架构决策。
+- 正式 ADR 必须保留决策、影响和备选方案。
+- MVP 可以不实现独立 ADR CLI 命令，但 `louisgo init` 必须创建 `ADR/draft/` 目录。
+
 ### `CAPABILITIES.md`
 
 用途：
@@ -342,6 +462,8 @@ updated_at: 2026-05-01T20:00:00+08:00
 ## 行为约定
 
 - 面向用户的状态提示必须包含当前模式。
+- 需要用户确认时，写入 `.louisgo/CONFIRM_REQ.md`。
+- 涉及架构决策时，写入 `.louisgo/ADR/draft/`。
 ```
 
 ### `test-results.json`
@@ -419,10 +541,11 @@ MVP 最小字段：
 2. 如果必需文件缺失，先报告缺失项。
 3. 提醒用户将自动创建缺失文件。
 4. 读取 `CAPABILITIES.md` 和 `MISSION.md`。
-5. 如果 `QUICK_SAVE.md` 比 `HANDOFF.md` 更新，则从快速保存恢复。
-6. 否则从 `HANDOFF.md` 恢复。
-7. 如果没有正式交接，则从 `ROADMAP.md` 第一个未完成任务开始。
-8. 显示当前模式。
+5. 如果 `CONFIRM_REQ.md` 存在，优先提示存在未解决确认请求。
+6. 如果 `QUICK_SAVE.md` 比 `HANDOFF.md` 更新，则从快速保存恢复。
+7. 否则从 `HANDOFF.md` 恢复。
+8. 如果没有正式交接，则从 `ROADMAP.md` 第一个未完成任务开始。
+9. 显示当前模式。
 
 ### `$pause`
 
@@ -448,9 +571,11 @@ MVP 最小字段：
 1. 获取 Git 变更摘要。
 2. 检查 `test-results.json` 是否存在且新鲜。
 3. 读取 `BLOCKER.md`。
-4. 生成 `HANDOFF_DRAFT.md`。
-5. 如果存在 `QUICK_SAVE.md`，确认其状态已被草稿捕获后清理。
-6. 提醒用户审阅交接草稿，并通过模板或提升命令生成 `HANDOFF.md`。
+4. 读取 `CONFIRM_REQ.md`。
+5. 生成 `HANDOFF_DRAFT.md`。
+6. 如果存在 `CONFIRM_REQ.md`，确认其内容已进入草稿遗留问题后删除。
+7. 如果存在 `QUICK_SAVE.md`，确认其状态已被草稿捕获后清理。
+8. 提醒用户审阅交接草稿，并通过模板或提升命令生成 `HANDOFF.md`。
 
 ## 脚手架要求
 
@@ -466,6 +591,7 @@ louisgo init
 
 - 创建 `.louisgo/` 目录。
 - 创建必需 Markdown 文件。
+- 创建 `.louisgo/ADR/draft/` 目录。
 - 创建 `.louisgo/scripts/verify.sh`。
 - 创建 `.louisgo/scripts/verify.ps1`。
 - 如果目标文件已存在，不覆盖用户内容。

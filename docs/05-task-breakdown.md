@@ -120,6 +120,8 @@ MVP 分为 6 个阶段：
 - `TestResults`
 - `HandoffFrontMatter`
 - `QuickSaveFrontMatter`
+- `ConfirmReqFrontMatter`
+- `AdrFrontMatter`
 - `MissionFrontMatter`
 - `CapabilitiesFrontMatter`
 
@@ -133,6 +135,7 @@ MVP 分为 6 个阶段：
 
 - 覆盖合法 schema。
 - 覆盖非法模式、非法验证状态、缺失字段。
+- 覆盖确认请求和 ADR front matter。
 
 ### T005 实现 Markdown Front Matter 读写
 
@@ -225,6 +228,8 @@ MVP 分为 6 个阶段：
 - `src/templates/roadmap.ts`
 - `src/templates/blocker.ts`
 - `src/templates/capabilities.ts`
+- `src/templates/confirm-req.ts`
+- `src/templates/adr-draft.ts`
 - `src/templates/verify-sh.ts`
 - `src/templates/verify-ps1.ts`
 
@@ -232,6 +237,7 @@ MVP 分为 6 个阶段：
 
 - 模板内容符合协议文档。
 - 文档和代码注释使用简体中文。
+- ADR 草稿模板符合最小门禁要求。
 - `verify.sh` 和 `verify.ps1` 都能生成 `test-results.json` 的最小结构。
 
 测试要求：
@@ -256,6 +262,7 @@ MVP 分为 6 个阶段：
 
 - 当前目录不是 Git 仓库时失败并提示先执行 `git init`。
 - 创建 `.louisgo/` 和 `.louisgo/scripts/`。
+- 创建 `.louisgo/ADR/draft/`。
 - 创建 MVP 必需文件。
 - 不覆盖已有文件。
 - 输出下一步建议。
@@ -284,6 +291,8 @@ MVP 分为 6 个阶段：
 - 能读取当前模式。
 - 能读取当前任务。
 - 能识别 `QUICK_SAVE.md` 和 `HANDOFF.md` 的恢复优先级。
+- 能识别未解决的 `CONFIRM_REQ.md`。
+- 能识别 `ADR/draft/` 中的 ADR 草稿。
 
 测试要求：
 
@@ -291,6 +300,8 @@ MVP 分为 6 个阶段：
 - 缺失文件。
 - Front Matter 错误。
 - QUICK_SAVE 比 HANDOFF 更新。
+- 存在 CONFIRM_REQ。
+- 存在 ADR 草稿。
 
 ### T011 实现 `louisgo status`
 
@@ -312,6 +323,8 @@ MVP 分为 6 个阶段：
 - 输出协议完整性。
 - 输出恢复来源。
 - 输出验证状态占位。
+- 输出未解决确认请求。
+- 输出 ADR 草稿数量。
 
 测试要求：
 
@@ -456,28 +469,34 @@ MVP 分为 6 个阶段：
 
 ## P4 会话工作流命令
 
-### T017 实现 QUICK_SAVE 协议读写
+### T017 实现 QUICK_SAVE 和 CONFIRM_REQ 协议读写
 
 依赖：T005、T007、T013
 
 目标：
 
 - 支持 `$pause` 对应的文件状态。
+- 支持 `$decide` 对应的确认请求文件状态。
 
 产出：
 
 - `src/protocol/quick-save.ts`
+- `src/protocol/confirm-req.ts`
 
 完成标准：
 
 - 能生成 `QUICK_SAVE.md` Front Matter。
 - 能记录 `mode`、`task_id`、`git_head`、`diff_hash`、`saved_at`。
+- 能生成 `CONFIRM_REQ.md` Front Matter。
+- 同一时间只允许一个 open 确认请求。
 - 正文只生成占位，不通过参数传入。
 
 测试要求：
 
 - 生成合法 Quick Save。
 - 缺少任务时仍能生成明确占位。
+- 生成合法 Confirm Request。
+- 已存在未解决 Confirm Request 时返回明确状态。
 
 ### T018 实现 `louisgo pause`
 
@@ -507,7 +526,7 @@ MVP 分为 6 个阶段：
 
 ### T019 实现 HANDOFF_DRAFT 生成
 
-依赖：T005、T007、T014
+依赖：T014、T017
 
 目标：
 
@@ -524,6 +543,8 @@ MVP 分为 6 个阶段：
 - 写入当前模式、任务 ID、Git HEAD、diff hash、验证状态。
 - 包含 Git diff 摘要。
 - 包含 `BLOCKER.md` 摘要。
+- 包含未解决 `CONFIRM_REQ.md` 摘要。
+- 包含 `ADR/draft/` 草稿提示。
 - 包含下一步占位。
 - 不要求验证状态必须为 `passed`。
 
@@ -533,6 +554,8 @@ MVP 分为 6 个阶段：
 - 验证失败草稿。
 - 验证过期草稿。
 - 存在 blocker。
+- 存在未解决确认请求。
+- 存在 ADR 草稿。
 
 ### T020 实现 `louisgo finish`
 
@@ -551,6 +574,7 @@ MVP 分为 6 个阶段：
 
 - 生成 `HANDOFF_DRAFT.md`。
 - 不写入 `HANDOFF.md`。
+- 如果存在 `CONFIRM_REQ.md`，确认状态已进入草稿后删除。
 - 如果存在 `QUICK_SAVE.md`，确认状态已进入草稿后清理。
 - 不支持正文参数。
 - 输出下一步建议：review 草稿并执行 `louisgo handoff promote`。
@@ -559,6 +583,7 @@ MVP 分为 6 个阶段：
 
 - 正常生成草稿。
 - Quick Save 被正确处理。
+- Confirm Request 被正确转存并清理。
 - 验证缺失时草稿标记 `missing`。
 
 ### T021 实现 `louisgo handoff promote`
@@ -617,6 +642,7 @@ MVP 分为 6 个阶段：
 
 - macOS / Linux 主路径通过。
 - Windows 脚本选择有覆盖测试。
+- 未解决确认请求和 ADR 草稿能在 status / finish 中体现。
 
 ### T023 完善 README 和使用说明
 
@@ -698,7 +724,7 @@ T005 + T007 + T013
  └─ T017
      └─ T018
 
-T005 + T007 + T014
+T014 + T017
  └─ T019
      ├─ T020
      └─ T021
@@ -715,7 +741,7 @@ T009 + T011 + T016 + T018 + T020 + T021
 
 1. T001-T011：能初始化 `.louisgo/` 并查看状态。
 2. T012-T016：能运行验证并判断结果是否新鲜。
-3. T017-T021：能暂停、收尾和提升 handoff。
+3. T017-T021：能暂停、处理确认请求、收尾和提升 handoff。
 4. T022-T024：补齐端到端测试、文档和发布准备。
 
 第一切片完成后，LouisGo 已经能解决“协议落地和状态可见”问题。第二切片完成后，开始具备“验证事实可信”能力。第三切片完成后，才形成完整 AI 会话闭环。
