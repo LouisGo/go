@@ -24,7 +24,7 @@
 
 - [x] T008 实现模板生成
 - [x] T009 实现 `louisgo init`
-- [ ] T010 实现协议完整性检查
+- [x] T010 实现协议完整性检查
 - [ ] T011 实现 `louisgo status`
 
 ## P3 Git 状态、diff hash 和验证能力
