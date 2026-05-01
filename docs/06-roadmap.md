@@ -9,16 +9,16 @@
 
 ## P0 项目基础
 
-- [ ] T001 初始化 Node.js + TypeScript 项目
-- [ ] T002 配置代码质量基础
+- [x] T001 初始化 Node.js + TypeScript 项目
+- [x] T002 配置代码质量基础
 
 ## P1 协议模型和文件读写能力
 
-- [ ] T003 定义协议常量和路径解析
-- [ ] T004 定义协议 schema
-- [ ] T005 实现 Markdown Front Matter 读写
-- [ ] T006 实现安全写入
-- [ ] T007 实现 ROADMAP 解析
+- [x] T003 定义协议常量和路径解析
+- [x] T004 定义协议 schema
+- [x] T005 实现 Markdown Front Matter 读写
+- [x] T006 实现安全写入
+- [x] T007 实现 ROADMAP 解析
 
 ## P2 脚手架和状态检查
 
