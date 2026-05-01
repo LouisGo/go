@@ -119,11 +119,20 @@ describe("协议模板", () => {
     await using tempDir = await createTempDir();
     const scriptPath = join(tempDir.path, ".louisgo", "scripts", "verify.sh");
     const resultPath = join(tempDir.path, ".louisgo", "test-results.json");
+    const trackedPath = join(tempDir.path, "tracked.txt");
 
     await execFileAsync("git", ["init"], { cwd: tempDir.path });
+    await writeFile(trackedPath, "one\n", "utf8");
+    await execFileAsync("git", ["add", "tracked.txt"], { cwd: tempDir.path });
+    await execFileAsync(
+      "git",
+      ["-c", "user.email=a@example.com", "-c", "user.name=a", "commit", "-m", "init"],
+      { cwd: tempDir.path },
+    );
     await mkdirForFile(scriptPath);
     await writeFile(scriptPath, createVerifyShTemplate(), "utf8");
     await chmod(scriptPath, 0o755);
+    await writeFile(trackedPath, "two\n", "utf8");
     await execFileAsync("sh", [scriptPath], { cwd: tempDir.path });
 
     const result = testResultsSchema.parse(JSON.parse(await readFile(resultPath, "utf8")));
@@ -132,14 +141,20 @@ describe("协议模板", () => {
       schema: "louisgo-test-results-v1",
       command: ".louisgo/scripts/verify.sh",
       exitCode: 0,
-      status: "passed",
-      summary: "验证通过",
+      status: "skipped",
+      summary: "未配置项目验证命令，已跳过",
     });
     expect(result.gitHead.length).toBeGreaterThan(0);
     expect(result.diffHash).toMatch(/^[a-f0-9]{64}$/);
+
+    await writeFile(trackedPath, "three\n", "utf8");
+    await execFileAsync("sh", [scriptPath], { cwd: tempDir.path });
+
+    const nextResult = testResultsSchema.parse(JSON.parse(await readFile(resultPath, "utf8")));
+    expect(nextResult.diffHash).not.toBe(result.diffHash);
   });
 
-  it("verify.ps1 模板包含 test-results.json 最小字段", () => {
+  it("verify.ps1 模板包含 test-results.json 最小字段", async () => {
     const template = createVerifyPs1Template();
 
     expect(template).toContain('schema = "louisgo-test-results-v1"');
@@ -147,6 +162,30 @@ describe("协议模板", () => {
     expect(template).toContain("diff_hash = $DiffHash");
     expect(template).toContain("status = $Status");
     expect(template).toContain(".louisgo/test-results.json");
+
+    if (!(await hasPwsh())) {
+      return;
+    }
+
+    await using tempDir = await createTempDir();
+    const scriptPath = join(tempDir.path, ".louisgo", "scripts", "verify.ps1");
+    const resultPath = join(tempDir.path, ".louisgo", "test-results.json");
+
+    await execFileAsync("git", ["init"], { cwd: tempDir.path });
+    await mkdirForFile(scriptPath);
+    await writeFile(scriptPath, template, "utf8");
+    await execFileAsync("pwsh", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath], {
+      cwd: tempDir.path,
+    });
+
+    const result = testResultsSchema.parse(JSON.parse(await readFile(resultPath, "utf8")));
+    expect(result).toMatchObject({
+      schema: "louisgo-test-results-v1",
+      command: ".louisgo/scripts/verify.ps1",
+      exitCode: 0,
+      status: "skipped",
+      summary: "未配置项目验证命令，已跳过",
+    });
   });
 });
 
@@ -167,4 +206,13 @@ async function createTempDir(): Promise<TempDir> {
 
 async function mkdirForFile(filePath: string): Promise<void> {
   await mkdir(dirname(filePath), { recursive: true });
+}
+
+async function hasPwsh(): Promise<boolean> {
+  try {
+    await execFileAsync("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]);
+    return true;
+  } catch {
+    return false;
+  }
 }
