@@ -27,6 +27,7 @@ describe("Markdown Front Matter 读写", () => {
         updated_at: timestamp,
       },
       "# Mission\n\n## 项目目标\n",
+      missionFrontMatterSchema,
     );
 
     const raw = await readFile(filePath, "utf8");
@@ -71,12 +72,15 @@ describe("Markdown Front Matter 读写", () => {
     await using tempDir = await createTempDir();
     const filePath = join(tempDir.path, "MISSION.md");
 
-    await writeFrontMatter(
+    await writeFile(
       filePath,
-      {
-        schema: "louisgo-quick-save-v1",
-      },
-      "# Mission\n",
+      `---
+schema: louisgo-quick-save-v1
+---
+
+# Mission
+`,
+      "utf8",
     );
 
     await expect(readFrontMatter(filePath, missionFrontMatterSchema)).rejects.toSatisfy(
@@ -85,6 +89,51 @@ describe("Markdown Front Matter 读写", () => {
         error.code === frontMatterErrorCodes.schemaInvalid &&
         error.filePath === filePath &&
         error.issues?.some((issue) => issue.field === "schema") === true &&
+        error.issues?.some((issue) => issue.field === "default_mode") === true,
+    );
+  });
+
+  it("缺少 Front Matter 结束分隔符时返回明确错误", async () => {
+    await using tempDir = await createTempDir();
+    const filePath = join(tempDir.path, "MISSION.md");
+
+    await writeFile(
+      filePath,
+      `---
+schema: louisgo-mission-v1
+default_mode: assist
+updated_at: ${timestamp}
+# Mission
+`,
+      "utf8",
+    );
+
+    await expect(readFrontMatter(filePath, missionFrontMatterSchema)).rejects.toMatchObject({
+      code: frontMatterErrorCodes.malformedFrontMatter,
+      filePath,
+    });
+  });
+
+  it("写入时校验协议字段，避免内部 camelCase 对象直接写回", async () => {
+    await using tempDir = await createTempDir();
+    const filePath = join(tempDir.path, "MISSION.md");
+
+    await expect(
+      writeFrontMatter(
+        filePath,
+        {
+          schema: "louisgo-mission-v1",
+          defaultMode: "assist",
+          updatedAt: timestamp,
+        },
+        "# Mission\n",
+        missionFrontMatterSchema,
+      ),
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof FrontMatterError &&
+        error.code === frontMatterErrorCodes.schemaInvalid &&
+        error.filePath === filePath &&
         error.issues?.some((issue) => issue.field === "default_mode") === true,
     );
   });

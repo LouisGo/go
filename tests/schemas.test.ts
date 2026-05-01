@@ -118,6 +118,22 @@ describe("协议 schema", () => {
         summary: "验证通过",
       }).success,
     ).toBe(false);
+
+    expect(
+      missionFrontMatterSchema.safeParse({
+        schema: "louisgo-mission-v1",
+        default_mode: "assist",
+        updated_at: "May 1, 2026",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      missionFrontMatterSchema.safeParse({
+        schema: "louisgo-mission-v1",
+        default_mode: "assist",
+        updated_at: "2026-05-01T20:00:00",
+      }).success,
+    ).toBe(false);
   });
 
   it("覆盖确认请求和 ADR front matter", () => {

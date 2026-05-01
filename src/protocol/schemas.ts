@@ -17,10 +17,7 @@ export const testResultStatusSchema = z.enum(["passed", "failed", "error", "skip
 export type TestResultStatus = z.infer<typeof testResultStatusSchema>;
 
 const nonEmptyStringSchema = z.string().min(1);
-const isoDateTimeSchema = nonEmptyStringSchema.refine(
-  (value) => !Number.isNaN(Date.parse(value)),
-  "必须是可解析的日期时间字符串",
-);
+const isoDateTimeSchema = z.iso.datetime({ offset: true });
 const taskIdSchema = z.string().regex(/^T\d{3,}$/, "任务 ID 必须类似 T001");
 const nullableStringSchema = z.string().min(1).nullable();
 const nullableDateTimeSchema = isoDateTimeSchema.nullable();

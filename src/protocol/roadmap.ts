@@ -34,7 +34,7 @@ export class RoadmapParseError extends Error {
   }
 }
 
-const taskLinePattern = /^\s*-\s+\[(?<mark>[ xX])\]\s+(?<taskId>\S+)(?:\s+(?<title>.*))?\s*$/;
+const checkboxLinePattern = /^\s*-\s+\[(?<mark>[ xX])\](?:\s+(?<text>.*))?\s*$/;
 const stableTaskIdPattern = /^T\d{3,}$/;
 
 export function parseRoadmap(markdown: string): RoadmapParseResult {
@@ -44,25 +44,27 @@ export function parseRoadmap(markdown: string): RoadmapParseResult {
 
   for (const [index, line] of markdown.split(/\r?\n/).entries()) {
     const lineNumber = index + 1;
-    const match = taskLinePattern.exec(line);
+    const match = checkboxLinePattern.exec(line);
 
     if (match?.groups === undefined) {
       continue;
     }
 
-    const taskId = match.groups.taskId;
     const mark = match.groups.mark;
+    const text = match.groups.text?.trim() ?? "";
+    const [taskId, ...titleParts] = text.split(/\s+/);
 
-    if (taskId === undefined || mark === undefined) {
+    if (mark === undefined) {
       continue;
     }
 
-    if (!stableTaskIdPattern.test(taskId)) {
+    if (taskId === undefined || taskId.length === 0 || !stableTaskIdPattern.test(taskId)) {
+      const invalidTaskId = taskId ?? "";
       issues.push({
         code: roadmapErrorCodes.invalidTaskId,
         line: lineNumber,
-        taskId,
-        message: `非法任务 ID：${taskId}`,
+        taskId: invalidTaskId,
+        message: invalidTaskId.length === 0 ? "缺少任务 ID" : `非法任务 ID：${invalidTaskId}`,
       });
       continue;
     }
@@ -82,7 +84,7 @@ export function parseRoadmap(markdown: string): RoadmapParseResult {
     seenTaskIds.set(taskId, lineNumber);
     tasks.push({
       id: taskId,
-      title: match.groups.title?.trim() ?? "",
+      title: titleParts.join(" "),
       completed: mark.toLowerCase() === "x",
       line: lineNumber,
     });

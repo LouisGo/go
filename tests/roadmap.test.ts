@@ -82,4 +82,40 @@ describe("ROADMAP 解析", () => {
       ]);
     }
   });
+
+  it("检测缺少稳定任务 ID 的 checkbox 任务行", () => {
+    expect(() => parseRoadmap("- [ ] 实现模板生成\n")).toThrowError(RoadmapParseError);
+
+    try {
+      parseRoadmap("- [ ] 实现模板生成\n");
+    } catch (error) {
+      expect(error).toBeInstanceOf(RoadmapParseError);
+      expect((error as RoadmapParseError).issues).toEqual([
+        {
+          code: roadmapErrorCodes.invalidTaskId,
+          line: 1,
+          taskId: "实现模板生成",
+          message: "非法任务 ID：实现模板生成",
+        },
+      ]);
+    }
+  });
+
+  it("检测空 checkbox 任务行", () => {
+    expect(() => parseRoadmap("- [ ]\n")).toThrowError(RoadmapParseError);
+
+    try {
+      parseRoadmap("- [ ]\n");
+    } catch (error) {
+      expect(error).toBeInstanceOf(RoadmapParseError);
+      expect((error as RoadmapParseError).issues).toEqual([
+        {
+          code: roadmapErrorCodes.invalidTaskId,
+          line: 1,
+          taskId: "",
+          message: "缺少任务 ID",
+        },
+      ]);
+    }
+  });
 });

@@ -25,9 +25,9 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 
 ## 当前阶段
 
-当前处于设计完成、尚未开始代码实现阶段。
+当前处于 MVP 代码实现阶段，已完成 T001-T007。
 
-已完成文档：
+已完成：
 
 - 产品需求
 - 技术选型
@@ -37,13 +37,22 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 - MVP 路线图
 - 开放问题
 - 决策日志
+- Node.js + TypeScript 工程骨架
+- 代码质量基础
+- 协议路径和工作区定位
+- 核心协议 schema
+- Markdown Front Matter 读写
+- 安全写入
+- ROADMAP 解析
 
 尚未完成：
 
-- Node.js + TypeScript 工程骨架
-- CLI 实现
 - `.louisgo/` 脚手架
+- `louisgo init`
+- 协议完整性检查
+- `louisgo status`
 - Git 和验证逻辑
+- 会话工作流命令
 - 端到端测试
 - npm 发布准备
 
@@ -198,14 +207,15 @@ AI 不应默认读取所有文档。
 当前下一步任务：
 
 ```text
-T001 初始化 Node.js + TypeScript 项目
+T008 实现模板生成
 ```
 
-开始 T001 前建议读取：
+开始 T008 前建议读取：
 
-- `docs/02-technology-selection.md`
-- `docs/03-architecture.md` 的推荐项目结构
-- `docs/05-task-breakdown.md` 中 T001
+- `docs/05-task-breakdown.md` 中 T008
+- `docs/04-harness-protocol.md`
+- `docs/03-architecture.md` 中 `louisgo init`
+- `docs/08-decision-log.md` 中 D012、D016-D018
 - `docs/06-roadmap.md`
 
 ## 给 AI 的执行约束

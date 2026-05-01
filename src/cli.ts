@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { pathToFileURL } from "node:url";
+import { realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 export function createCli(): Command {
   const program = new Command();
@@ -20,10 +21,24 @@ export async function main(argv: string[] = process.argv): Promise<void> {
   await program.parseAsync(argv);
 }
 
-const isDirectRun =
-  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+export function isDirectRun(
+  entryUrl: string = import.meta.url,
+  argv: readonly string[] = process.argv,
+): boolean {
+  const scriptPath = argv[1];
 
-if (isDirectRun) {
+  if (scriptPath === undefined) {
+    return false;
+  }
+
+  try {
+    return realpathSync(fileURLToPath(entryUrl)) === realpathSync(scriptPath);
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectRun()) {
   main().catch((error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     console.error(message);
