@@ -31,10 +31,12 @@ export function formatStatusReport(status: ProtocolStatus): string {
 
 function formatRecoverySource(source: RecoverySource): string {
   switch (source) {
-    case "quick_save":
-      return "QUICK_SAVE";
     case "handoff":
       return "HANDOFF";
+    case "state":
+      return "STATE";
+    case "quick_save":
+      return "QUICK_SAVE";
     case "none":
       return "无";
   }

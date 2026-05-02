@@ -5,6 +5,8 @@ export const louisgoDirectoryName = ".louisgo";
 export const protocolFileNames = {
   mission: "MISSION.md",
   roadmap: "ROADMAP.md",
+  state: "STATE.md",
+  memory: "MEMORY.md",
   handoff: "HANDOFF.md",
   handoffDraft: "HANDOFF_DRAFT.md",
   quickSave: "QUICK_SAVE.md",
@@ -17,6 +19,8 @@ export const protocolFileNames = {
 export const protocolDirectoryNames = {
   adr: "ADR",
   adrDraft: "draft",
+  memory: "memory",
+  sessions: "sessions",
   scripts: "scripts",
 } as const;
 
@@ -29,6 +33,8 @@ export const protocolRelativePaths = {
   louisgoDir: louisgoDirectoryName,
   mission: protocolRelativePath(protocolFileNames.mission),
   roadmap: protocolRelativePath(protocolFileNames.roadmap),
+  state: protocolRelativePath(protocolFileNames.state),
+  memory: protocolRelativePath(protocolFileNames.memory),
   handoff: protocolRelativePath(protocolFileNames.handoff),
   handoffDraft: protocolRelativePath(protocolFileNames.handoffDraft),
   quickSave: protocolRelativePath(protocolFileNames.quickSave),
@@ -38,6 +44,8 @@ export const protocolRelativePaths = {
   testResults: protocolRelativePath(protocolFileNames.testResults),
   adrDir: protocolRelativePath(protocolDirectoryNames.adr),
   adrDraftDir: protocolRelativePath(protocolDirectoryNames.adr, protocolDirectoryNames.adrDraft),
+  memoryDir: protocolRelativePath(protocolDirectoryNames.memory),
+  sessionsDir: protocolRelativePath(protocolDirectoryNames.sessions),
   scriptsDir: protocolRelativePath(protocolDirectoryNames.scripts),
   verifySh: protocolRelativePath(protocolDirectoryNames.scripts, protocolScriptNames.verifySh),
   verifyPs1: protocolRelativePath(protocolDirectoryNames.scripts, protocolScriptNames.verifyPs1),
@@ -48,6 +56,8 @@ export interface ProtocolPaths {
   readonly louisgoDir: string;
   readonly mission: string;
   readonly roadmap: string;
+  readonly state: string;
+  readonly memory: string;
   readonly handoff: string;
   readonly handoffDraft: string;
   readonly quickSave: string;
@@ -57,6 +67,8 @@ export interface ProtocolPaths {
   readonly testResults: string;
   readonly adrDir: string;
   readonly adrDraftDir: string;
+  readonly memoryDir: string;
+  readonly sessionsDir: string;
   readonly scriptsDir: string;
   readonly verifySh: string;
   readonly verifyPs1: string;
@@ -70,6 +82,8 @@ export function createProtocolPaths(workspaceRoot: string): ProtocolPaths {
     louisgoDir: absoluteProtocolPath(root),
     mission: absoluteProtocolPath(root, protocolFileNames.mission),
     roadmap: absoluteProtocolPath(root, protocolFileNames.roadmap),
+    state: absoluteProtocolPath(root, protocolFileNames.state),
+    memory: absoluteProtocolPath(root, protocolFileNames.memory),
     handoff: absoluteProtocolPath(root, protocolFileNames.handoff),
     handoffDraft: absoluteProtocolPath(root, protocolFileNames.handoffDraft),
     quickSave: absoluteProtocolPath(root, protocolFileNames.quickSave),
@@ -83,6 +97,8 @@ export function createProtocolPaths(workspaceRoot: string): ProtocolPaths {
       protocolDirectoryNames.adr,
       protocolDirectoryNames.adrDraft,
     ),
+    memoryDir: absoluteProtocolPath(root, protocolDirectoryNames.memory),
+    sessionsDir: absoluteProtocolPath(root, protocolDirectoryNames.sessions),
     scriptsDir: absoluteProtocolPath(root, protocolDirectoryNames.scripts),
     verifySh: absoluteProtocolPath(
       root,

@@ -25,7 +25,7 @@ describe("status 命令", () => {
 
     expect(stdout.text).toContain("[assist] 协议完整，当前任务 T001");
     expect(stdout.text).toContain("验证状态 missing");
-    expect(stdout.text).toContain("恢复来源 无");
+    expect(stdout.text).toContain("恢复来源 STATE");
     expect(stdout.text).not.toContain("需要处理的问题");
     expect(initResult.workspaceRoot.length).toBeGreaterThan(0);
   });

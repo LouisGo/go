@@ -17,7 +17,10 @@ describe("Codex 集成安装", () => {
 
     const result = await setupCodex({ cwd: repo.path, codexHome: codex.path });
 
-    expect(result.files).toHaveLength(18);
+    expect(result.files).toHaveLength(20);
+    await expect(
+      readFile(join(codex.path, "skills", "init", "SKILL.md"), "utf8"),
+    ).resolves.toContain("louisgo init");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo status");
@@ -26,13 +29,13 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("node ./dist/cli.js <subcommand>");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
-    ).resolves.toContain("中文：LouisGo 启动：读取协议状态");
+    ).resolves.toContain("中文：LouisGo 启动：深度读取正式交接");
     await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
     ).resolves.toContain('display_name: "$start"');
     await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
-    ).resolves.toContain("读取协议状态");
+    ).resolves.toContain("深度读取正式交接");
     await expect(
       readFile(join(codex.path, "skills", "finish", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo finish");
@@ -40,6 +43,7 @@ describe("Codex 集成安装", () => {
       readFile(join(codex.path, "skills", "handoff-promote", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo handoff promote");
     for (const skill of [
+      "init",
       "start",
       "status",
       "verify",
@@ -59,16 +63,14 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("LouisGo Workflow");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
-    ).resolves.toContain("中文：LouisGo 工作流：识别指令");
+    ).resolves.toContain("中文：LouisGo 工作流：自动读取项目记忆");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "agents", "openai.yaml"), "utf8"),
-    ).resolves.toContain("LouisGo 工作流：识别 $start");
+    ).resolves.toContain("自动读取 .louisgo 记忆");
     await expect(readFile(join(codex.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "louisgo-codex:start",
     );
-    await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
-      "louisgo status",
-    );
+    await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain("HANDOFF.md");
     await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "node ./dist/cli.js <subcommand>",
     );

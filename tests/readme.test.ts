@@ -8,7 +8,7 @@ import { createCli } from "../src/cli.js";
 const readmePath = join(process.cwd(), "README.md");
 
 describe("README 使用说明", () => {
-  it("记录的 CLI 命令和实际命令保持一致", async () => {
+  it("记录主路径和保留命令", async () => {
     const readme = await readFile(readmePath, "utf8");
     const program = createCli();
     const commandNames = program.commands.map((command) => command.name());
@@ -16,18 +16,19 @@ describe("README 使用说明", () => {
 
     for (const command of ["init", "status", "verify", "pause", "finish", "handoff", "codex"]) {
       expect(commandNames).toContain(command);
-      expect(readme).toContain(`louisgo ${command}`);
     }
 
     expect(handoff?.commands.map((command) => command.name())).toContain("promote");
+    expect(readme).toContain("npx louisgo init");
+    expect(readme).toContain("$start");
+    expect(readme).toContain("$finish");
+    expect(readme).toContain("HANDOFF.md -> STATE.md -> MEMORY.md");
     expect(readme).toContain("louisgo handoff promote");
-    expect(readme).toContain("$handoff-promote");
     expect(
       program.commands
         .find((command) => command.name() === "codex")
         ?.commands.map((command) => command.name()),
     ).toContain("setup");
     expect(readme).toContain("louisgo codex setup");
-    expect(readme).toContain("npx louisgo init");
   });
 });

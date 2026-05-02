@@ -61,13 +61,13 @@ export function registerFinishCommand(
 function formatFinishReport(result: FinishServiceResult): string {
   return (
     [
-      `LouisGo 交接草稿已生成：${result.filePath}`,
+      `LouisGo 正式交接已更新：${result.filePath}`,
       `当前任务：${result.frontMatter.taskId}`,
       `验证状态：${result.verification}`,
       `Confirm Request：${formatCleanup(result.confirmReqCleanup)}`,
       `Quick Save：${formatCleanup(result.quickSaveCleanup)}`,
-      "HANDOFF.md：未写入",
-      "下一步：审阅 HANDOFF_DRAFT.md 并执行 louisgo handoff promote",
+      `STATE.md：已更新（${result.statePath}）`,
+      "下一步：新会话会优先读取 HANDOFF.md；继续修改后请重新运行 louisgo verify",
     ].join("\n") + "\n"
   );
 }

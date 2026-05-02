@@ -5,8 +5,10 @@ import { findGitRoot } from "../fs/workspace.js";
 import { createProtocolPaths } from "../protocol/paths.js";
 import { createBlockerTemplate } from "../templates/blocker.js";
 import { createCapabilitiesTemplate } from "../templates/capabilities.js";
+import { createMemoryTemplate } from "../templates/memory.js";
 import { createMissionTemplate } from "../templates/mission.js";
 import { createRoadmapTemplate } from "../templates/roadmap.js";
+import { createStateTemplate } from "../templates/state.js";
 import { createVerifyPs1Template } from "../templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../templates/verify-sh.js";
 
@@ -37,7 +39,14 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
   const workspaceRoot = await findGitRoot(options.cwd);
   const paths = createProtocolPaths(workspaceRoot);
   const timestamp = (options.now?.() ?? new Date()).toISOString();
-  const directories = [paths.louisgoDir, paths.scriptsDir, paths.adrDir, paths.adrDraftDir];
+  const directories = [
+    paths.louisgoDir,
+    paths.scriptsDir,
+    paths.adrDir,
+    paths.adrDraftDir,
+    paths.memoryDir,
+    paths.sessionsDir,
+  ];
 
   for (const directory of directories) {
     await mkdir(directory, { recursive: true });
@@ -51,6 +60,14 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     {
       filePath: paths.roadmap,
       content: createRoadmapTemplate(),
+    },
+    {
+      filePath: paths.state,
+      content: createStateTemplate({ updatedAt: timestamp }),
+    },
+    {
+      filePath: paths.memory,
+      content: createMemoryTemplate({ updatedAt: timestamp }),
     },
     {
       filePath: paths.blocker,
@@ -75,7 +92,7 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     workspaceRoot,
     directories,
     files,
-    nextSteps: ["运行 louisgo status 查看协议状态"],
+    nextSteps: ["新会话会自动读取 LouisGo 上下文", "需要深度重建时输入 $start"],
   };
 }
 

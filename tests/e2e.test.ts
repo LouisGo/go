@@ -17,17 +17,18 @@ describe("CLI 端到端工作流", () => {
     await execFileAsync("pnpm", ["build"], { cwd: projectRoot });
   }, 120_000);
 
-  it("macOS / Linux 主流程可以从 init 跑到 handoff promote", async () => {
+  it("macOS / Linux 主流程可以从 init 跑到 finish", async () => {
     await using repo = await createGitRepo();
 
     const init = await runCli(repo.path, ["init"]);
     expect(init.stdout).toContain("LouisGo 初始化完成");
-    expect(init.stdout).toContain("下一步：运行 louisgo status 查看协议状态");
+    expect(init.stdout).toContain("Codex 集成：完成");
+    expect(init.stdout).toContain("下一步：新会话会自动读取 LouisGo 上下文");
 
     const initialStatus = await runCli(repo.path, ["status"]);
     expect(initialStatus.stdout).toContain("[assist] 协议完整，当前任务 T001");
     expect(initialStatus.stdout).toContain("验证状态 missing");
-    expect(initialStatus.stdout).toContain("恢复来源 无");
+    expect(initialStatus.stdout).toContain("恢复来源 STATE");
 
     const verify = await runCli(repo.path, ["verify"], { allowedExitCodes: [1] });
     expect(verify.stdout).toContain("验证脚本：.louisgo/scripts/verify.sh");
@@ -42,20 +43,15 @@ describe("CLI 端到端工作流", () => {
     expect(pause.stdout).toContain("LouisGo 暂停状态已创建");
 
     const pausedStatus = await runCli(repo.path, ["status"]);
-    expect(pausedStatus.stdout).toContain("恢复来源 QUICK_SAVE");
+    expect(pausedStatus.stdout).toContain("恢复来源 STATE");
 
     const finish = await runCli(repo.path, ["finish"]);
-    expect(finish.stdout).toContain("LouisGo 交接草稿已生成");
+    expect(finish.stdout).toContain("LouisGo 正式交接已更新");
     expect(finish.stdout).toContain("验证状态：stale");
     expect(finish.stdout).toContain("Quick Save：已转存并清理");
-    await expect(access(join(repo.path, ".louisgo", "HANDOFF_DRAFT.md"))).resolves.toBeUndefined();
-    await expectFileMissing(join(repo.path, ".louisgo", "QUICK_SAVE.md"));
-
-    const promote = await runCli(repo.path, ["handoff", "promote"]);
-    expect(promote.stdout).toContain("LouisGo 正式交接已生成");
-    expect(promote.stdout).toContain("验证状态：stale");
     await expect(access(join(repo.path, ".louisgo", "HANDOFF.md"))).resolves.toBeUndefined();
-    await expect(access(join(repo.path, ".louisgo", "HANDOFF_DRAFT.md"))).resolves.toBeUndefined();
+    await expectFileMissing(join(repo.path, ".louisgo", "HANDOFF_DRAFT.md"));
+    await expectFileMissing(join(repo.path, ".louisgo", "QUICK_SAVE.md"));
 
     const finalStatus = await runCli(repo.path, ["status"]);
     expect(finalStatus.stdout).toContain("验证状态 stale");
@@ -76,10 +72,10 @@ describe("CLI 端到端工作流", () => {
     const finish = await runCli(repo.path, ["finish"]);
     expect(finish.stdout).toContain("Confirm Request：已转存并清理");
 
-    const draft = await readFile(join(repo.path, ".louisgo", "HANDOFF_DRAFT.md"), "utf8");
-    expect(draft).toContain("存在未解决确认请求：T001");
-    expect(draft).toContain("## 选项");
-    expect(draft).toContain("- 001-e2e.md");
+    const handoff = await readFile(join(repo.path, ".louisgo", "HANDOFF.md"), "utf8");
+    expect(handoff).toContain("存在未解决确认请求：T001");
+    expect(handoff).toContain("## 选项");
+    expect(handoff).toContain("- 001-e2e.md");
     await expectFileMissing(join(repo.path, ".louisgo", "CONFIRM_REQ.md"));
   });
 });
@@ -121,6 +117,7 @@ async function runCli(
     const result = await execFileAsync(process.execPath, [cliPath, ...args], {
       cwd,
       encoding: "utf8",
+      env: { ...process.env, CODEX_HOME: join(tmpdir(), "louisgo-e2e-codex-home") },
     });
 
     return {

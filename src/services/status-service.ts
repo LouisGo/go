@@ -10,8 +10,10 @@ import {
   capabilitiesFrontMatterSchema,
   confirmReqFrontMatterSchema,
   handoffFrontMatterSchema,
+  memoryFrontMatterSchema,
   missionFrontMatterSchema,
   quickSaveFrontMatterSchema,
+  stateFrontMatterSchema,
   type LouisGoMode,
   type VerificationStatus,
 } from "../protocol/schemas.js";
@@ -26,7 +28,7 @@ export const protocolIssueCodes = {
 } as const;
 
 export type ProtocolIssueCode = (typeof protocolIssueCodes)[keyof typeof protocolIssueCodes];
-export type RecoverySource = "quick_save" | "handoff" | "none";
+export type RecoverySource = "handoff" | "state" | "quick_save" | "none";
 export type StatusVerificationState = VerificationStatus | "unchecked";
 
 export interface ProtocolIssue {
@@ -93,8 +95,12 @@ async function checkRequiredPaths(paths: ProtocolPaths, issues: ProtocolIssue[])
     { filePath: paths.scriptsDir, kind: "directory" },
     { filePath: paths.adrDir, kind: "directory" },
     { filePath: paths.adrDraftDir, kind: "directory" },
+    { filePath: paths.memoryDir, kind: "directory" },
+    { filePath: paths.sessionsDir, kind: "directory" },
     { filePath: paths.mission, kind: "file" },
     { filePath: paths.roadmap, kind: "file" },
+    { filePath: paths.state, kind: "file" },
+    { filePath: paths.memory, kind: "file" },
     { filePath: paths.blocker, kind: "file" },
     { filePath: paths.capabilities, kind: "file" },
     { filePath: paths.verifySh, kind: "file" },
@@ -168,6 +174,8 @@ async function validateOptionalFrontMatter(
       { filePath: paths.quickSave, schema: quickSaveFrontMatterSchema },
       { filePath: paths.handoff, schema: handoffFrontMatterSchema },
       { filePath: paths.confirmReq, schema: confirmReqFrontMatterSchema },
+      { filePath: paths.state, schema: stateFrontMatterSchema },
+      { filePath: paths.memory, schema: memoryFrontMatterSchema },
     ] as const;
 
   for (const file of optionalFiles) {
@@ -184,18 +192,16 @@ async function validateOptionalFrontMatter(
 }
 
 async function detectRecoverySource(paths: ProtocolPaths): Promise<RecoverySource> {
-  const quickSaveStat = await statIfExists(paths.quickSave);
-  const handoffStat = await statIfExists(paths.handoff);
-
-  if (
-    quickSaveStat !== null &&
-    (handoffStat === null || quickSaveStat.mtimeMs > handoffStat.mtimeMs)
-  ) {
-    return "quick_save";
+  if ((await statIfExists(paths.handoff)) !== null) {
+    return "handoff";
   }
 
-  if (handoffStat !== null) {
-    return "handoff";
+  if ((await statIfExists(paths.state)) !== null) {
+    return "state";
+  }
+
+  if ((await statIfExists(paths.quickSave)) !== null) {
+    return "quick_save";
   }
 
   return "none";

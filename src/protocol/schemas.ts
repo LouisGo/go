@@ -153,3 +153,37 @@ export const capabilitiesFrontMatterSchema = z
     updatedAt: data.updated_at,
   }));
 export type CapabilitiesFrontMatter = z.output<typeof capabilitiesFrontMatterSchema>;
+
+export const stateFrontMatterSchema = z
+  .object({
+    schema: z.literal("louisgo-state-v1"),
+    mode: louisGoModeSchema,
+    current_task: taskReferenceSchema,
+    handoff: z.string().min(1).optional(),
+    verification: verificationStatusSchema,
+    git_head: nonEmptyStringSchema,
+    diff_hash: nonEmptyStringSchema,
+    updated_at: isoDateTimeSchema,
+  })
+  .transform((data) => ({
+    schema: data.schema,
+    mode: data.mode,
+    currentTask: data.current_task,
+    ...(data.handoff === undefined ? {} : { handoff: data.handoff }),
+    verification: data.verification,
+    gitHead: data.git_head,
+    diffHash: data.diff_hash,
+    updatedAt: data.updated_at,
+  }));
+export type StateFrontMatter = z.output<typeof stateFrontMatterSchema>;
+
+export const memoryFrontMatterSchema = z
+  .object({
+    schema: z.literal("louisgo-memory-v1"),
+    updated_at: isoDateTimeSchema,
+  })
+  .transform((data) => ({
+    schema: data.schema,
+    updatedAt: data.updated_at,
+  }));
+export type MemoryFrontMatter = z.output<typeof memoryFrontMatterSchema>;

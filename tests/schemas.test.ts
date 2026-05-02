@@ -6,9 +6,11 @@ import {
   confirmReqFrontMatterSchema,
   handoffFrontMatterSchema,
   louisGoModeSchema,
+  memoryFrontMatterSchema,
   missingTaskId,
   missionFrontMatterSchema,
   quickSaveFrontMatterSchema,
+  stateFrontMatterSchema,
   testResultsSchema,
   verificationStatusSchema,
 } from "../src/protocol/schemas.js";
@@ -89,6 +91,33 @@ describe("协议 schema", () => {
       }),
     ).toEqual({
       schema: "louisgo-capabilities-v1",
+      updatedAt: timestamp,
+    });
+
+    expect(
+      stateFrontMatterSchema.parse({
+        schema: "louisgo-state-v1",
+        mode: "assist",
+        current_task: "T001",
+        handoff: ".louisgo/HANDOFF.md",
+        verification: "missing",
+        git_head: "abc123",
+        diff_hash: "def456",
+        updated_at: timestamp,
+      }),
+    ).toMatchObject({
+      currentTask: "T001",
+      handoff: ".louisgo/HANDOFF.md",
+      verification: "missing",
+    });
+
+    expect(
+      memoryFrontMatterSchema.parse({
+        schema: "louisgo-memory-v1",
+        updated_at: timestamp,
+      }),
+    ).toEqual({
+      schema: "louisgo-memory-v1",
       updatedAt: timestamp,
     });
   });

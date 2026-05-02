@@ -26,6 +26,7 @@ export type CodexSetupStatus = (typeof codexSetupStatuses)[keyof typeof codexSet
 export interface CodexSetupOptions {
   readonly cwd?: string;
   readonly codexHome?: string;
+  readonly env?: NodeJS.ProcessEnv;
 }
 
 export interface CodexSetupFileResult {
@@ -42,7 +43,9 @@ export interface CodexSetupResult {
 
 export async function setupCodex(options: CodexSetupOptions = {}): Promise<CodexSetupResult> {
   const workspaceRoot = await findGitRoot(options.cwd);
-  const codexHome = resolve(options.codexHome ?? join(homedir(), ".codex"));
+  const codexHome = resolve(
+    options.codexHome ?? (options.env ?? process.env).CODEX_HOME ?? join(homedir(), ".codex"),
+  );
   const skillsDir = join(codexHome, "skills");
   await rm(join(skillsDir, "louisgo-workflow"), { force: true, recursive: true });
 
@@ -70,23 +73,30 @@ export async function setupCodex(options: CodexSetupOptions = {}): Promise<Codex
     workspaceRoot,
     codexHome,
     files,
-    nextSteps: [
-      "新开 Codex 会话或重启 Codex 后输入 $start",
-      "在当前仓库运行 louisgo status 确认协议状态",
-    ],
+    nextSteps: ["新会话会自动读取 LouisGo 上下文", "需要深度重建时输入 $start"],
   };
 }
 
 const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
   {
+    name: "init",
+    directive: "$init",
+    title: "LouisGo 初始化",
+    shortDescription: "LouisGo 初始化：创建协议目录并安装 Codex 集成",
+    description:
+      "Use when the user enters $init in Codex. Initializes LouisGo protocol files and Codex integration for the current repository.",
+    action:
+      "- Run `louisgo init`.\n- Report that `.louisgo/` protocol files were created or skipped safely.\n- Report Codex integration status and the next action.",
+  },
+  {
     name: "start",
     directive: "$start",
     title: "LouisGo 启动",
-    shortDescription: "LouisGo 启动：读取协议状态、项目约束、能力声明和恢复来源",
+    shortDescription: "LouisGo 启动：深度读取正式交接、当前状态和项目记忆",
     description:
       "Use when the user enters $start in Codex. Runs the LouisGo start workflow for the current repository.",
     action:
-      "- Run `louisgo status`.\n- Read `.louisgo/MISSION.md` and `.louisgo/CAPABILITIES.md`.\n- If status reports `CONFIRM_REQ`, `QUICK_SAVE`, or `HANDOFF`, read the corresponding file before advising next steps.\n- Report mode, current task, verification state, recovery source, and next action.",
+      "- Run `louisgo status`.\n- Read `.louisgo/MISSION.md` and `.louisgo/CAPABILITIES.md`.\n- If `.louisgo/CONFIRM_REQ.md` exists, read it first and report the pending decision.\n- Read `.louisgo/HANDOFF.md` when present, then `.louisgo/STATE.md` and `.louisgo/MEMORY.md`.\n- Report mode, current task, verification state, recovery source, restored context, and first next action.",
   },
   {
     name: "status",
@@ -112,7 +122,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "pause",
     directive: "$pause",
     title: "LouisGo 暂停",
-    shortDescription: "LouisGo 暂停：写入 QUICK_SAVE.md 作为短时恢复点",
+    shortDescription: "LouisGo 暂停：兼容旧流程，写入 QUICK_SAVE.md",
     description:
       "Use when the user enters $pause in Codex. Writes a LouisGo Quick Save checkpoint.",
     action:
@@ -122,26 +132,26 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "resume",
     directive: "$resume",
     title: "LouisGo 恢复",
-    shortDescription: "LouisGo 恢复：按 HANDOFF 或当前协议状态恢复上下文",
+    shortDescription: "LouisGo 恢复：兼容旧流程，优先读取 HANDOFF 和 STATE",
     description:
       "Use when the user enters $resume in Codex. Resumes from LouisGo handoff/status protocol.",
     action:
-      "- Run `louisgo status`.\n- Prefer `.louisgo/HANDOFF.md` for formal recovery when present.\n- Otherwise report the current roadmap task and available recovery source.",
+      "- Run `louisgo status`.\n- Prefer `.louisgo/HANDOFF.md` for formal recovery when present.\n- Otherwise read `.louisgo/STATE.md` and report the current roadmap task and available recovery source.",
   },
   {
     name: "finish",
     directive: "$finish",
     title: "LouisGo 收尾",
-    shortDescription: "LouisGo 收尾：生成 HANDOFF_DRAFT.md 并转存临时状态",
-    description: "Use when the user enters $finish in Codex. Generates a LouisGo handoff draft.",
+    shortDescription: "LouisGo 收尾：更新正式 HANDOFF.md 和当前状态",
+    description: "Use when the user enters $finish in Codex. Generates a LouisGo handoff snapshot.",
     action:
-      "- Run `louisgo finish`.\n- Report the draft path, verification status, cleanup result, and tell the user to review/审阅 `.louisgo/HANDOFF_DRAFT.md` before `louisgo handoff promote`.",
+      "- Run `louisgo finish`.\n- Report the `HANDOFF.md` path, verification status, cleanup result, and first next action for the next session.",
   },
   {
     name: "handoff-promote",
     directive: "$handoff-promote",
     title: "LouisGo 提升交接",
-    shortDescription: "LouisGo 交接：将 HANDOFF_DRAFT.md 提升为正式 HANDOFF.md",
+    shortDescription: "LouisGo 交接：兼容旧流程，将 HANDOFF_DRAFT.md 提升为 HANDOFF.md",
     description:
       "Use when the user enters $handoff-promote in Codex. Promotes the LouisGo handoff draft to a formal handoff.",
     action:

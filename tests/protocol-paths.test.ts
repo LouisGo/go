@@ -30,6 +30,8 @@ describe("协议路径", () => {
       louisgoDir: join(expectedRoot, ".louisgo"),
       mission: join(expectedRoot, ".louisgo", "MISSION.md"),
       roadmap: join(expectedRoot, ".louisgo", "ROADMAP.md"),
+      state: join(expectedRoot, ".louisgo", "STATE.md"),
+      memory: join(expectedRoot, ".louisgo", "MEMORY.md"),
       handoff: join(expectedRoot, ".louisgo", "HANDOFF.md"),
       handoffDraft: join(expectedRoot, ".louisgo", "HANDOFF_DRAFT.md"),
       quickSave: join(expectedRoot, ".louisgo", "QUICK_SAVE.md"),
@@ -39,6 +41,8 @@ describe("协议路径", () => {
       testResults: join(expectedRoot, ".louisgo", "test-results.json"),
       adrDir: join(expectedRoot, ".louisgo", "ADR"),
       adrDraftDir: join(expectedRoot, ".louisgo", "ADR", "draft"),
+      memoryDir: join(expectedRoot, ".louisgo", "memory"),
+      sessionsDir: join(expectedRoot, ".louisgo", "sessions"),
       scriptsDir: join(expectedRoot, ".louisgo", "scripts"),
       verifySh: join(expectedRoot, ".louisgo", "scripts", "verify.sh"),
       verifyPs1: join(expectedRoot, ".louisgo", "scripts", "verify.ps1"),
@@ -49,6 +53,8 @@ describe("协议路径", () => {
     expect(protocolRelativePaths.verifySh).toBe(".louisgo/scripts/verify.sh");
     expect(protocolRelativePaths.verifyPs1).toBe(".louisgo/scripts/verify.ps1");
     expect(protocolRelativePaths.adrDraftDir).toBe(".louisgo/ADR/draft");
+    expect(protocolRelativePaths.state).toBe(".louisgo/STATE.md");
+    expect(protocolRelativePaths.memoryDir).toBe(".louisgo/memory");
   });
 
   it("非 Git 仓库返回明确错误", async () => {

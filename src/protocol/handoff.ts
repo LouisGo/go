@@ -42,6 +42,8 @@ export interface HandoffDraftBodyInput {
   readonly adrDrafts: readonly string[];
 }
 
+export type HandoffBodyInput = HandoffDraftBodyInput;
+
 export interface WriteHandoffDraftOptions {
   readonly workspaceRoot: string;
   readonly frontMatter: HandoffFrontMatterInput;
@@ -113,6 +115,17 @@ export function serializeHandoffFrontMatter(
 }
 
 export function createHandoffDraftBody(input: HandoffDraftBodyInput): string {
+  return createHandoffDocumentBody("Handoff Draft", input);
+}
+
+export function createHandoffBody(input: HandoffBodyInput): string {
+  return createHandoffDocumentBody("Handoff", input);
+}
+
+function createHandoffDocumentBody(
+  title: "Handoff" | "Handoff Draft",
+  input: HandoffBodyInput,
+): string {
   const taskLine =
     input.taskId === undefined || input.taskId === null
       ? `当前 ROADMAP 没有可用任务，task_id 使用 ${missingTaskId} 占位。`
@@ -122,9 +135,7 @@ export function createHandoffDraftBody(input: HandoffDraftBodyInput): string {
       ? "无 ADR 草稿。"
       : input.adrDrafts.map((draft) => `- ${draft}`).join("\n");
 
-  return `# Handoff Draft
-
-> 这是交接草稿。提升为 HANDOFF.md 前，至少补全“本轮完成”和“建议下一步”。
+  return `# ${title}
 
 ## 交接摘要
 
@@ -132,13 +143,10 @@ export function createHandoffDraftBody(input: HandoffDraftBodyInput): string {
 - 验证状态：${input.verification}
 - 接手判断：${formatVerificationHandoffGuidance(input.verification)}
 
-## 本轮完成
+## 恢复建议
 
-- TODO：用 1-3 条描述本轮实际完成的代码变更、决策或交付物。
-
-## 建议下一步
-
-- TODO：写清接手后的第一个具体动作。
+- 若存在未解决确认请求，先处理确认请求。
+- 若存在 ADR 草稿，先确认是否继续推进该决策。
 - 若继续修改代码，完成后运行 \`louisgo verify\`。
 
 ## 当前工作区

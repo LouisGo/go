@@ -16,7 +16,7 @@ const initNow = () => new Date("2026-05-01T12:00:00.000Z");
 const finishNow = () => new Date("2026-05-01T12:30:00.000Z");
 
 describe("finish 命令", () => {
-  it("输出交接草稿结果和下一步建议", async () => {
+  it("输出正式交接结果和下一步建议", async () => {
     await using repo = await createGitRepo();
     await initLouisGo({ cwd: repo.path, now: initNow });
     const paths = createProtocolPaths(repo.path);
@@ -38,12 +38,13 @@ describe("finish 命令", () => {
 
     expect(exitCode).toBe(0);
     expect(stderr.text).toBe("");
-    expect(stdout.text).toContain("LouisGo 交接草稿已生成");
+    expect(stdout.text).toContain("LouisGo 正式交接已更新");
     expect(stdout.text).toContain("验证状态：missing");
-    expect(stdout.text).toContain("HANDOFF.md：未写入");
-    expect(stdout.text).toContain("下一步：审阅 HANDOFF_DRAFT.md 并执行 louisgo handoff promote");
-    await expect(access(paths.handoffDraft)).resolves.toBeUndefined();
-    await expect(access(paths.handoff)).rejects.toMatchObject({ code: "ENOENT" });
+    expect(stdout.text).toContain("STATE.md：已更新");
+    expect(stdout.text).toContain("下一步：新会话会优先读取 HANDOFF.md");
+    await expect(access(paths.handoff)).resolves.toBeUndefined();
+    await expect(access(paths.state)).resolves.toBeUndefined();
+    await expect(access(paths.handoffDraft)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("协议缺失时提示先 init", async () => {

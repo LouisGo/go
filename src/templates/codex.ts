@@ -1,10 +1,20 @@
 export function createCodexSkillTemplate(): string {
   return `---
 name: louisgo-workflow
-description: Use when the user enters LouisGo workflow directives like $start, $status, $verify, $pause, $resume, $finish, or asks to use LouisGo inside Codex. 中文：LouisGo 工作流：识别指令并映射到对应 CLI 和 .louisgo 协议文件。
+description: Use when the user enters LouisGo workflow directives like $init, $start, or $finish, or when working inside a repo that contains .louisgo. 中文：LouisGo 工作流：自动读取项目记忆并映射核心指令。
 ---
 
 # LouisGo Workflow
+
+When a repository contains \`.louisgo/\`, treat LouisGo files as the project memory and recovery protocol.
+
+For ordinary coding requests in an enabled repo, read the available recovery context before changing files:
+
+1. \`.louisgo/CONFIRM_REQ.md\` when present.
+2. \`.louisgo/HANDOFF.md\` when present.
+3. \`.louisgo/STATE.md\`.
+4. \`.louisgo/MEMORY.md\`.
+5. Topic files under \`.louisgo/memory/\` only when relevant.
 
 When the user's message starts with one of the LouisGo dollar directives below, treat it as an explicit workflow command, not ordinary prose.
 
@@ -16,19 +26,21 @@ Use \`louisgo <subcommand>\` by default. When working inside the \`louisgo\` sou
 
 | Directive | Required action |
 | --- | --- |
-| \`$start\` | Run \`louisgo status\`; read \`.louisgo/MISSION.md\` and \`.louisgo/CAPABILITIES.md\`; if status reports \`CONFIRM_REQ\`, \`QUICK_SAVE\`, or \`HANDOFF\`, read the corresponding file before advising next steps. |
+| \`$init\` | Run \`louisgo init\`; report that protocol files and Codex integration were installed. |
+| \`$start\` | Run \`louisgo status\`; read \`.louisgo/MISSION.md\`, \`.louisgo/CAPABILITIES.md\`, \`.louisgo/HANDOFF.md\` when present, \`.louisgo/STATE.md\`, and \`.louisgo/MEMORY.md\`; report the restored context and first next action. |
 | \`$status\` | Run \`louisgo status\` and report mode, current task, verification state, recovery source, and unresolved protocol signals. |
 | \`$verify\` | Run \`louisgo verify\` and relay verification status, freshness, summary, and exit-code meaning. |
-| \`$pause\` | Run \`louisgo pause\`; report where \`QUICK_SAVE.md\` was written. |
-| \`$resume\` | Run \`louisgo status\`; prefer \`.louisgo/HANDOFF.md\` for formal recovery when present; otherwise report the current roadmap task and available recovery source. |
-| \`$finish\` | Run \`louisgo finish\`; tell the user to review/审阅 \`.louisgo/HANDOFF_DRAFT.md\` and then run \`louisgo handoff promote\` when approved. |
-| \`$handoff-promote\` | Run \`louisgo handoff promote\`; report the resulting \`HANDOFF.md\` status. |
+| \`$pause\` | Legacy command: run \`louisgo pause\`; report where \`QUICK_SAVE.md\` was written. |
+| \`$resume\` | Legacy alias for deep recovery: run \`louisgo status\`; prefer \`.louisgo/HANDOFF.md\`, then \`.louisgo/STATE.md\`. |
+| \`$finish\` | Run \`louisgo finish\`; report the resulting \`.louisgo/HANDOFF.md\`, verification status, cleanup result, and next action. |
+| \`$handoff-promote\` | Legacy command: run \`louisgo handoff promote\`; report the resulting \`HANDOFF.md\` status. |
 
 ## Rules
 
 - Always run the mapped \`louisgo\` command before answering a directive.
 - Command selection may replace \`louisgo <subcommand>\` with \`node ./dist/cli.js <subcommand>\` only for the local \`louisgo\` source repository.
 - If \`.louisgo/\` is missing or incomplete, report the issue and suggest \`louisgo init\`.
+- \`HANDOFF.md\` is the formal recovery snapshot. \`STATE.md\` and \`MEMORY.md\` are supporting daily memory.
 - Do not mark work complete from narrative alone; use verification results, user confirmation, or protocol files.
 - Keep user-facing explanations concise and in Simplified Chinese by default.
 `;
@@ -85,25 +97,36 @@ export function createCodexDirectiveSkillOpenAiYaml(
 export function createCodexSkillOpenAiYaml(): string {
   return `interface:
   display_name: "LouisGo Workflow"
-  short_description: "LouisGo 工作流：识别 $start、$pause、$finish 和交接指令"
-  default_prompt: "在已启用 LouisGo 的仓库中使用 $start，读取 .louisgo 状态、使命、能力、恢复来源和当前任务。"
+  short_description: "LouisGo 工作流：自动读取 .louisgo 记忆并识别 $start/$finish"
+  default_prompt: "在已启用 LouisGo 的仓库中读取 .louisgo/HANDOFF.md、STATE.md 和 MEMORY.md，恢复项目上下文。"
 `;
 }
 
 export function createCodexAgentsBlock(): string {
   return `# LouisGo Codex Workflow
 
+When this repository contains \`.louisgo/\`, treat those files as the project memory and recovery protocol.
+
+For ordinary coding requests, before changing files, inspect the available LouisGo context in this order:
+
+1. \`.louisgo/CONFIRM_REQ.md\` when present.
+2. \`.louisgo/HANDOFF.md\` when present.
+3. \`.louisgo/STATE.md\`.
+4. \`.louisgo/MEMORY.md\`.
+5. Relevant files under \`.louisgo/memory/\` or \`.louisgo/sessions/\` only when needed.
+
 When the user message starts with a LouisGo dollar directive, treat it as an explicit command:
 
 Command selection: use \`louisgo <subcommand>\` by default. When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\` so self-bootstrap runs the current local build instead of a stale global install.
 
-- \`$start\`: run \`louisgo status\`, read \`.louisgo/MISSION.md\` and \`.louisgo/CAPABILITIES.md\`, then inspect \`CONFIRM_REQ\`, \`QUICK_SAVE\`, or \`HANDOFF\` if status indicates they matter.
+- \`$init\`: run \`louisgo init\`.
+- \`$start\`: run \`louisgo status\`, read \`.louisgo/MISSION.md\`, \`.louisgo/CAPABILITIES.md\`, \`.louisgo/HANDOFF.md\` when present, \`.louisgo/STATE.md\`, and \`.louisgo/MEMORY.md\`.
 - \`$status\`: run \`louisgo status\`.
 - \`$verify\`: run \`louisgo verify\`.
-- \`$pause\`: run \`louisgo pause\`.
-- \`$resume\`: run \`louisgo status\` and prefer \`.louisgo/HANDOFF.md\` when present.
-- \`$finish\`: run \`louisgo finish\` and remind the user to review/审阅 \`.louisgo/HANDOFF_DRAFT.md\` before \`louisgo handoff promote\`.
-- \`$handoff-promote\`: run \`louisgo handoff promote\`.
+- \`$pause\`: legacy command; run \`louisgo pause\`.
+- \`$resume\`: legacy alias; run \`louisgo status\` and prefer \`.louisgo/HANDOFF.md\`, then \`.louisgo/STATE.md\`.
+- \`$finish\`: run \`louisgo finish\` and report the resulting \`.louisgo/HANDOFF.md\`.
+- \`$handoff-promote\`: legacy command; run \`louisgo handoff promote\`.
 
 These directives are backed by the \`louisgo\` CLI and the \`.louisgo/\` protocol files. If the protocol is missing, suggest \`louisgo init\`.`;
 }

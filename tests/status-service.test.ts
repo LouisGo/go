@@ -30,7 +30,7 @@ describe("协议完整性检查", () => {
       workspaceRoot: initResult.workspaceRoot,
       complete: true,
       mode: "assist",
-      recoverySource: "none",
+      recoverySource: "state",
       verificationStatus: "missing",
       hasConfirmReq: false,
       adrDrafts: [],
@@ -89,7 +89,7 @@ schema: louisgo-mission-v1
     );
   });
 
-  it("识别 QUICK_SAVE 比 HANDOFF 更新", async () => {
+  it("正式 HANDOFF 优先于 QUICK_SAVE 和 STATE", async () => {
     await using repo = await createGitRepo();
     const initResult = await initLouisGo({ cwd: repo.path, now });
     const paths = createProtocolPaths(initResult.workspaceRoot);
@@ -106,7 +106,7 @@ schema: louisgo-mission-v1
     const status = await checkProtocolStatus({ cwd: repo.path });
 
     expect(status.complete).toBe(true);
-    expect(status.recoverySource).toBe("quick_save");
+    expect(status.recoverySource).toBe("handoff");
   });
 
   it("识别未解决 CONFIRM_REQ", async () => {

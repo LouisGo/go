@@ -1,15 +1,23 @@
-import { access, readFile, rm } from "node:fs/promises";
+import { access, readFile, rm, writeFile } from "node:fs/promises";
 
 import { runGit } from "../git/git.js";
 import { createProtocolPaths } from "../protocol/paths.js";
 import { readFrontMatter } from "../protocol/frontmatter.js";
-import { writeHandoffDraft, type WriteHandoffDraftResult } from "../protocol/handoff.js";
+import {
+  createHandoffBody,
+  writeHandoff,
+  writeHandoffDraft,
+  type HandoffBodyInput,
+  type WriteHandoffDraftResult,
+  type WriteHandoffResult,
+} from "../protocol/handoff.js";
 import {
   confirmReqFrontMatterSchema,
   missingTaskId,
   quickSaveFrontMatterSchema,
   type VerificationStatus,
 } from "../protocol/schemas.js";
+import { createStateTemplate } from "../templates/state.js";
 import { checkVerificationFreshness, getCurrentGitSnapshot } from "../verify/freshness.js";
 import {
   checkProtocolStatus,
@@ -40,6 +48,19 @@ export interface GenerateHandoffDraftResult extends WriteHandoffDraftResult {
   readonly adrDrafts: readonly string[];
 }
 
+export interface GenerateHandoffSnapshotResult extends WriteHandoffResult {
+  readonly workspaceRoot: string;
+  readonly verification: VerificationStatus;
+  readonly gitDiffSummary: string;
+  readonly blockerSummary: string;
+  readonly confirmReqSummary: string;
+  readonly confirmReqPresent: boolean;
+  readonly quickSaveSummary: string;
+  readonly quickSavePresent: boolean;
+  readonly adrDrafts: readonly string[];
+  readonly statePath: string;
+}
+
 export const finishCleanupStatuses = {
   absent: "absent",
   cleaned: "cleaned",
@@ -48,7 +69,7 @@ export const finishCleanupStatuses = {
 export type FinishCleanupStatus =
   (typeof finishCleanupStatuses)[keyof typeof finishCleanupStatuses];
 
-export interface FinishServiceResult extends GenerateHandoffDraftResult {
+export interface FinishServiceResult extends GenerateHandoffSnapshotResult {
   readonly confirmReqCleanup: FinishCleanupStatus;
   readonly quickSaveCleanup: FinishCleanupStatus;
 }
@@ -72,6 +93,123 @@ export class FinishServiceError extends Error {
 export async function generateHandoffDraft(
   options: FinishServiceOptions = {},
 ): Promise<GenerateHandoffDraftResult> {
+  const context = await collectHandoffContext(options);
+  const draft = await writeHandoffDraft({
+    workspaceRoot: context.workspaceRoot,
+    frontMatter: {
+      mode: context.mode,
+      taskId: context.taskId,
+      gitHead: context.snapshot.gitHead,
+      diffHash: context.snapshot.diffHash,
+      verification: context.verification,
+      generatedAt: context.generatedAt,
+    },
+    body: createHandoffBodyInput(context),
+  });
+
+  return {
+    workspaceRoot: context.workspaceRoot,
+    ...draft,
+    verification: context.verification,
+    gitDiffSummary: context.gitDiffSummary,
+    blockerSummary: context.blockerSummary,
+    confirmReqSummary: context.confirmReq.summary,
+    confirmReqPresent: context.confirmReq.present,
+    quickSaveSummary: context.quickSave.summary,
+    quickSavePresent: context.quickSave.present,
+    adrDrafts: context.adrDrafts,
+  };
+}
+
+export async function generateHandoffSnapshot(
+  options: FinishServiceOptions = {},
+): Promise<GenerateHandoffSnapshotResult> {
+  const context = await collectHandoffContext(options);
+  const paths = createProtocolPaths(context.workspaceRoot);
+  const bodyInput = createHandoffBodyInput(context);
+  const body = createHandoffBody(bodyInput);
+  const handoff = await writeHandoff({
+    workspaceRoot: context.workspaceRoot,
+    frontMatter: {
+      mode: context.mode,
+      taskId: context.taskId,
+      gitHead: context.snapshot.gitHead,
+      diffHash: context.snapshot.diffHash,
+      verification: context.verification,
+      generatedAt: context.generatedAt,
+      confirmedAt: context.generatedAt,
+    },
+    body,
+  });
+
+  await writeFile(
+    paths.state,
+    createStateTemplate({
+      updatedAt: context.generatedAt,
+      mode: context.mode,
+      currentTask: context.taskId,
+      verification: context.verification,
+      gitHead: context.snapshot.gitHead,
+      diffHash: context.snapshot.diffHash,
+    }),
+    "utf8",
+  );
+
+  return {
+    workspaceRoot: context.workspaceRoot,
+    ...handoff,
+    verification: context.verification,
+    gitDiffSummary: context.gitDiffSummary,
+    blockerSummary: context.blockerSummary,
+    confirmReqSummary: context.confirmReq.summary,
+    confirmReqPresent: context.confirmReq.present,
+    quickSaveSummary: context.quickSave.summary,
+    quickSavePresent: context.quickSave.present,
+    adrDrafts: context.adrDrafts,
+    statePath: paths.state,
+  };
+}
+
+export async function finishLouisGo(
+  options: FinishServiceOptions = {},
+): Promise<FinishServiceResult> {
+  const snapshot = await generateHandoffSnapshot(options);
+  const paths = createProtocolPaths(snapshot.workspaceRoot);
+
+  if (snapshot.confirmReqPresent) {
+    await rm(paths.confirmReq, { force: true });
+  }
+
+  if (snapshot.quickSavePresent) {
+    await rm(paths.quickSave, { force: true });
+  }
+
+  return {
+    ...snapshot,
+    confirmReqCleanup: snapshot.confirmReqPresent
+      ? finishCleanupStatuses.cleaned
+      : finishCleanupStatuses.absent,
+    quickSaveCleanup: snapshot.quickSavePresent
+      ? finishCleanupStatuses.cleaned
+      : finishCleanupStatuses.absent,
+  };
+}
+
+interface HandoffContext {
+  readonly workspaceRoot: string;
+  readonly mode: NonNullable<Awaited<ReturnType<typeof checkProtocolStatus>>["mode"]>;
+  readonly taskId: string;
+  readonly snapshot: Awaited<ReturnType<typeof getCurrentGitSnapshot>>;
+  readonly verification: VerificationStatus;
+  readonly generatedAt: string;
+  readonly gitDiffSummary: string;
+  readonly blockerSummary: string;
+  readonly confirmReq: ProtocolFileSummary;
+  readonly quickSave: ProtocolFileSummary;
+  readonly adrDrafts: readonly string[];
+}
+
+async function collectHandoffContext(options: FinishServiceOptions = {}): Promise<HandoffContext> {
   const protocolStatus = await checkProtocolStatus({
     ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
   });
@@ -94,63 +232,31 @@ export async function generateHandoffDraft(
   const quickSave = await readQuickSaveSummary(paths.quickSave);
   const generatedAt = (options.now?.() ?? new Date()).toISOString();
   const taskId = protocolStatus.currentTask?.id ?? missingTaskId;
-  const draft = await writeHandoffDraft({
-    workspaceRoot,
-    frontMatter: {
-      mode: protocolStatus.mode,
-      taskId,
-      gitHead: snapshot.gitHead,
-      diffHash: snapshot.diffHash,
-      verification,
-      generatedAt,
-    },
-    body: {
-      taskId,
-      verification,
-      gitDiffSummary,
-      blockerSummary,
-      confirmReqSummary: confirmReq.summary,
-      quickSaveSummary: quickSave.summary,
-      adrDrafts: protocolStatus.adrDrafts,
-    },
-  });
 
   return {
     workspaceRoot,
-    ...draft,
+    mode: protocolStatus.mode,
+    taskId,
+    snapshot,
     verification,
+    generatedAt,
     gitDiffSummary,
     blockerSummary,
-    confirmReqSummary: confirmReq.summary,
-    confirmReqPresent: confirmReq.present,
-    quickSaveSummary: quickSave.summary,
-    quickSavePresent: quickSave.present,
+    confirmReq,
+    quickSave,
     adrDrafts: protocolStatus.adrDrafts,
   };
 }
 
-export async function finishLouisGo(
-  options: FinishServiceOptions = {},
-): Promise<FinishServiceResult> {
-  const draft = await generateHandoffDraft(options);
-  const paths = createProtocolPaths(draft.workspaceRoot);
-
-  if (draft.confirmReqPresent) {
-    await rm(paths.confirmReq, { force: true });
-  }
-
-  if (draft.quickSavePresent) {
-    await rm(paths.quickSave, { force: true });
-  }
-
+function createHandoffBodyInput(context: HandoffContext): HandoffBodyInput {
   return {
-    ...draft,
-    confirmReqCleanup: draft.confirmReqPresent
-      ? finishCleanupStatuses.cleaned
-      : finishCleanupStatuses.absent,
-    quickSaveCleanup: draft.quickSavePresent
-      ? finishCleanupStatuses.cleaned
-      : finishCleanupStatuses.absent,
+    taskId: context.taskId,
+    verification: context.verification,
+    gitDiffSummary: context.gitDiffSummary,
+    blockerSummary: context.blockerSummary,
+    confirmReqSummary: context.confirmReq.summary,
+    quickSaveSummary: context.quickSave.summary,
+    adrDrafts: context.adrDrafts,
   };
 }
 

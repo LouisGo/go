@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { access, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -26,7 +26,7 @@ const initNow = () => new Date("2026-05-01T12:00:00.000Z");
 const generatedNow = () => new Date("2026-05-01T12:30:00.000Z");
 const timestamp = "2026-05-01T20:00:00+08:00";
 
-describe("finish service HANDOFF_DRAFT 生成", () => {
+describe("finish service HANDOFF_DRAFT 兼容生成", () => {
   it("生成验证通过草稿", async () => {
     await using repo = await createInitializedRepo();
     await writeVerificationResult(repo.path, "passed");
@@ -137,7 +137,7 @@ describe("finish service HANDOFF_DRAFT 生成", () => {
 });
 
 describe("finish service 收尾流程", () => {
-  it("正常生成草稿且不写 HANDOFF.md", async () => {
+  it("正常更新正式 HANDOFF.md 和 STATE.md", async () => {
     await using repo = await createInitializedRepo();
     const paths = createProtocolPaths(repo.path);
     await writeVerificationResult(repo.path, "passed");
@@ -145,7 +145,9 @@ describe("finish service 收尾流程", () => {
     const result = await finishLouisGo({ cwd: repo.path, now: generatedNow });
 
     await expect(access(result.filePath)).resolves.toBeUndefined();
-    await expectFileMissing(paths.handoff);
+    await expect(access(paths.handoff)).resolves.toBeUndefined();
+    await expect(access(paths.state)).resolves.toBeUndefined();
+    await expect(readFile(paths.state, "utf8")).resolves.toContain("verification: passed");
     expect(result.verification).toBe("passed");
     expect(result.confirmReqCleanup).toBe(finishCleanupStatuses.absent);
     expect(result.quickSaveCleanup).toBe(finishCleanupStatuses.absent);

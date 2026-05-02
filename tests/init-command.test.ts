@@ -23,12 +23,32 @@ describe("init 命令", () => {
       now: () => new Date("2026-05-01T12:00:00.000Z"),
       stdout,
     });
-    await program.parseAsync(["node", "louisgo", "init"]);
+    await program.parseAsync(["node", "louisgo", "init", "--no-codex"]);
 
     expect(stdout.text).toContain("LouisGo 初始化完成");
-    expect(stdout.text).toContain("创建文件：6");
+    expect(stdout.text).toContain("创建文件：8");
     expect(stdout.text).toContain("跳过文件：0");
-    expect(stdout.text).toContain("下一步：运行 louisgo status 查看协议状态");
+    expect(stdout.text).toContain("Codex 集成：已跳过");
+    expect(stdout.text).toContain("下一步：新会话会自动读取 LouisGo 上下文");
+  });
+
+  it("默认安装 Codex 集成", async () => {
+    await using tempDir = await createTempDir();
+    await using codex = await createTempDir();
+    const stdout = new MemoryWritable();
+
+    await execFileAsync("git", ["init"], { cwd: tempDir.path });
+
+    const program = createCli({
+      cwd: tempDir.path,
+      codexHome: codex.path,
+      now: () => new Date("2026-05-01T12:00:00.000Z"),
+      stdout,
+    });
+    await program.parseAsync(["node", "louisgo", "init"]);
+
+    expect(stdout.text).toContain("Codex 集成：完成");
+    expect(stdout.text).toContain(codex.path);
   });
 });
 

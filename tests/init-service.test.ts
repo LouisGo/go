@@ -12,7 +12,9 @@ import { createProtocolPaths } from "../src/protocol/paths.js";
 import { parseRoadmap } from "../src/protocol/roadmap.js";
 import {
   capabilitiesFrontMatterSchema,
+  memoryFrontMatterSchema,
   missionFrontMatterSchema,
+  stateFrontMatterSchema,
 } from "../src/protocol/schemas.js";
 import { initLouisGo } from "../src/services/init-service.js";
 
@@ -30,8 +32,12 @@ describe("init 服务", () => {
     await expect(access(paths.louisgoDir)).resolves.toBeUndefined();
     await expect(access(paths.scriptsDir)).resolves.toBeUndefined();
     await expect(access(paths.adrDraftDir)).resolves.toBeUndefined();
+    await expect(access(paths.memoryDir)).resolves.toBeUndefined();
+    await expect(access(paths.sessionsDir)).resolves.toBeUndefined();
     await expect(access(paths.mission)).resolves.toBeUndefined();
     await expect(access(paths.roadmap)).resolves.toBeUndefined();
+    await expect(access(paths.state)).resolves.toBeUndefined();
+    await expect(access(paths.memory)).resolves.toBeUndefined();
     await expect(access(paths.blocker)).resolves.toBeUndefined();
     await expect(access(paths.capabilities)).resolves.toBeUndefined();
     await expect(access(paths.verifySh)).resolves.toBeUndefined();
@@ -39,15 +45,19 @@ describe("init 服务", () => {
 
     const mission = await readFrontMatter(paths.mission, missionFrontMatterSchema);
     const capabilities = await readFrontMatter(paths.capabilities, capabilitiesFrontMatterSchema);
+    const state = await readFrontMatter(paths.state, stateFrontMatterSchema);
+    const memory = await readFrontMatter(paths.memory, memoryFrontMatterSchema);
     const roadmap = parseRoadmap(await readFile(paths.roadmap, "utf8"));
     const verifyShStat = await stat(paths.verifySh);
 
     expect(mission.frontMatter.defaultMode).toBe("assist");
     expect(capabilities.body).toContain(".louisgo/scripts/verify.sh");
+    expect(state.frontMatter.currentTask).toBe("T001");
+    expect(memory.body).toContain("HANDOFF.md");
     expect(roadmap.firstIncompleteTask?.id).toBe("T001");
     expect(verifyShStat.mode & 0o111).toBeGreaterThan(0);
     expect(result.files.every((file) => file.status === "created")).toBe(true);
-    expect(result.nextSteps).toContain("运行 louisgo status 查看协议状态");
+    expect(result.nextSteps).toContain("需要深度重建时输入 $start");
   });
 
   it("重复 init 不覆盖用户文件", async () => {
