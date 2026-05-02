@@ -39,7 +39,7 @@
 
 - [x] T017 实现 QUICK_SAVE 和 CONFIRM_REQ 协议读写
 - [x] T018 实现 `louisgo pause`
-- [ ] T019 实现 HANDOFF_DRAFT 生成
+- [x] T019 实现 HANDOFF_DRAFT 生成
 - [ ] T020 实现 `louisgo finish`
 - [ ] T021 实现 `louisgo handoff promote`
 

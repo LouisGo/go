@@ -212,12 +212,12 @@ AI 不应默认读取所有文档。
 当前下一步任务：
 
 ```text
-T019 实现 HANDOFF_DRAFT 生成
+T020 实现 `louisgo finish`
 ```
 
-开始 T019 前建议读取：
+开始 T020 前建议读取：
 
-- `docs/05-task-breakdown.md` 中 T019
+- `docs/05-task-breakdown.md` 中 T020
 - `docs/04-harness-protocol.md`
 - `docs/03-architecture.md` 中 `louisgo finish` 流程和 handoff 相关设计
 - `docs/08-decision-log.md` 中 HANDOFF、验证新鲜度和 CONFIRM_REQ 相关决策
