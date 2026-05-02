@@ -6,6 +6,7 @@ import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
 import { registerFinishCommand } from "./commands/finish.js";
+import { registerHandoffPromoteCommand } from "./commands/handoff-promote.js";
 import { registerInitCommand } from "./commands/init.js";
 import { registerPauseCommand } from "./commands/pause.js";
 import { registerStatusCommand } from "./commands/status.js";
@@ -35,6 +36,7 @@ export function createCli(options: CliOptions = {}): Command {
   registerStatusCommand(program, options);
   registerVerifyCommand(program, options);
   registerFinishCommand(program, options);
+  registerHandoffPromoteCommand(program, options);
 
   return program;
 }

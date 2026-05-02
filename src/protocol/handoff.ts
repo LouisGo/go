@@ -18,6 +18,7 @@ export interface HandoffFrontMatterInput {
   readonly diffHash: string;
   readonly verification: VerificationStatus;
   readonly generatedAt: string;
+  readonly confirmedAt?: string;
 }
 
 export interface HandoffFrontMatterJson {
@@ -28,6 +29,7 @@ export interface HandoffFrontMatterJson {
   readonly diff_hash: string;
   readonly verification: VerificationStatus;
   readonly generated_at: string;
+  readonly confirmed_at?: string;
 }
 
 export interface HandoffDraftBodyInput {
@@ -52,6 +54,18 @@ export interface WriteHandoffDraftResult {
   readonly body: string;
 }
 
+export interface WriteHandoffOptions {
+  readonly workspaceRoot: string;
+  readonly frontMatter: HandoffFrontMatterInput;
+  readonly body: string;
+}
+
+export interface WriteHandoffResult {
+  readonly filePath: string;
+  readonly frontMatter: HandoffFrontMatter;
+  readonly body: string;
+}
+
 export async function writeHandoffDraft(
   options: WriteHandoffDraftOptions,
 ): Promise<WriteHandoffDraftResult> {
@@ -69,6 +83,20 @@ export async function writeHandoffDraft(
   };
 }
 
+export async function writeHandoff(options: WriteHandoffOptions): Promise<WriteHandoffResult> {
+  const paths = createProtocolPaths(options.workspaceRoot);
+  const frontMatter = serializeHandoffFrontMatter(options.frontMatter);
+
+  await mkdir(dirname(paths.handoff), { recursive: true });
+  await writeFrontMatter(paths.handoff, { ...frontMatter }, options.body, handoffFrontMatterSchema);
+
+  return {
+    filePath: paths.handoff,
+    frontMatter: handoffFrontMatterSchema.parse(frontMatter),
+    body: options.body,
+  };
+}
+
 export function serializeHandoffFrontMatter(
   input: HandoffFrontMatterInput,
 ): HandoffFrontMatterJson {
@@ -80,6 +108,7 @@ export function serializeHandoffFrontMatter(
     diff_hash: input.diffHash,
     verification: input.verification,
     generated_at: input.generatedAt,
+    ...(input.confirmedAt === undefined ? {} : { confirmed_at: input.confirmedAt }),
   };
 }
 

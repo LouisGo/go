@@ -41,7 +41,7 @@
 - [x] T018 实现 `louisgo pause`
 - [x] T019 实现 HANDOFF_DRAFT 生成
 - [x] T020 实现 `louisgo finish`
-- [ ] T021 实现 `louisgo handoff promote`
+- [x] T021 实现 `louisgo handoff promote`
 
 ## P5 测试、文档和发布准备
 
