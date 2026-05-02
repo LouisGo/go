@@ -25,6 +25,9 @@ describe("Codex 集成安装", () => {
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
     ).resolves.toContain('display_name: "$start"');
     await expect(
+      readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
+    ).resolves.toContain("读取协议状态");
+    await expect(
       readFile(join(codex.path, "skills", "finish", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo finish");
     await expect(

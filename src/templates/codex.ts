@@ -33,6 +33,7 @@ export interface CodexDirectiveSkillTemplateOptions {
   readonly name: string;
   readonly directive: string;
   readonly title: string;
+  readonly shortDescription: string;
   readonly description: string;
   readonly action: string;
 }
@@ -66,7 +67,7 @@ export function createCodexDirectiveSkillOpenAiYaml(
 ): string {
   return `interface:
   display_name: "${options.directive}"
-  short_description: "${options.title}"
+  short_description: "${options.shortDescription}"
   default_prompt: "${options.directive}"
 `;
 }
