@@ -2,7 +2,15 @@
   "name": "louisgo",
   "version": "0.0.0",
   "description": "轻量级 AI 编程 Harness",
+  "license": "UNLICENSED",
   "type": "module",
+  "keywords": [
+    "ai",
+    "cli",
+    "harness",
+    "handoff",
+    "verification"
+  ],
   "bin": {
     "louisgo": "./dist/cli.js"
   },
@@ -18,6 +26,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "test:e2e": "vitest run --config vitest.config.ts tests/e2e.test.ts",
+    "prepack": "pnpm build",
+    "pack:check": "npm pack --dry-run",
     "start": "node ./dist/cli.js"
   },
   "engines": {
