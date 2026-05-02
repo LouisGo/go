@@ -36,6 +36,7 @@ export interface HandoffDraftBodyInput {
   readonly gitDiffSummary: string;
   readonly blockerSummary: string;
   readonly confirmReqSummary: string;
+  readonly quickSaveSummary: string;
   readonly adrDrafts: readonly string[];
 }
 
@@ -117,6 +118,10 @@ ${input.blockerSummary}
 ### 未解决确认请求
 
 ${input.confirmReqSummary}
+
+### Quick Save
+
+${input.quickSaveSummary}
 
 ### ADR 草稿
 

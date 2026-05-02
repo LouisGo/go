@@ -1,4 +1,4 @@
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, rm } from "node:fs/promises";
 
 import { runGit } from "../git/git.js";
 import { createProtocolPaths } from "../protocol/paths.js";
@@ -7,6 +7,7 @@ import { writeHandoffDraft, type WriteHandoffDraftResult } from "../protocol/han
 import {
   confirmReqFrontMatterSchema,
   missingTaskId,
+  quickSaveFrontMatterSchema,
   type VerificationStatus,
 } from "../protocol/schemas.js";
 import { checkVerificationFreshness, getCurrentGitSnapshot } from "../verify/freshness.js";
@@ -33,7 +34,23 @@ export interface GenerateHandoffDraftResult extends WriteHandoffDraftResult {
   readonly gitDiffSummary: string;
   readonly blockerSummary: string;
   readonly confirmReqSummary: string;
+  readonly confirmReqPresent: boolean;
+  readonly quickSaveSummary: string;
+  readonly quickSavePresent: boolean;
   readonly adrDrafts: readonly string[];
+}
+
+export const finishCleanupStatuses = {
+  absent: "absent",
+  cleaned: "cleaned",
+} as const;
+
+export type FinishCleanupStatus =
+  (typeof finishCleanupStatuses)[keyof typeof finishCleanupStatuses];
+
+export interface FinishServiceResult extends GenerateHandoffDraftResult {
+  readonly confirmReqCleanup: FinishCleanupStatus;
+  readonly quickSaveCleanup: FinishCleanupStatus;
 }
 
 export class FinishServiceError extends Error {
@@ -73,7 +90,8 @@ export async function generateHandoffDraft(
   const verification = await readVerificationStatus(workspaceRoot, paths.testResults);
   const gitDiffSummary = await getGitDiffSummary(workspaceRoot);
   const blockerSummary = await readBlockerSummary(paths.blocker);
-  const confirmReqSummary = await readConfirmReqSummary(paths.confirmReq);
+  const confirmReq = await readConfirmReqSummary(paths.confirmReq);
+  const quickSave = await readQuickSaveSummary(paths.quickSave);
   const generatedAt = (options.now?.() ?? new Date()).toISOString();
   const taskId = protocolStatus.currentTask?.id ?? missingTaskId;
   const draft = await writeHandoffDraft({
@@ -91,7 +109,8 @@ export async function generateHandoffDraft(
       verification,
       gitDiffSummary,
       blockerSummary,
-      confirmReqSummary,
+      confirmReqSummary: confirmReq.summary,
+      quickSaveSummary: quickSave.summary,
       adrDrafts: protocolStatus.adrDrafts,
     },
   });
@@ -102,8 +121,36 @@ export async function generateHandoffDraft(
     verification,
     gitDiffSummary,
     blockerSummary,
-    confirmReqSummary,
+    confirmReqSummary: confirmReq.summary,
+    confirmReqPresent: confirmReq.present,
+    quickSaveSummary: quickSave.summary,
+    quickSavePresent: quickSave.present,
     adrDrafts: protocolStatus.adrDrafts,
+  };
+}
+
+export async function finishLouisGo(
+  options: FinishServiceOptions = {},
+): Promise<FinishServiceResult> {
+  const draft = await generateHandoffDraft(options);
+  const paths = createProtocolPaths(draft.workspaceRoot);
+
+  if (draft.confirmReqPresent) {
+    await rm(paths.confirmReq, { force: true });
+  }
+
+  if (draft.quickSavePresent) {
+    await rm(paths.quickSave, { force: true });
+  }
+
+  return {
+    ...draft,
+    confirmReqCleanup: draft.confirmReqPresent
+      ? finishCleanupStatuses.cleaned
+      : finishCleanupStatuses.absent,
+    quickSaveCleanup: draft.quickSavePresent
+      ? finishCleanupStatuses.cleaned
+      : finishCleanupStatuses.absent,
   };
 }
 
@@ -146,13 +193,49 @@ async function readBlockerSummary(filePath: string): Promise<string> {
   return content.length === 0 ? "BLOCKER.md 为空。" : content;
 }
 
-async function readConfirmReqSummary(filePath: string): Promise<string> {
+async function readConfirmReqSummary(filePath: string): Promise<ProtocolFileSummary> {
   if (!(await pathExists(filePath))) {
-    return "无未解决确认请求。";
+    return {
+      present: false,
+      summary: "无未解决确认请求。",
+    };
   }
 
   const document = await readFrontMatter(filePath, confirmReqFrontMatterSchema);
-  return [`存在未解决确认请求：${document.frontMatter.taskId}`, document.body.trim()].join("\n\n");
+  const body = document.body.trim();
+
+  return {
+    present: true,
+    summary: [
+      `存在未解决确认请求：${document.frontMatter.taskId}`,
+      body.length === 0 ? "CONFIRM_REQ.md 正文为空。" : body,
+    ].join("\n\n"),
+  };
+}
+
+async function readQuickSaveSummary(filePath: string): Promise<ProtocolFileSummary> {
+  if (!(await pathExists(filePath))) {
+    return {
+      present: false,
+      summary: "无 Quick Save。",
+    };
+  }
+
+  const document = await readFrontMatter(filePath, quickSaveFrontMatterSchema);
+  const body = document.body.trim();
+
+  return {
+    present: true,
+    summary: [
+      `存在 Quick Save：${document.frontMatter.taskId}，保存时间 ${document.frontMatter.savedAt}`,
+      body.length === 0 ? "QUICK_SAVE.md 正文为空。" : body,
+    ].join("\n\n"),
+  };
+}
+
+interface ProtocolFileSummary {
+  readonly present: boolean;
+  readonly summary: string;
 }
 
 function fenced(content: string): string {

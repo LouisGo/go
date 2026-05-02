@@ -5,6 +5,7 @@ import { realpathSync } from "node:fs";
 import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
+import { registerFinishCommand } from "./commands/finish.js";
 import { registerInitCommand } from "./commands/init.js";
 import { registerPauseCommand } from "./commands/pause.js";
 import { registerStatusCommand } from "./commands/status.js";
@@ -33,6 +34,7 @@ export function createCli(options: CliOptions = {}): Command {
   registerPauseCommand(program, options);
   registerStatusCommand(program, options);
   registerVerifyCommand(program, options);
+  registerFinishCommand(program, options);
 
   return program;
 }

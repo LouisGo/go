@@ -30,6 +30,7 @@ describe("HANDOFF_DRAFT 协议写入", () => {
         gitDiffSummary: "当前工作区无 Git diff 摘要。",
         blockerSummary: "BLOCKER.md 为空。",
         confirmReqSummary: "无未解决确认请求。",
+        quickSaveSummary: "无 Quick Save。",
         adrDrafts: [],
       },
     });
@@ -57,6 +58,7 @@ describe("HANDOFF_DRAFT 协议写入", () => {
         gitDiffSummary: "当前工作区无 Git diff 摘要。",
         blockerSummary: "BLOCKER.md 为空。",
         confirmReqSummary: "无未解决确认请求。",
+        quickSaveSummary: "无 Quick Save。",
         adrDrafts: [],
       }),
     ).toContain(`task_id 使用 ${missingTaskId} 占位`);
