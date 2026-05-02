@@ -22,6 +22,9 @@ describe("Codex 集成安装", () => {
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo status");
     await expect(
+      readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
+    ).resolves.toContain("中文：读取协议状态");
+    await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
     ).resolves.toContain('display_name: "$start"');
     await expect(
@@ -36,6 +39,12 @@ describe("Codex 集成安装", () => {
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
     ).resolves.toContain("LouisGo Workflow");
+    await expect(
+      readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
+    ).resolves.toContain("中文：识别 LouisGo 工作流指令");
+    await expect(
+      readFile(join(codex.path, "skills", "louisgo", "agents", "openai.yaml"), "utf8"),
+    ).resolves.toContain("识别 LouisGo $start");
     await expect(readFile(join(codex.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "louisgo-codex:start",
     );
