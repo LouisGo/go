@@ -12,15 +12,17 @@ import {
   handoffFrontMatterSchema,
   missionFrontMatterSchema,
   quickSaveFrontMatterSchema,
-  testResultsSchema,
   type LouisGoMode,
   type VerificationStatus,
 } from "../protocol/schemas.js";
+import { TestResultsError, testResultsErrorCodes } from "../protocol/test-results.js";
+import { checkVerificationFreshness } from "../verify/freshness.js";
 
 export const protocolIssueCodes = {
   missingPath: "MISSING_PATH",
   frontMatterInvalid: "FRONT_MATTER_INVALID",
   roadmapInvalid: "ROADMAP_INVALID",
+  testResultsInvalid: "TEST_RESULTS_INVALID",
 } as const;
 
 export type ProtocolIssueCode = (typeof protocolIssueCodes)[keyof typeof protocolIssueCodes];
@@ -67,6 +69,10 @@ export async function checkProtocolStatus(
   const mode = await readMissionMode(paths, issues);
   const currentTask = await readCurrentTask(paths, issues);
   await validateOptionalFrontMatter(paths, issues);
+  const recoverySource = await detectRecoverySource(paths);
+  const verificationStatus = await readVerificationStatus(paths, issues);
+  const hasConfirmReq = await pathExists(paths.confirmReq);
+  const adrDrafts = await listAdrDrafts(paths);
 
   return {
     workspaceRoot,
@@ -74,10 +80,10 @@ export async function checkProtocolStatus(
     issues,
     mode,
     currentTask,
-    recoverySource: await detectRecoverySource(paths),
-    verificationStatus: await readVerificationStatus(paths, issues),
-    hasConfirmReq: await pathExists(paths.confirmReq),
-    adrDrafts: await listAdrDrafts(paths),
+    recoverySource,
+    verificationStatus,
+    hasConfirmReq,
+    adrDrafts,
   };
 }
 
@@ -211,18 +217,21 @@ async function readVerificationStatus(
   paths: ProtocolPaths,
   issues: ProtocolIssue[],
 ): Promise<StatusVerificationState> {
-  if (!(await pathExists(paths.testResults))) {
-    return "missing";
-  }
-
   try {
-    const parsed = testResultsSchema.parse(JSON.parse(await readFile(paths.testResults, "utf8")));
-    return parsed.status;
-  } catch {
+    const freshness = await checkVerificationFreshness({
+      cwd: paths.workspaceRoot,
+      testResultsPath: paths.testResults,
+    });
+    return freshness.status;
+  } catch (error) {
+    if (!(error instanceof TestResultsError) || error.code !== testResultsErrorCodes.invalid) {
+      throw error;
+    }
+
     issues.push(
       createIssue(
         paths,
-        protocolIssueCodes.frontMatterInvalid,
+        protocolIssueCodes.testResultsInvalid,
         paths.testResults,
         "test-results.json 格式错误",
       ),

@@ -212,14 +212,14 @@ AI 不应默认读取所有文档。
 当前下一步任务：
 
 ```text
-T014 实现验证结果读写和新鲜度判断
+T015 实现验证脚本运行器
 ```
 
-开始 T014 前建议读取：
+开始 T015 前建议读取：
 
-- `docs/05-task-breakdown.md` 中 T014
+- `docs/05-task-breakdown.md` 中 T015
 - `docs/04-harness-protocol.md`
-- `docs/03-architecture.md` 中验证流程和 `test-results.json` 新鲜度判断
+- `docs/03-architecture.md` 中 `louisgo verify` 流程
 - `docs/08-decision-log.md` 中 D010-D013、D019
 - `docs/06-roadmap.md`
 
