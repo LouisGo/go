@@ -5,6 +5,7 @@ import { realpathSync } from "node:fs";
 import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
+import { registerCodexCommand } from "./commands/codex.js";
 import { registerFinishCommand } from "./commands/finish.js";
 import { registerHandoffPromoteCommand } from "./commands/handoff-promote.js";
 import { registerInitCommand } from "./commands/init.js";
@@ -14,6 +15,7 @@ import { registerVerifyCommand } from "./commands/verify.js";
 
 export interface CliOptions {
   readonly cwd?: string;
+  readonly codexHome?: string;
   readonly now?: () => Date;
   readonly stdout?: Writable;
   readonly stderr?: Writable;
@@ -37,6 +39,7 @@ export function createCli(options: CliOptions = {}): Command {
   registerVerifyCommand(program, options);
   registerFinishCommand(program, options);
   registerHandoffPromoteCommand(program, options);
+  registerCodexCommand(program, options);
 
   return program;
 }

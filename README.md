@@ -15,6 +15,7 @@ louisgo verify
 louisgo pause
 louisgo finish
 louisgo handoff promote
+louisgo codex setup
 ```
 
 ## 安装
@@ -51,6 +52,7 @@ louisgo verify
 louisgo pause
 louisgo finish
 louisgo handoff promote
+louisgo codex setup
 ```
 
 命令含义：
@@ -63,6 +65,7 @@ louisgo handoff promote
 | `louisgo pause` | 写入 `QUICK_SAVE.md`，保存短时恢复点。 |
 | `louisgo finish` | 生成 `HANDOFF_DRAFT.md`，并把 `QUICK_SAVE.md` / `CONFIRM_REQ.md` 转存后清理。 |
 | `louisgo handoff promote` | 将用户认可的 `HANDOFF_DRAFT.md` 提升为正式 `HANDOFF.md`。 |
+| `louisgo codex setup` | 安装 Codex skill 和 AGENTS 指令块，让 `$start` 等指令映射到 LouisGo CLI。 |
 
 默认验证脚本不会假装项目已通过检查；它会写入 `skipped`。要让 `louisgo verify` 变成真实质量门禁，请按项目情况编辑：
 
@@ -74,6 +77,14 @@ louisgo handoff promote
 ## 工作流指令
 
 对话中的 `$start`、`$pause`、`$resume`、`$finish` 是 AI 工作流指令；CLI 是这些指令背后的稳定文件操作。
+
+要在 Codex 中获得类似 oh-my-codex 的 `$` 指令体验，先运行：
+
+```text
+louisgo codex setup
+```
+
+它会安装全局 Codex skill，并在全局和当前项目的 `AGENTS.md` 中写入 LouisGo 指令块。新开 Codex 会话或重启 Codex 后，输入 `$start`、`$pause`、`$finish` 等指令时，Codex 会按 LouisGo skill 执行对应 CLI 流程。
 
 | 指令 | 推荐 CLI / 行为 |
 | --- | --- |

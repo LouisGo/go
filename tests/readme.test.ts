@@ -14,13 +14,19 @@ describe("README 使用说明", () => {
     const commandNames = program.commands.map((command) => command.name());
     const handoff = program.commands.find((command) => command.name() === "handoff");
 
-    for (const command of ["init", "status", "verify", "pause", "finish", "handoff"]) {
+    for (const command of ["init", "status", "verify", "pause", "finish", "handoff", "codex"]) {
       expect(commandNames).toContain(command);
       expect(readme).toContain(`louisgo ${command}`);
     }
 
     expect(handoff?.commands.map((command) => command.name())).toContain("promote");
     expect(readme).toContain("louisgo handoff promote");
+    expect(
+      program.commands
+        .find((command) => command.name() === "codex")
+        ?.commands.map((command) => command.name()),
+    ).toContain("setup");
+    expect(readme).toContain("louisgo codex setup");
     expect(readme).toContain("npx louisgo init");
   });
 });

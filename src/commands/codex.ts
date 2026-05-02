@@ -1,0 +1,39 @@
+import type { Command } from "commander";
+import type { Writable } from "node:stream";
+
+import {
+  setupCodex,
+  type CodexSetupOptions,
+  type CodexSetupResult,
+} from "../services/codex-service.js";
+
+export interface RegisterCodexCommandOptions extends CodexSetupOptions {
+  readonly stdout?: Writable;
+}
+
+export function registerCodexCommand(
+  program: Command,
+  options: RegisterCodexCommandOptions = {},
+): void {
+  const codex = program.command("codex").description("安装 LouisGo Codex 工作流集成");
+
+  codex
+    .command("setup")
+    .description("安装 $start 等 LouisGo Codex 指令")
+    .action(async () => {
+      const result = await setupCodex(options);
+      writeCodexSetupResult(options.stdout ?? process.stdout, result);
+    });
+}
+
+function writeCodexSetupResult(stdout: Writable, result: CodexSetupResult): void {
+  stdout.write(`LouisGo Codex 集成完成：${result.workspaceRoot}\n`);
+  stdout.write(`Codex Home：${result.codexHome}\n`);
+  stdout.write("写入文件：\n");
+
+  for (const file of result.files) {
+    stdout.write(`- ${file.status} ${file.filePath}\n`);
+  }
+
+  stdout.write(`下一步：${result.nextSteps.join("；")}\n`);
+}
