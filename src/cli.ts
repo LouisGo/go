@@ -6,6 +6,7 @@ import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
 import { registerInitCommand } from "./commands/init.js";
+import { registerPauseCommand } from "./commands/pause.js";
 import { registerStatusCommand } from "./commands/status.js";
 import { registerVerifyCommand } from "./commands/verify.js";
 
@@ -29,6 +30,7 @@ export function createCli(options: CliOptions = {}): Command {
     .showHelpAfterError();
 
   registerInitCommand(program, options);
+  registerPauseCommand(program, options);
   registerStatusCommand(program, options);
   registerVerifyCommand(program, options);
 
