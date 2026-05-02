@@ -9,7 +9,7 @@ When the user message starts with a LouisGo dollar directive, treat it as an exp
 - `$pause`: run `louisgo pause`.
 - `$resume`: run `louisgo status` and prefer `.louisgo/HANDOFF.md` when present.
 - `$finish`: run `louisgo finish` and remind the user to review `.louisgo/HANDOFF_DRAFT.md` before `louisgo handoff promote`.
-- `$handoff promote`: run `louisgo handoff promote`.
+- `$handoff-promote`: run `louisgo handoff promote`.
 
 These directives are backed by the `louisgo` CLI and the `.louisgo/` protocol files. If the protocol is missing, suggest `louisgo init`.
 <!-- louisgo-codex:end -->

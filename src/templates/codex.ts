@@ -18,7 +18,7 @@ When the user's message starts with one of the LouisGo dollar directives below, 
 | \`$pause\` | Run \`louisgo pause\`; report where \`QUICK_SAVE.md\` was written. |
 | \`$resume\` | Run \`louisgo status\`; prefer \`.louisgo/HANDOFF.md\` for formal recovery when present; otherwise report the current roadmap task and available recovery source. |
 | \`$finish\` | Run \`louisgo finish\`; tell the user to review \`.louisgo/HANDOFF_DRAFT.md\` and then run \`louisgo handoff promote\` when approved. |
-| \`$handoff promote\` | Run \`louisgo handoff promote\`; report the resulting \`HANDOFF.md\` status. |
+| \`$handoff-promote\` | Run \`louisgo handoff promote\`; report the resulting \`HANDOFF.md\` status. |
 
 ## Rules
 
@@ -26,6 +26,48 @@ When the user's message starts with one of the LouisGo dollar directives below, 
 - If \`.louisgo/\` is missing or incomplete, report the issue and suggest \`louisgo init\`.
 - Do not mark work complete from narrative alone; use verification results, user confirmation, or protocol files.
 - Keep user-facing explanations concise and in Simplified Chinese by default.
+`;
+}
+
+export interface CodexDirectiveSkillTemplateOptions {
+  readonly name: string;
+  readonly directive: string;
+  readonly title: string;
+  readonly description: string;
+  readonly action: string;
+}
+
+export function createCodexDirectiveSkillTemplate(
+  options: CodexDirectiveSkillTemplateOptions,
+): string {
+  return `---
+name: ${options.name}
+description: ${options.description}
+---
+
+# ${options.title}
+
+When the user invokes \`${options.directive}\`, treat it as an explicit LouisGo workflow command.
+
+Required action:
+
+${options.action}
+
+Rules:
+
+- Always run the mapped \`louisgo\` command before answering.
+- If \`.louisgo/\` is missing or incomplete, report the issue and suggest \`louisgo init\`.
+- Keep the response concise and in Simplified Chinese by default.
+`;
+}
+
+export function createCodexDirectiveSkillOpenAiYaml(
+  options: CodexDirectiveSkillTemplateOptions,
+): string {
+  return `interface:
+  display_name: "${options.directive}"
+  short_description: "${options.title}"
+  default_prompt: "${options.directive}"
 `;
 }
 
@@ -48,7 +90,7 @@ When the user message starts with a LouisGo dollar directive, treat it as an exp
 - \`$pause\`: run \`louisgo pause\`.
 - \`$resume\`: run \`louisgo status\` and prefer \`.louisgo/HANDOFF.md\` when present.
 - \`$finish\`: run \`louisgo finish\` and remind the user to review \`.louisgo/HANDOFF_DRAFT.md\` before \`louisgo handoff promote\`.
-- \`$handoff promote\`: run \`louisgo handoff promote\`.
+- \`$handoff-promote\`: run \`louisgo handoff promote\`.
 
 These directives are backed by the \`louisgo\` CLI and the \`.louisgo/\` protocol files. If the protocol is missing, suggest \`louisgo init\`.`;
 }

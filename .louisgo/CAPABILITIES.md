@@ -20,4 +20,4 @@ updated_at: "2026-05-02T06:55:00.000Z"
 - 需要用户确认时，写入 `.louisgo/CONFIRM_REQ.md`。
 - 涉及架构决策时，写入 `.louisgo/ADR/draft/`。
 - 发布前必须确认版本号、许可证和 npm 包名可用性。
-- 输入 `$start`、`$pause`、`$resume`、`$finish` 时，按 LouisGo Codex skill 映射到对应 CLI。
+- 输入 `$start`、`$pause`、`$resume`、`$finish`、`$handoff-promote` 时，按 LouisGo Codex skill 映射到对应 CLI。

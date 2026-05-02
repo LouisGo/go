@@ -84,7 +84,7 @@ louisgo codex setup
 louisgo codex setup
 ```
 
-它会安装全局 Codex skill，并在全局和当前项目的 `AGENTS.md` 中写入 LouisGo 指令块。新开 Codex 会话或重启 Codex 后，输入 `$start`、`$pause`、`$finish` 等指令时，Codex 会按 LouisGo skill 执行对应 CLI 流程。
+它会安装全局 Codex skills，并在全局和当前项目的 `AGENTS.md` 中写入 LouisGo 指令块。新开 Codex 会话或重启 Codex 后，输入 `$start`、`$pause`、`$finish` 等指令时，Codex CLI 会显示对应提示，并按 LouisGo skill 执行对应 CLI 流程。
 
 | 指令 | 推荐 CLI / 行为 |
 | --- | --- |
@@ -92,6 +92,7 @@ louisgo codex setup
 | `$pause` | 运行 `louisgo pause`，保存短时恢复点。 |
 | `$resume` | 运行 `louisgo status`，优先查看正式 `HANDOFF.md` 恢复状态。 |
 | `$finish` | 运行 `louisgo finish`，审阅草稿后运行 `louisgo handoff promote`。 |
+| `$handoff-promote` | 运行 `louisgo handoff promote`，把交接草稿提升为正式恢复点。 |
 
 ## `.louisgo/` 文件
 

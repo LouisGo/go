@@ -21,6 +21,7 @@ describe("README 使用说明", () => {
 
     expect(handoff?.commands.map((command) => command.name())).toContain("promote");
     expect(readme).toContain("louisgo handoff promote");
+    expect(readme).toContain("$handoff-promote");
     expect(
       program.commands
         .find((command) => command.name() === "codex")

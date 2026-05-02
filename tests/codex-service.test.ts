@@ -17,12 +17,21 @@ describe("Codex 集成安装", () => {
 
     const result = await setupCodex({ cwd: repo.path, codexHome: codex.path });
 
-    expect(result.files).toHaveLength(4);
+    expect(result.files).toHaveLength(18);
     await expect(
-      readFile(join(codex.path, "skills", "louisgo-workflow", "SKILL.md"), "utf8"),
-    ).resolves.toContain("$start");
+      readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
+    ).resolves.toContain("louisgo status");
     await expect(
-      readFile(join(codex.path, "skills", "louisgo-workflow", "agents", "openai.yaml"), "utf8"),
+      readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
+    ).resolves.toContain('display_name: "$start"');
+    await expect(
+      readFile(join(codex.path, "skills", "finish", "SKILL.md"), "utf8"),
+    ).resolves.toContain("louisgo finish");
+    await expect(
+      readFile(join(codex.path, "skills", "handoff-promote", "SKILL.md"), "utf8"),
+    ).resolves.toContain("louisgo handoff promote");
+    await expect(
+      readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
     ).resolves.toContain("LouisGo Workflow");
     await expect(readFile(join(codex.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "louisgo-codex:start",
@@ -58,6 +67,7 @@ describe("Codex 集成安装", () => {
     ).toBe(true);
     expect(agents).toContain("保留内容。");
     expect(agents).toContain("$finish");
+    expect(agents).toContain("$handoff-promote");
     expect(agents).not.toContain("旧内容");
   });
 });

@@ -1,13 +1,16 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
 import { findGitRoot } from "../fs/workspace.js";
 import {
   createCodexAgentsBlock,
+  createCodexDirectiveSkillOpenAiYaml,
+  createCodexDirectiveSkillTemplate,
   createCodexSkillOpenAiYaml,
   createCodexSkillTemplate,
 } from "../templates/codex.js";
+import type { CodexDirectiveSkillTemplateOptions } from "../templates/codex.js";
 
 const managedBlockStart = "<!-- louisgo-codex:start -->";
 const managedBlockEnd = "<!-- louisgo-codex:end -->";
@@ -40,10 +43,25 @@ export interface CodexSetupResult {
 export async function setupCodex(options: CodexSetupOptions = {}): Promise<CodexSetupResult> {
   const workspaceRoot = await findGitRoot(options.cwd);
   const codexHome = resolve(options.codexHome ?? join(homedir(), ".codex"));
-  const skillDir = join(codexHome, "skills", "louisgo-workflow");
+  const skillsDir = join(codexHome, "skills");
+  await rm(join(skillsDir, "louisgo-workflow"), { force: true, recursive: true });
+
   const files = await Promise.all([
-    writeManagedFile(join(skillDir, "SKILL.md"), createCodexSkillTemplate()),
-    writeManagedFile(join(skillDir, "agents", "openai.yaml"), createCodexSkillOpenAiYaml()),
+    ...codexDirectiveSkills.flatMap((skill) => {
+      const skillDir = join(skillsDir, skill.name);
+      return [
+        writeManagedFile(join(skillDir, "SKILL.md"), createCodexDirectiveSkillTemplate(skill)),
+        writeManagedFile(
+          join(skillDir, "agents", "openai.yaml"),
+          createCodexDirectiveSkillOpenAiYaml(skill),
+        ),
+      ];
+    }),
+    writeManagedFile(join(skillsDir, "louisgo", "SKILL.md"), createCodexSkillTemplate()),
+    writeManagedFile(
+      join(skillsDir, "louisgo", "agents", "openai.yaml"),
+      createCodexSkillOpenAiYaml(),
+    ),
     upsertAgentsFile(join(codexHome, "AGENTS.md"), createCodexAgentsBlock()),
     upsertAgentsFile(join(workspaceRoot, "AGENTS.md"), createCodexAgentsBlock()),
   ]);
@@ -58,6 +76,71 @@ export async function setupCodex(options: CodexSetupOptions = {}): Promise<Codex
     ],
   };
 }
+
+const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
+  {
+    name: "start",
+    directive: "$start",
+    title: "LouisGo start",
+    description:
+      "Use when the user enters $start in Codex. Runs the LouisGo start workflow for the current repository.",
+    action:
+      "- Run `louisgo status`.\n- Read `.louisgo/MISSION.md` and `.louisgo/CAPABILITIES.md`.\n- If status reports `CONFIRM_REQ`, `QUICK_SAVE`, or `HANDOFF`, read the corresponding file before advising next steps.\n- Report mode, current task, verification state, recovery source, and next action.",
+  },
+  {
+    name: "status",
+    directive: "$status",
+    title: "LouisGo status",
+    description:
+      "Use when the user enters $status in Codex. Runs louisgo status and summarizes protocol state.",
+    action:
+      "- Run `louisgo status`.\n- Report protocol completeness, mode, current task, verification state, recovery source, and unresolved signals.",
+  },
+  {
+    name: "verify",
+    directive: "$verify",
+    title: "LouisGo verify",
+    description:
+      "Use when the user enters $verify in Codex. Runs LouisGo verification for the current repository.",
+    action:
+      "- Run `louisgo verify`.\n- Relay verification status, freshness, summary, exit-code meaning, and stale reason if present.",
+  },
+  {
+    name: "pause",
+    directive: "$pause",
+    title: "LouisGo pause",
+    description:
+      "Use when the user enters $pause in Codex. Writes a LouisGo Quick Save checkpoint.",
+    action:
+      "- Run `louisgo pause`.\n- Report where `QUICK_SAVE.md` was written and remind the user that it is a short-term recovery point.",
+  },
+  {
+    name: "resume",
+    directive: "$resume",
+    title: "LouisGo resume",
+    description:
+      "Use when the user enters $resume in Codex. Resumes from LouisGo handoff/status protocol.",
+    action:
+      "- Run `louisgo status`.\n- Prefer `.louisgo/HANDOFF.md` for formal recovery when present.\n- Otherwise report the current roadmap task and available recovery source.",
+  },
+  {
+    name: "finish",
+    directive: "$finish",
+    title: "LouisGo finish",
+    description: "Use when the user enters $finish in Codex. Generates a LouisGo handoff draft.",
+    action:
+      "- Run `louisgo finish`.\n- Report the draft path, verification status, cleanup result, and tell the user to review `.louisgo/HANDOFF_DRAFT.md` before `louisgo handoff promote`.",
+  },
+  {
+    name: "handoff-promote",
+    directive: "$handoff-promote",
+    title: "LouisGo handoff promote",
+    description:
+      "Use when the user enters $handoff-promote in Codex. Promotes the LouisGo handoff draft to a formal handoff.",
+    action:
+      "- Run `louisgo handoff promote`.\n- Report `HANDOFF.md`, verification status, and recovery implication.",
+  },
+];
 
 async function writeManagedFile(filePath: string, content: string): Promise<CodexSetupFileResult> {
   const resolvedPath = resolve(filePath);

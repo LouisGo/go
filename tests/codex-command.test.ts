@@ -21,7 +21,8 @@ describe("codex setup 命令", () => {
     await program.parseAsync(["node", "louisgo", "codex", "setup"]);
 
     expect(stdout.text).toContain("LouisGo Codex 集成完成");
-    expect(stdout.text).toContain("skills/louisgo-workflow/SKILL.md");
+    expect(stdout.text).toContain("skills/start/SKILL.md");
+    expect(stdout.text).toContain("skills/finish/SKILL.md");
     expect(stdout.text).toContain("下一步：新开 Codex 会话或重启 Codex 后输入 $start");
   });
 });
