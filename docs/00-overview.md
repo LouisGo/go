@@ -25,7 +25,7 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 
 ## 当前阶段
 
-当前处于 MVP 代码实现阶段，已完成 T001-T021。
+当前处于 MVP 代码实现阶段，已完成 T001-T022。
 
 已完成：
 
@@ -58,10 +58,11 @@ MVP 目标不是构建完整 Agent 平台，而是提供一套仓库内协议和
 - HANDOFF_DRAFT 生成
 - `louisgo finish`
 - `louisgo handoff promote`
+- CLI 端到端测试
 
 尚未完成：
 
-- 端到端测试
+- README 和使用说明
 - npm 发布准备
 
 ## 核心决策摘要
@@ -215,15 +216,14 @@ AI 不应默认读取所有文档。
 当前下一步任务：
 
 ```text
-T022 完善端到端测试
+T023 完善 README 和使用说明
 ```
 
-开始 T022 前建议读取：
+开始 T023 前建议读取：
 
-- `docs/05-task-breakdown.md` 中 T022
-- `docs/02-technology-selection.md` 的分发方式
-- `docs/03-architecture.md` 的测试策略
-- `docs/07-open-questions.md` 中 Q001-Q002
+- `docs/05-task-breakdown.md` 中 T023
+- `docs/01-requirements.md` 中工作流指令和 MVP 限制
+- `docs/04-harness-protocol.md` 中 `.louisgo/` 文件说明
 - `docs/06-roadmap.md`
 
 ## 给 AI 的执行约束

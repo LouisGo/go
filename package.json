@@ -17,6 +17,7 @@
     "format:check": "prettier --check \"*.{json,ts}\" \"{src,tests}/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
+    "test:e2e": "vitest run --config vitest.config.ts tests/e2e.test.ts",
     "start": "node ./dist/cli.js"
   },
   "engines": {
