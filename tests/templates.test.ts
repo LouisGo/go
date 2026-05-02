@@ -23,6 +23,7 @@ import { createMissionTemplate } from "../src/templates/mission.js";
 import { createRoadmapTemplate } from "../src/templates/roadmap.js";
 import { createVerifyPs1Template } from "../src/templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../src/templates/verify-sh.js";
+import { checkVerificationFreshness } from "../src/verify/freshness.js";
 
 const execFileAsync = promisify(execFile);
 const timestamp = "2026-05-01T20:00:00+08:00";
@@ -146,6 +147,15 @@ describe("协议模板", () => {
     });
     expect(result.gitHead.length).toBeGreaterThan(0);
     expect(result.diffHash).toMatch(/^[a-f0-9]{64}$/);
+    await expect(
+      checkVerificationFreshness({
+        cwd: tempDir.path,
+        testResultsPath: resultPath,
+      }),
+    ).resolves.toMatchObject({
+      status: "skipped",
+      staleReason: null,
+    });
 
     await writeFile(trackedPath, "three\n", "utf8");
     await execFileAsync("sh", [scriptPath], { cwd: tempDir.path });

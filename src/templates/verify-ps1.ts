@@ -30,10 +30,11 @@ if ($HasHead) {
   [void]$HashInput.Append((git diff --binary HEAD -- . ':!.louisgo/test-results.json' | Out-String))
 } else {
   [void]$HashInput.Append((git diff --binary --cached -- . ':!.louisgo/test-results.json' | Out-String))
+  [void]$HashInput.Append("\`0")
   [void]$HashInput.Append((git diff --binary -- . ':!.louisgo/test-results.json' | Out-String))
 }
 [void]$HashInput.Append("\`0untracked\`0")
-foreach ($File in (git ls-files --others --exclude-standard -- . ':!.louisgo/test-results.json')) {
+foreach ($File in (git ls-files --others --exclude-standard -- . ':!.louisgo/test-results.json' | Sort-Object)) {
   if (Test-Path -LiteralPath $File -PathType Leaf) {
     [void]$HashInput.Append("path\`0$File\`0hash\`0")
     [void]$HashInput.Append((Get-FileSha256 $File))

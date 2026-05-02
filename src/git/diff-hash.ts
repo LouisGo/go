@@ -1,10 +1,9 @@
-import { createHash, type Hash } from "node:crypto";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { getGitHead, getGitRoot, noGitHead, runGit, type GitCommandOptions } from "./git.js";
 
-const algorithmVersion = "louisgo-diff-hash-v1";
 const testResultsPathspec = ":!.louisgo/test-results.json";
 
 export async function computeDiffHash(options: GitCommandOptions = {}): Promise<string> {
@@ -15,16 +14,21 @@ export async function computeDiffHash(options: GitCommandOptions = {}): Promise<
   const untrackedFiles = await getUntrackedFiles(gitRoot);
   const aggregateHash = createHash("sha256");
 
-  updateTextSection(aggregateHash, "version", algorithmVersion);
-  updateTextSection(aggregateHash, "git_head", gitHead);
-  updateTextSection(aggregateHash, "status", status);
-  updateTextSection(aggregateHash, "diff", diff);
-  updateTextSection(aggregateHash, "untracked_count", String(untrackedFiles.length));
+  aggregateHash.update("git_head\0");
+  aggregateHash.update(gitHead);
+  aggregateHash.update("\0status\0");
+  aggregateHash.update(status);
+  aggregateHash.update("\0diff\0");
+  aggregateHash.update(diff);
+  aggregateHash.update("\0untracked\0");
 
   for (const relativePath of untrackedFiles) {
     const content = await readFile(join(gitRoot, relativePath));
-    updateTextSection(aggregateHash, "untracked_path", relativePath);
-    updateTextSection(aggregateHash, "untracked_sha256", sha256Hex(content));
+    aggregateHash.update("path\0");
+    aggregateHash.update(relativePath);
+    aggregateHash.update("\0hash\0");
+    aggregateHash.update(sha256Hex(content));
+    aggregateHash.update("\0");
   }
 
   return aggregateHash.digest("hex");
@@ -63,15 +67,6 @@ async function getUntrackedFiles(gitRoot: string): Promise<readonly string[]> {
     .split("\0")
     .filter((path) => path.length > 0)
     .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0));
-}
-
-function updateTextSection(hash: Hash, name: string, value: string): void {
-  hash.update(name);
-  hash.update("\0");
-  hash.update(String(Buffer.byteLength(value, "utf8")));
-  hash.update("\0");
-  hash.update(value);
-  hash.update("\0");
 }
 
 function sha256Hex(content: Buffer): string {

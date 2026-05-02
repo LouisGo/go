@@ -28,13 +28,15 @@ create_diff_hash() {
       git diff --binary HEAD -- . ':!.louisgo/test-results.json'
     else
       git diff --binary --cached -- . ':!.louisgo/test-results.json'
+      printf '\\0'
       git diff --binary -- . ':!.louisgo/test-results.json'
     fi
     printf '\\0untracked\\0'
-    git ls-files --others --exclude-standard -- . ':!.louisgo/test-results.json' | while IFS= read -r file; do
+    git ls-files --others --exclude-standard -- . ':!.louisgo/test-results.json' | LC_ALL=C sort | while IFS= read -r file; do
       if [ -f "$file" ]; then
         printf 'path\\0%s\\0hash\\0' "$file"
-        file_sha256 "$file"
+        file_hash="$(file_sha256 "$file")"
+        printf '%s' "$file_hash"
         printf '\\0'
       fi
     done
