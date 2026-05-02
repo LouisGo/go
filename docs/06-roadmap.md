@@ -37,7 +37,7 @@
 
 ## P4 会话工作流命令
 
-- [ ] T017 实现 QUICK_SAVE 和 CONFIRM_REQ 协议读写
+- [x] T017 实现 QUICK_SAVE 和 CONFIRM_REQ 协议读写
 - [ ] T018 实现 `louisgo pause`
 - [ ] T019 实现 HANDOFF_DRAFT 生成
 - [ ] T020 实现 `louisgo finish`

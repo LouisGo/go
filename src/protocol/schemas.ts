@@ -15,10 +15,12 @@ export type VerificationStatus = z.infer<typeof verificationStatusSchema>;
 
 export const testResultStatusSchema = z.enum(["passed", "failed", "error", "skipped"]);
 export type TestResultStatus = z.infer<typeof testResultStatusSchema>;
+export const missingTaskId = "NO_TASK";
 
 const nonEmptyStringSchema = z.string().min(1);
 const isoDateTimeSchema = z.iso.datetime({ offset: true });
 const taskIdSchema = z.string().regex(/^T\d{3,}$/, "任务 ID 必须类似 T001");
+const taskReferenceSchema = z.union([taskIdSchema, z.literal(missingTaskId)]);
 const nullableStringSchema = z.string().min(1).nullable();
 const nullableDateTimeSchema = isoDateTimeSchema.nullable();
 
@@ -56,7 +58,7 @@ export const handoffFrontMatterSchema = z
   .object({
     schema: z.literal("louisgo-handoff-v1"),
     mode: louisGoModeSchema,
-    task_id: taskIdSchema,
+    task_id: taskReferenceSchema,
     git_head: nonEmptyStringSchema,
     diff_hash: nonEmptyStringSchema,
     verification: verificationStatusSchema,
@@ -79,7 +81,7 @@ export const quickSaveFrontMatterSchema = z
   .object({
     schema: z.literal("louisgo-quick-save-v1"),
     mode: louisGoModeSchema,
-    task_id: taskIdSchema,
+    task_id: taskReferenceSchema,
     git_head: nonEmptyStringSchema,
     diff_hash: nonEmptyStringSchema,
     saved_at: isoDateTimeSchema,
@@ -98,7 +100,7 @@ export const confirmReqFrontMatterSchema = z
   .object({
     schema: z.literal("louisgo-confirm-req-v1"),
     mode: louisGoModeSchema,
-    task_id: taskIdSchema,
+    task_id: taskReferenceSchema,
     status: z.literal("open"),
     created_at: isoDateTimeSchema,
   })

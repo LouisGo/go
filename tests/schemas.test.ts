@@ -6,6 +6,7 @@ import {
   confirmReqFrontMatterSchema,
   handoffFrontMatterSchema,
   louisGoModeSchema,
+  missingTaskId,
   missionFrontMatterSchema,
   quickSaveFrontMatterSchema,
   testResultsSchema,
@@ -70,14 +71,14 @@ describe("协议 schema", () => {
       quickSaveFrontMatterSchema.parse({
         schema: "louisgo-quick-save-v1",
         mode: "auto",
-        task_id: "T002",
+        task_id: missingTaskId,
         git_head: "abc123",
         diff_hash: "def456",
         saved_at: timestamp,
       }),
     ).toMatchObject({
       mode: "auto",
-      taskId: "T002",
+      taskId: missingTaskId,
       savedAt: timestamp,
     });
 
