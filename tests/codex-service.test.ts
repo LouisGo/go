@@ -23,7 +23,7 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("louisgo status");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
-    ).resolves.toContain("中文：读取协议状态");
+    ).resolves.toContain("中文：LouisGo 启动：读取协议状态");
     await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
     ).resolves.toContain('display_name: "$start"');
@@ -36,15 +36,30 @@ describe("Codex 集成安装", () => {
     await expect(
       readFile(join(codex.path, "skills", "handoff-promote", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo handoff promote");
+    for (const skill of [
+      "start",
+      "status",
+      "verify",
+      "pause",
+      "resume",
+      "finish",
+      "handoff-promote",
+    ]) {
+      const openAiYaml = await readFile(
+        join(codex.path, "skills", skill, "agents", "openai.yaml"),
+        "utf8",
+      );
+      expect(openAiYaml).toMatch(/short_description: "LouisGo /);
+    }
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
     ).resolves.toContain("LouisGo Workflow");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
-    ).resolves.toContain("中文：识别 LouisGo 工作流指令");
+    ).resolves.toContain("中文：LouisGo 工作流：识别指令");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "agents", "openai.yaml"), "utf8"),
-    ).resolves.toContain("识别 LouisGo $start");
+    ).resolves.toContain("LouisGo 工作流：识别 $start");
     await expect(readFile(join(codex.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "louisgo-codex:start",
     );

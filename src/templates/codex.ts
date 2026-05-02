@@ -1,7 +1,7 @@
 export function createCodexSkillTemplate(): string {
   return `---
 name: louisgo-workflow
-description: Use when the user enters LouisGo workflow directives like $start, $status, $verify, $pause, $resume, $finish, or asks to use LouisGo inside Codex. 中文：识别 LouisGo 工作流指令并映射到对应 CLI 和 .louisgo 协议文件。
+description: Use when the user enters LouisGo workflow directives like $start, $status, $verify, $pause, $resume, $finish, or asks to use LouisGo inside Codex. 中文：LouisGo 工作流：识别指令并映射到对应 CLI 和 .louisgo 协议文件。
 ---
 
 # LouisGo Workflow
@@ -75,7 +75,7 @@ export function createCodexDirectiveSkillOpenAiYaml(
 export function createCodexSkillOpenAiYaml(): string {
   return `interface:
   display_name: "LouisGo Workflow"
-  short_description: "识别 LouisGo $start、$pause、$finish 和交接工作流"
+  short_description: "LouisGo 工作流：识别 $start、$pause、$finish 和交接指令"
   default_prompt: "在已启用 LouisGo 的仓库中使用 $start，读取 .louisgo 状态、使命、能力、恢复来源和当前任务。"
 `;
 }

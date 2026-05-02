@@ -82,7 +82,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "start",
     directive: "$start",
     title: "LouisGo 启动",
-    shortDescription: "读取协议状态、项目约束、能力声明和恢复来源",
+    shortDescription: "LouisGo 启动：读取协议状态、项目约束、能力声明和恢复来源",
     description:
       "Use when the user enters $start in Codex. Runs the LouisGo start workflow for the current repository.",
     action:
@@ -92,7 +92,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "status",
     directive: "$status",
     title: "LouisGo 状态",
-    shortDescription: "查看协议完整性、当前任务、验证状态和恢复来源",
+    shortDescription: "LouisGo 状态：查看协议完整性、当前任务、验证状态和恢复来源",
     description:
       "Use when the user enters $status in Codex. Runs louisgo status and summarizes protocol state.",
     action:
@@ -102,7 +102,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "verify",
     directive: "$verify",
     title: "LouisGo 验证",
-    shortDescription: "运行仓库验证脚本并报告新鲜度",
+    shortDescription: "LouisGo 验证：运行仓库验证脚本并报告新鲜度",
     description:
       "Use when the user enters $verify in Codex. Runs LouisGo verification for the current repository.",
     action:
@@ -112,7 +112,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "pause",
     directive: "$pause",
     title: "LouisGo 暂停",
-    shortDescription: "写入 QUICK_SAVE.md 作为短时恢复点",
+    shortDescription: "LouisGo 暂停：写入 QUICK_SAVE.md 作为短时恢复点",
     description:
       "Use when the user enters $pause in Codex. Writes a LouisGo Quick Save checkpoint.",
     action:
@@ -122,7 +122,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "resume",
     directive: "$resume",
     title: "LouisGo 恢复",
-    shortDescription: "按 HANDOFF 或当前协议状态恢复上下文",
+    shortDescription: "LouisGo 恢复：按 HANDOFF 或当前协议状态恢复上下文",
     description:
       "Use when the user enters $resume in Codex. Resumes from LouisGo handoff/status protocol.",
     action:
@@ -132,7 +132,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "finish",
     directive: "$finish",
     title: "LouisGo 收尾",
-    shortDescription: "生成 HANDOFF_DRAFT.md 并转存临时状态",
+    shortDescription: "LouisGo 收尾：生成 HANDOFF_DRAFT.md 并转存临时状态",
     description: "Use when the user enters $finish in Codex. Generates a LouisGo handoff draft.",
     action:
       "- Run `louisgo finish`.\n- Report the draft path, verification status, cleanup result, and tell the user to review `.louisgo/HANDOFF_DRAFT.md` before `louisgo handoff promote`.",
@@ -141,7 +141,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "handoff-promote",
     directive: "$handoff-promote",
     title: "LouisGo 提升交接",
-    shortDescription: "将 HANDOFF_DRAFT.md 提升为正式 HANDOFF.md",
+    shortDescription: "LouisGo 交接：将 HANDOFF_DRAFT.md 提升为正式 HANDOFF.md",
     description:
       "Use when the user enters $handoff-promote in Codex. Promotes the LouisGo handoff draft to a formal handoff.",
     action:
