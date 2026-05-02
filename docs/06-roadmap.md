@@ -30,7 +30,7 @@
 ## P3 Git 状态、diff hash 和验证能力
 
 - [x] T012 实现 Git 基础能力
-- [ ] T013 实现 `diff_hash`
+- [x] T013 实现 `diff_hash`
 - [ ] T014 实现验证结果读写和新鲜度判断
 - [ ] T015 实现验证脚本运行器
 - [ ] T016 实现 `louisgo verify`

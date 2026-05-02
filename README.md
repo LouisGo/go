@@ -8,9 +8,7 @@ LouisGo 是一个轻量级 AI 编程 Harness。
 
 项目已进入 MVP 代码实现阶段。
 
-当前已经完成基础 CLI 入口、Node.js + TypeScript 工程骨架、质量检查基础，以及协议路径、schema、Front Matter 读写、安全写入和 ROADMAP 解析。
-
-`louisgo init`、`louisgo status` 等业务命令尚未实现。
+当前已经完成基础 CLI 入口、Node.js + TypeScript 工程骨架、质量检查基础、协议路径、schema、Front Matter 读写、安全写入、ROADMAP 解析、模板生成、`louisgo init`、`louisgo status`、协议完整性检查、Git 基础能力和 `diff_hash`。
 
 当前已经完成：
 
@@ -25,6 +23,8 @@ LouisGo 是一个轻量级 AI 编程 Harness。
 - Node.js + TypeScript 工程骨架
 - 基础 CLI 入口
 - 协议模型和文件读写基础
+- `louisgo init` 和 `louisgo status`
+- Git 状态读取和 `diff_hash`
 
 ## 核心方向
 
@@ -104,4 +104,4 @@ AI 不应每次全量读取所有文档。
 
 ## 下一步
 
-当前建议继续 `docs/06-roadmap.md` 的 T013，实现 `diff_hash`。
+当前建议继续 `docs/06-roadmap.md` 的 T014，实现验证结果读写和新鲜度判断。
