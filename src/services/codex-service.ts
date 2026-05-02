@@ -135,7 +135,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     shortDescription: "LouisGo 收尾：生成 HANDOFF_DRAFT.md 并转存临时状态",
     description: "Use when the user enters $finish in Codex. Generates a LouisGo handoff draft.",
     action:
-      "- Run `louisgo finish`.\n- Report the draft path, verification status, cleanup result, and tell the user to review `.louisgo/HANDOFF_DRAFT.md` before `louisgo handoff promote`.",
+      "- Run `louisgo finish`.\n- Report the draft path, verification status, cleanup result, and tell the user to review/审阅 `.louisgo/HANDOFF_DRAFT.md` before `louisgo handoff promote`.",
   },
   {
     name: "handoff-promote",

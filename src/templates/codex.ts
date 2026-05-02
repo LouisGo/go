@@ -8,6 +8,10 @@ description: Use when the user enters LouisGo workflow directives like $start, $
 
 When the user's message starts with one of the LouisGo dollar directives below, treat it as an explicit workflow command, not ordinary prose.
 
+## Command Selection
+
+Use \`louisgo <subcommand>\` by default. When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\` so self-bootstrap runs the current local build instead of a stale global install.
+
 ## Directive Mapping
 
 | Directive | Required action |
@@ -17,12 +21,13 @@ When the user's message starts with one of the LouisGo dollar directives below, 
 | \`$verify\` | Run \`louisgo verify\` and relay verification status, freshness, summary, and exit-code meaning. |
 | \`$pause\` | Run \`louisgo pause\`; report where \`QUICK_SAVE.md\` was written. |
 | \`$resume\` | Run \`louisgo status\`; prefer \`.louisgo/HANDOFF.md\` for formal recovery when present; otherwise report the current roadmap task and available recovery source. |
-| \`$finish\` | Run \`louisgo finish\`; tell the user to review \`.louisgo/HANDOFF_DRAFT.md\` and then run \`louisgo handoff promote\` when approved. |
+| \`$finish\` | Run \`louisgo finish\`; tell the user to review/审阅 \`.louisgo/HANDOFF_DRAFT.md\` and then run \`louisgo handoff promote\` when approved. |
 | \`$handoff-promote\` | Run \`louisgo handoff promote\`; report the resulting \`HANDOFF.md\` status. |
 
 ## Rules
 
 - Always run the mapped \`louisgo\` command before answering a directive.
+- Command selection may replace \`louisgo <subcommand>\` with \`node ./dist/cli.js <subcommand>\` only for the local \`louisgo\` source repository.
 - If \`.louisgo/\` is missing or incomplete, report the issue and suggest \`louisgo init\`.
 - Do not mark work complete from narrative alone; use verification results, user confirmation, or protocol files.
 - Keep user-facing explanations concise and in Simplified Chinese by default.
@@ -53,6 +58,11 @@ When the user invokes \`${options.directive}\`, treat it as an explicit LouisGo 
 Required action:
 
 ${options.action}
+
+Command selection:
+
+- Use \`louisgo <subcommand>\` by default.
+- When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\` so self-bootstrap runs the current local build instead of a stale global install.
 
 Rules:
 
@@ -85,12 +95,14 @@ export function createCodexAgentsBlock(): string {
 
 When the user message starts with a LouisGo dollar directive, treat it as an explicit command:
 
+Command selection: use \`louisgo <subcommand>\` by default. When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\` so self-bootstrap runs the current local build instead of a stale global install.
+
 - \`$start\`: run \`louisgo status\`, read \`.louisgo/MISSION.md\` and \`.louisgo/CAPABILITIES.md\`, then inspect \`CONFIRM_REQ\`, \`QUICK_SAVE\`, or \`HANDOFF\` if status indicates they matter.
 - \`$status\`: run \`louisgo status\`.
 - \`$verify\`: run \`louisgo verify\`.
 - \`$pause\`: run \`louisgo pause\`.
 - \`$resume\`: run \`louisgo status\` and prefer \`.louisgo/HANDOFF.md\` when present.
-- \`$finish\`: run \`louisgo finish\` and remind the user to review \`.louisgo/HANDOFF_DRAFT.md\` before \`louisgo handoff promote\`.
+- \`$finish\`: run \`louisgo finish\` and remind the user to review/审阅 \`.louisgo/HANDOFF_DRAFT.md\` before \`louisgo handoff promote\`.
 - \`$handoff-promote\`: run \`louisgo handoff promote\`.
 
 These directives are backed by the \`louisgo\` CLI and the \`.louisgo/\` protocol files. If the protocol is missing, suggest \`louisgo init\`.`;

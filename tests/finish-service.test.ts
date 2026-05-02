@@ -40,8 +40,11 @@ describe("finish service HANDOFF_DRAFT 生成", () => {
       verification: "passed",
       generatedAt: "2026-05-01T12:30:00.000Z",
     });
-    expect(document.body).toContain("当前验证状态：passed");
-    expect(document.body).toContain("## Git diff 摘要");
+    expect(document.body).toContain("验证状态：passed");
+    expect(document.body).toContain("## 当前工作区");
+    expect(document.body).toContain("接手判断：验证通过且对应当前工作区");
+    expect(document.body).toContain("无 Blocker。");
+    expect(document.body).not.toContain("\n# Blocker\n");
   });
 
   it("生成验证失败草稿", async () => {
@@ -51,7 +54,8 @@ describe("finish service HANDOFF_DRAFT 生成", () => {
     const draft = await generateHandoffDraft({ cwd: repo.path, now: generatedNow });
 
     expect(draft.frontMatter.verification).toBe("failed");
-    expect(draft.body).toContain("当前验证状态：failed");
+    expect(draft.body).toContain("验证状态：failed");
+    expect(draft.body).toContain("接手者应先查看失败原因并修复");
   });
 
   it("生成验证过期草稿", async () => {
@@ -64,7 +68,8 @@ describe("finish service HANDOFF_DRAFT 生成", () => {
     const draft = await generateHandoffDraft({ cwd: repo.path, now: generatedNow });
 
     expect(draft.frontMatter.verification).toBe("stale");
-    expect(draft.body).toContain("当前验证状态：stale");
+    expect(draft.body).toContain("验证状态：stale");
+    expect(draft.body).toContain("验证结果已过期");
   });
 
   it("包含 BLOCKER.md 摘要", async () => {
@@ -110,7 +115,8 @@ describe("finish service HANDOFF_DRAFT 生成", () => {
     const draft = await generateHandoffDraft({ cwd: repo.path, now: generatedNow });
 
     expect(draft.body).toContain("存在 Quick Save：T001");
-    expect(draft.body).toContain("## 当前进度");
+    expect(draft.body).toContain("QUICK_SAVE.md 没有填写具体正文。");
+    expect(draft.body.match(/### Quick Save/g)).toHaveLength(1);
   });
 
   it("包含 ADR 草稿提示", async () => {
@@ -161,7 +167,8 @@ describe("finish service 收尾流程", () => {
 
     expect(result.quickSaveCleanup).toBe(finishCleanupStatuses.cleaned);
     expect(result.body).toContain("存在 Quick Save：T001");
-    expect(result.body).toContain("## 当前进度");
+    expect(result.body).toContain("QUICK_SAVE.md 没有填写具体正文。");
+    expect(result.body.match(/### Quick Save/g)).toHaveLength(1);
     await expectFileMissing(paths.quickSave);
   });
 
@@ -192,7 +199,8 @@ describe("finish service 收尾流程", () => {
 
     expect(result.verification).toBe("missing");
     expect(result.frontMatter.verification).toBe("missing");
-    expect(result.body).toContain("当前验证状态：missing");
+    expect(result.body).toContain("验证状态：missing");
+    expect(result.body).toContain("没有可用验证结果");
   });
 });
 

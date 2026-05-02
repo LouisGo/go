@@ -189,8 +189,8 @@ async function readBlockerSummary(filePath: string): Promise<string> {
     return "未找到 BLOCKER.md。";
   }
 
-  const content = (await readFile(filePath, "utf8")).trim();
-  return content.length === 0 ? "BLOCKER.md 为空。" : content;
+  const content = stripTopLevelHeading((await readFile(filePath, "utf8")).trim(), "Blocker");
+  return content.length === 0 ? "无 Blocker。" : content;
 }
 
 async function readConfirmReqSummary(filePath: string): Promise<ProtocolFileSummary> {
@@ -223,12 +223,13 @@ async function readQuickSaveSummary(filePath: string): Promise<ProtocolFileSumma
 
   const document = await readFrontMatter(filePath, quickSaveFrontMatterSchema);
   const body = document.body.trim();
+  const bodySummary = hasMeaningfulProtocolBody(body) ? body : "QUICK_SAVE.md 没有填写具体正文。";
 
   return {
     present: true,
     summary: [
       `存在 Quick Save：${document.frontMatter.taskId}，保存时间 ${document.frontMatter.savedAt}`,
-      body.length === 0 ? "QUICK_SAVE.md 正文为空。" : body,
+      bodySummary,
     ].join("\n\n"),
   };
 }
@@ -240,6 +241,23 @@ interface ProtocolFileSummary {
 
 function fenced(content: string): string {
   return `\`\`\`text\n${content.trimEnd()}\n\`\`\``;
+}
+
+function stripTopLevelHeading(content: string, title: string): string {
+  return content.replace(new RegExp(`^#\\s+${title}\\s*(?:\\r?\\n|$)`), "").trim();
+}
+
+function hasMeaningfulProtocolBody(body: string): boolean {
+  return body.split(/\r?\n/).some((line) => {
+    const trimmed = line.trim();
+
+    return (
+      trimmed.length > 0 &&
+      !trimmed.startsWith("#") &&
+      !trimmed.startsWith("当前任务：") &&
+      !trimmed.startsWith("当前 ROADMAP ")
+    );
+  });
 }
 
 async function pathExists(filePath: string): Promise<boolean> {

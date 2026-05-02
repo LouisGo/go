@@ -56,7 +56,7 @@ function formatPromoteReport(result: PromoteHandoffResult): string {
       `来源草稿：${result.draftPath}`,
       `当前任务：${result.frontMatter.taskId}`,
       `验证状态：${result.frontMatter.verification}`,
-      `写入状态：${result.status === "created" ? "created" : "updated"}`,
+      `写入状态：${result.status === "created" ? "新建" : "更新"}`,
       "下一步：运行 louisgo status 查看恢复状态",
     ].join("\n") + "\n"
   );

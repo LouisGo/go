@@ -46,8 +46,11 @@ describe("HANDOFF_DRAFT 协议写入", () => {
       verification: "passed",
       generatedAt: timestamp,
     });
-    expect(result.body).toContain("## Git diff 摘要");
-    expect(result.body).toContain("## 下一步");
+    expect(result.body).toContain("## 交接摘要");
+    expect(result.body).toContain("## 本轮完成");
+    expect(result.body).toContain("## 建议下一步");
+    expect(result.body).toContain("接手判断：验证通过且对应当前工作区");
+    expect(result.body).toContain("TODO：用 1-3 条描述本轮实际完成");
   });
 
   it("缺少任务时生成明确占位正文", () => {

@@ -23,6 +23,9 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("louisgo status");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
+    ).resolves.toContain("node ./dist/cli.js <subcommand>");
+    await expect(
+      readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
     ).resolves.toContain("中文：LouisGo 启动：读取协议状态");
     await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
@@ -65,6 +68,9 @@ describe("Codex 集成安装", () => {
     );
     await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "louisgo status",
+    );
+    await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
+      "node ./dist/cli.js <subcommand>",
     );
   });
 

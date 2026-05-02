@@ -67,7 +67,7 @@ function formatFinishReport(result: FinishServiceResult): string {
       `Confirm Request：${formatCleanup(result.confirmReqCleanup)}`,
       `Quick Save：${formatCleanup(result.quickSaveCleanup)}`,
       "HANDOFF.md：未写入",
-      "下一步：review HANDOFF_DRAFT.md 并执行 louisgo handoff promote",
+      "下一步：审阅 HANDOFF_DRAFT.md 并执行 louisgo handoff promote",
     ].join("\n") + "\n"
   );
 }

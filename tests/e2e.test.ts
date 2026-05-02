@@ -27,7 +27,7 @@ describe("CLI 端到端工作流", () => {
     const initialStatus = await runCli(repo.path, ["status"]);
     expect(initialStatus.stdout).toContain("[assist] 协议完整，当前任务 T001");
     expect(initialStatus.stdout).toContain("验证状态 missing");
-    expect(initialStatus.stdout).toContain("恢复来源 none");
+    expect(initialStatus.stdout).toContain("恢复来源 无");
 
     const verify = await runCli(repo.path, ["verify"], { allowedExitCodes: [1] });
     expect(verify.stdout).toContain("验证脚本：.louisgo/scripts/verify.sh");

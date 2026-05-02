@@ -74,25 +74,54 @@ louisgo codex setup
 .louisgo/scripts/verify.ps1
 ```
 
-## 工作流指令
+## AI 开发者标准用法
 
-对话中的 `$start`、`$pause`、`$resume`、`$finish` 是 AI 工作流指令；CLI 是这些指令背后的稳定文件操作。
+如果你是在 Codex 里工作的 AI 开发者，优先使用 `$` 指令；如果你在普通终端或其他工具里工作，使用对应的 `louisgo` CLI。两者作用相同：`$` 指令负责让 Codex 明确进入 LouisGo 工作流，CLI 负责真正读写 `.louisgo/` 协议文件。
 
-要在 Codex 中获得类似 oh-my-codex 的 `$` 指令体验，先运行：
+第一次在仓库启用 LouisGo：
 
 ```text
+louisgo init
 louisgo codex setup
 ```
 
-它会安装全局 Codex skills，并在全局和当前项目的 `AGENTS.md` 中写入 LouisGo 指令块。新开 Codex 会话或重启 Codex 后，输入 `$start`、`$pause`、`$finish` 等指令时，Codex CLI 会显示对应提示，并按 LouisGo skill 执行对应 CLI 流程。
+`louisgo init` 会创建 `.louisgo/` 协议文件。`louisgo codex setup` 会安装 Codex skills，并在全局和当前项目的 `AGENTS.md` 中写入 LouisGo 指令块。新开 Codex 会话或重启 Codex 后，输入 `$start`、`$pause`、`$finish` 等指令时，Codex CLI 会显示对应提示，并按 LouisGo skill 执行对应 CLI 流程。
 
-| 指令 | 推荐 CLI / 行为 |
-| --- | --- |
-| `$start` | 运行 `louisgo status`，读取 `MISSION.md`、`CAPABILITIES.md`、恢复来源和当前任务。 |
-| `$pause` | 运行 `louisgo pause`，保存短时恢复点。 |
-| `$resume` | 运行 `louisgo status`，优先查看正式 `HANDOFF.md` 恢复状态。 |
-| `$finish` | 运行 `louisgo finish`，审阅草稿后运行 `louisgo handoff promote`。 |
-| `$handoff-promote` | 运行 `louisgo handoff promote`，把交接草稿提升为正式恢复点。 |
+在开发 LouisGo 自身时，如果已经构建出 `./dist/cli.js`，Codex 指令会优先使用 `node ./dist/cli.js <subcommand>` 跑当前本地构建，避免误用已全局安装的旧版 CLI。普通项目仍使用 `louisgo <subcommand>`。
+
+最常见的一轮开发应该这样走：
+
+```text
+$start
+# 读清楚当前任务和约束后开始改代码
+$verify
+# 验证 passed 且 fresh 后再汇报结果
+$finish
+# 用户审阅 HANDOFF_DRAFT.md，确认后再执行
+$handoff-promote
+```
+
+按场景选择指令：
+
+| 场景 | 在 Codex 中输入 | 普通终端命令 | 预期效果 | 下一步 |
+| --- | --- | --- | --- | --- |
+| 新会话、接手仓库、准备开始写代码 | `$start` | `louisgo status` | 读取协议完整性、当前任务、验证状态、恢复来源，并提示是否有 `CONFIRM_REQ`、`QUICK_SAVE` 或 `HANDOFF`。 | 先按当前任务和约束行动，不要凭聊天记忆直接开改。 |
+| 只是想确认现在能不能继续 | `$status` | `louisgo status` | 快速看到当前任务、验证是否过期、是否存在确认请求或交接文件。 | 如果有确认请求，先处理确认；如果验证过期，后续需要重新验证。 |
+| 做完一组代码改动，准备向用户汇报 | `$verify` | `louisgo verify` | 运行仓库验证脚本，写入 `test-results.json`，并判断结果是否对应当前工作区。 | 只有 `passed` 且 `fresh` 才能当作“当前代码已验证”。 |
+| 验证结果是 `skipped`、`missing` 或 `stale` | `$verify` | `louisgo verify` | 明确告诉你验证不可作为当前事实。 | 配好 `.louisgo/scripts/verify.sh` 或 `.ps1` 后重跑验证。 |
+| 要暂时停下来，稍后还会继续 | `$pause` | `louisgo pause` | 写入 `QUICK_SAVE.md`，保存短时恢复点。 | 下次回来用 `$resume` 或 `$start`。 |
+| 会话中断后回来，或另一个 AI 接手 | `$resume` | `louisgo status` | 优先按正式 `HANDOFF.md` 恢复；没有交接时回到当前协议状态。 | 先确认恢复来源，再继续当前任务。 |
+| 当前任务阶段完成，需要交接给用户或下一个 AI | `$finish` | `louisgo finish` | 生成 `HANDOFF_DRAFT.md`，整理验证状态，并清理临时恢复文件。 | 请用户审阅草稿，不要直接把草稿当正式交接。 |
+| 用户确认交接草稿没问题 | `$handoff-promote` | `louisgo handoff promote` | 把 `HANDOFF_DRAFT.md` 提升为正式 `HANDOFF.md`。 | 后续 `$resume` 会优先使用这份正式交接。 |
+
+最简单的判断规则：
+
+- 开始工作先用 `$start`。
+- 改完代码先用 `$verify`。
+- 临时离开用 `$pause`。
+- 中断回来用 `$resume`。
+- 阶段收尾用 `$finish`，用户确认后用 `$handoff-promote`。
+- 状态不确定时用 `$status`。
 
 ## `.louisgo/` 文件
 

@@ -124,21 +124,33 @@ export function createHandoffDraftBody(input: HandoffDraftBodyInput): string {
 
   return `# Handoff Draft
 
-${taskLine}
+> 这是交接草稿。提升为 HANDOFF.md 前，至少补全“本轮完成”和“建议下一步”。
 
-## 本次完成
+## 交接摘要
 
-- 待补充。
+- ${taskLine}
+- 验证状态：${input.verification}
+- 接手判断：${formatVerificationHandoffGuidance(input.verification)}
 
-## Git diff 摘要
+## 本轮完成
+
+- TODO：用 1-3 条描述本轮实际完成的代码变更、决策或交付物。
+
+## 建议下一步
+
+- TODO：写清接手后的第一个具体动作。
+- 若继续修改代码，完成后运行 \`louisgo verify\`。
+
+## 当前工作区
 
 ${input.gitDiffSummary}
 
-## 验证状态
+## 验证
 
-当前验证状态：${input.verification}
+- 状态：${input.verification}
+- 处理建议：${formatVerificationNextAction(input.verification)}
 
-## 遗留问题
+## 待处理事项
 
 ### Blocker
 
@@ -148,20 +160,52 @@ ${input.blockerSummary}
 
 ${input.confirmReqSummary}
 
-### Quick Save
-
-${input.quickSaveSummary}
-
 ### ADR 草稿
 
 ${adrDraftSummary}
 
-## 下一步
+## 恢复上下文
 
-- 待补充。
+### Quick Save
+
+${input.quickSaveSummary}
 `;
 }
 
 function normalizeTaskReference(taskId?: string | null): string {
   return taskId === undefined || taskId === null || taskId.length === 0 ? missingTaskId : taskId;
+}
+
+function formatVerificationHandoffGuidance(status: VerificationStatus): string {
+  switch (status) {
+    case "passed":
+      return "验证通过且对应当前工作区，可以基于当前 diff 继续交接。";
+    case "failed":
+      return "验证失败，接手者应先查看失败原因并修复。";
+    case "error":
+      return "验证流程出错，接手者应先修复验证入口或运行环境。";
+    case "skipped":
+      return "验证被跳过，不能当作质量门禁。";
+    case "missing":
+      return "没有可用验证结果，接手前应先运行验证。";
+    case "stale":
+      return "验证结果已过期，不能代表当前工作区。";
+  }
+}
+
+function formatVerificationNextAction(status: VerificationStatus): string {
+  switch (status) {
+    case "passed":
+      return "后续如有任何代码或协议文件变更，需要重新运行 `louisgo verify`。";
+    case "failed":
+      return "先修复失败项，再运行 `louisgo verify`，不要把 failed 当作已完成状态。";
+    case "error":
+      return "先修复验证脚本、依赖或执行环境，再重新运行 `louisgo verify`。";
+    case "skipped":
+      return "按项目情况补齐 `.louisgo/scripts/verify.sh` 或 `.ps1` 后重新验证。";
+    case "missing":
+      return "运行 `louisgo verify` 生成当前工作区的验证结果。";
+    case "stale":
+      return "运行 `louisgo verify` 刷新验证结果，确认是否仍可交接。";
+  }
 }

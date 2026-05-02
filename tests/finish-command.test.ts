@@ -41,7 +41,7 @@ describe("finish 命令", () => {
     expect(stdout.text).toContain("LouisGo 交接草稿已生成");
     expect(stdout.text).toContain("验证状态：missing");
     expect(stdout.text).toContain("HANDOFF.md：未写入");
-    expect(stdout.text).toContain("下一步：review HANDOFF_DRAFT.md 并执行 louisgo handoff promote");
+    expect(stdout.text).toContain("下一步：审阅 HANDOFF_DRAFT.md 并执行 louisgo handoff promote");
     await expect(access(paths.handoffDraft)).resolves.toBeUndefined();
     await expect(access(paths.handoff)).rejects.toMatchObject({ code: "ENOENT" });
   });

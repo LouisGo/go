@@ -39,6 +39,7 @@ describe("handoff promote 命令", () => {
     expect(stdout.text).toContain("LouisGo 正式交接已生成");
     expect(stdout.text).toContain("当前任务：T021");
     expect(stdout.text).toContain("验证状态：failed");
+    expect(stdout.text).toContain("写入状态：新建");
     expect(stdout.text).toContain("下一步：运行 louisgo status 查看恢复状态");
   });
 

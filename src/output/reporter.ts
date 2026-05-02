@@ -36,6 +36,6 @@ function formatRecoverySource(source: RecoverySource): string {
     case "handoff":
       return "HANDOFF";
     case "none":
-      return "none";
+      return "无";
   }
 }
