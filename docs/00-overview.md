@@ -212,15 +212,15 @@ AI 不应默认读取所有文档。
 当前下一步任务：
 
 ```text
-T016 实现 `louisgo verify`
+T017 实现 QUICK_SAVE 和 CONFIRM_REQ 协议读写
 ```
 
-开始 T016 前建议读取：
+开始 T017 前建议读取：
 
-- `docs/05-task-breakdown.md` 中 T016
+- `docs/05-task-breakdown.md` 中 T017
 - `docs/04-harness-protocol.md`
-- `docs/03-architecture.md` 中 `louisgo verify` 流程
-- `docs/08-decision-log.md` 中 D010-D013、D019
+- `docs/03-architecture.md` 中 `louisgo pause` 流程和确认请求相关设计
+- `docs/08-decision-log.md` 中 QUICK_SAVE、CONFIRM_REQ 和 diff_hash 相关决策
 - `docs/06-roadmap.md`
 
 ## 给 AI 的执行约束

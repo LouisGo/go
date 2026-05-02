@@ -7,11 +7,16 @@ import { fileURLToPath } from "node:url";
 
 import { registerInitCommand } from "./commands/init.js";
 import { registerStatusCommand } from "./commands/status.js";
+import { registerVerifyCommand } from "./commands/verify.js";
 
 export interface CliOptions {
   readonly cwd?: string;
   readonly now?: () => Date;
   readonly stdout?: Writable;
+  readonly stderr?: Writable;
+  readonly platform?: NodeJS.Platform;
+  readonly env?: NodeJS.ProcessEnv;
+  readonly setExitCode?: (exitCode: number) => void;
 }
 
 export function createCli(options: CliOptions = {}): Command {
@@ -25,6 +30,7 @@ export function createCli(options: CliOptions = {}): Command {
 
   registerInitCommand(program, options);
   registerStatusCommand(program, options);
+  registerVerifyCommand(program, options);
 
   return program;
 }
