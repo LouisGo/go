@@ -12,16 +12,15 @@ updated_at: "${options.updatedAt}"
 
 ## Stable Notes
 
-- LouisGo 使用 Markdown + YAML Front Matter 保存项目记忆。
-- \`HANDOFF.md\` 是正式交接；本文件是日常滚动记忆索引。
-- 代码事实、Git 状态和验证结果优先于记忆叙述。
+- Git-tracked prompt cache; source/Git/verify facts override memory.
+- \`HANDOFF.md\` is formal recovery; this file is a stable index.
 
 ## Topic Files
 
-- \`.louisgo/memory/\` 可按主题新增长期记忆文件。
+- Add topic files under \`.louisgo/memory/\` only when reused across sessions.
 
 ## Recent Sessions
 
-- \`.louisgo/sessions/\` 可按需保存单次会话摘要。
+- Add \`.louisgo/sessions/\` summaries only when useful for audit or handoff.
 `;
 }

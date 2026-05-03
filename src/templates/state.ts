@@ -31,20 +31,12 @@ updated_at: "${options.updatedAt}"
 
 ## Now
 
-- 当前任务：${currentTask}
-- 验证状态：${verification}
-- 正式交接：如果存在，优先读取 \`.louisgo/HANDOFF.md\`。
+- task: ${currentTask}
+- verification: ${verification}
+- handoff: prefer \`.louisgo/HANDOFF.md\` when present
 
 ## Next
 
-- 第一次启用后，运行 \`$start\` 建立上下文；日常新会话按 \`AGENTS.md\` 自动读取本文件。
-
-## Recovery Order
-
-1. \`.louisgo/HANDOFF.md\`
-2. \`.louisgo/STATE.md\`
-3. \`.louisgo/MEMORY.md\`
-4. \`.louisgo/memory/*.md\`
-5. \`.louisgo/sessions/*.md\`
+- run \`louisgo context\` for recovery; update this file after meaningful work
 `;
 }

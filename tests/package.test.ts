@@ -10,10 +10,13 @@ describe("npm 包配置", () => {
     const packageJson = JSON.parse(await readFile(packageJsonPath, "utf8")) as PackageJson;
 
     expect(packageJson.name).toBe("louisgo");
+    expect(packageJson.version).toBe("0.1.0");
     expect(packageJson.description).toContain("AI 编程 Harness");
-    expect(packageJson.license).toBe("UNLICENSED");
-    expect(packageJson.bin).toEqual({ louisgo: "./dist/cli.js" });
-    expect(packageJson.files).toEqual(expect.arrayContaining(["dist", "README.md", "docs"]));
+    expect(packageJson.license).toBe("MIT");
+    expect(packageJson.bin).toEqual({ louisgo: "dist/cli.js" });
+    expect(packageJson.files).toEqual(
+      expect.arrayContaining(["dist", "README.md", "docs", "LICENSE"]),
+    );
     expect(packageJson.keywords).toEqual(
       expect.arrayContaining(["ai", "cli", "harness", "handoff", "verification"]),
     );
@@ -27,6 +30,7 @@ describe("npm 包配置", () => {
 
 interface PackageJson {
   readonly name?: string;
+  readonly version?: string;
   readonly description?: string;
   readonly license?: string;
   readonly bin?: Record<string, string>;

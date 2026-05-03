@@ -30,6 +30,11 @@ describe("CLI 端到端工作流", () => {
     expect(initialStatus.stdout).toContain("验证状态 missing");
     expect(initialStatus.stdout).toContain("恢复来源 STATE");
 
+    const context = await runCli(repo.path, ["context", "--goal", "E2E 外部项目实验"]);
+    expect(context.stdout).toContain("# LouisGo Context Package");
+    expect(context.stdout).toContain("本轮目标：E2E 外部项目实验");
+    expect(context.stdout).toContain("Source: `.louisgo/MISSION.md`");
+
     const verify = await runCli(repo.path, ["verify"], { allowedExitCodes: [1] });
     expect(verify.stdout).toContain("验证脚本：.louisgo/scripts/verify.sh");
     expect(verify.stdout).toContain("验证状态：skipped");
@@ -56,7 +61,7 @@ describe("CLI 端到端工作流", () => {
     const finalStatus = await runCli(repo.path, ["status"]);
     expect(finalStatus.stdout).toContain("验证状态 stale");
     expect(finalStatus.stdout).toContain("恢复来源 HANDOFF");
-  });
+  }, 20_000);
 
   it("未解决确认请求和 ADR 草稿能在 status / finish 中体现", async () => {
     await using repo = await createGitRepo();

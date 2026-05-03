@@ -11,7 +11,9 @@ export function formatStatusReport(status: ProtocolStatus): string {
   ];
 
   if (status.hasConfirmReq) {
-    lines.push("存在未解决确认请求：请先处理 .louisgo/CONFIRM_REQ.md。");
+    lines.push(
+      "存在未解决确认请求：运行 louisgo confirm 查看选项，或打开 .louisgo/CONFIRM_REQ.md。",
+    );
   }
 
   if (status.adrDrafts.length > 0) {

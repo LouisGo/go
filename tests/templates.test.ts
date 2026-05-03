@@ -41,7 +41,7 @@ describe("协议模板", () => {
       defaultMode: "assist",
       updatedAt: timestamp,
     });
-    expect(document.body).toContain("## ADR 规则");
+    expect(document.body).toContain("## Decision Records");
   });
 
   it("生成 ROADMAP.md 稳定任务 ID 模板", () => {

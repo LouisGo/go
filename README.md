@@ -21,9 +21,9 @@ $finish
 | 自然对话 | 日常开发 | AI 按 `AGENTS.md` 自动读取 LouisGo 上下文，不要求每个新会话都重新 `$start`。 |
 | `$finish` | 阶段完成、准备交接或换会话 | 更新正式 `HANDOFF.md`，清理短期状态，并记录验证和遗留问题。 |
 
-`status`、`verify`、`pause`、`handoff promote`、`codex setup` 仍保留给 AI、调试和兼容场景，但不再是普通用户的主路径。
+`context`、`confirm`、`status`、`verify`、`pause`、`handoff promote`、`codex setup` 仍保留给 AI、调试和兼容场景，但不再是普通用户的主路径。
 
-保留命令的完整形式是 `louisgo status`、`louisgo verify`、`louisgo pause`、`louisgo handoff promote` 和 `louisgo codex setup`。
+保留命令的完整形式是 `louisgo context`、`louisgo confirm`、`louisgo status`、`louisgo verify`、`louisgo pause`、`louisgo handoff promote` 和 `louisgo codex setup`。
 
 ## 安装
 
@@ -40,6 +40,12 @@ pnpm install
 pnpm build
 node dist/cli.js --help
 ```
+
+## 发布元数据
+
+- npm 包名：`louisgo`
+- 首个公开版本：`0.1.0`
+- 许可证：MIT
 
 ## `.louisgo/` 协议
 
@@ -68,6 +74,35 @@ HANDOFF.md -> STATE.md -> MEMORY.md -> memory/*.md -> sessions/*.md -> 源码/Gi
 ```
 
 `HANDOFF.md` 是正式交接，适合阶段收尾和换人接手；`STATE.md` / `MEMORY.md` 是日常滚动记忆，解决“没有 finish 就新开会话会失忆”的问题。
+
+AI 或高级用户可以用以下命令生成可审计、可裁剪的 prompt 上下文包：
+
+```text
+louisgo context --budget 6000
+louisgo context --capsule --goal "审查验证流程"
+```
+
+当存在确认请求时，可以用友好入口查看和选择：
+
+```text
+louisgo confirm
+louisgo confirm --choice A
+```
+
+## 外部项目实验
+
+在另一个 Git 项目里试用当前本地构建：
+
+```text
+git init
+node "/Users/louistation/Documents/New project/dist/cli.js" init
+node "/Users/louistation/Documents/New project/dist/cli.js" context --goal "恢复项目上下文"
+node "/Users/louistation/Documents/New project/dist/cli.js" context --capsule --goal "交给子 agent 的任务"
+node "/Users/louistation/Documents/New project/dist/cli.js" verify
+node "/Users/louistation/Documents/New project/dist/cli.js" finish
+```
+
+试验时必须在目标项目目录执行这些命令；LouisGo 以当前 Git 仓库根目录作为工作区。
 
 ## Codex 集成
 

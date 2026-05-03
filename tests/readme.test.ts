@@ -14,7 +14,17 @@ describe("README 使用说明", () => {
     const commandNames = program.commands.map((command) => command.name());
     const handoff = program.commands.find((command) => command.name() === "handoff");
 
-    for (const command of ["init", "status", "verify", "pause", "finish", "handoff", "codex"]) {
+    for (const command of [
+      "init",
+      "context",
+      "confirm",
+      "status",
+      "verify",
+      "pause",
+      "finish",
+      "handoff",
+      "codex",
+    ]) {
       expect(commandNames).toContain(command);
     }
 
@@ -23,6 +33,7 @@ describe("README 使用说明", () => {
     expect(readme).toContain("$start");
     expect(readme).toContain("$finish");
     expect(readme).toContain("HANDOFF.md -> STATE.md -> MEMORY.md");
+    expect(readme).toContain("louisgo context");
     expect(readme).toContain("louisgo handoff promote");
     expect(
       program.commands

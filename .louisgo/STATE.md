@@ -1,30 +1,22 @@
 ---
 schema: louisgo-state-v1
 mode: assist
-current_task: T001
+current_task: NO_TASK
 handoff: .louisgo/HANDOFF.md
 verification: passed
-git_head: 9cf665f7f32dd2d5e7a92205f82ae9274e24346b
-diff_hash: 6ef3f9de16198fbcad36e0345360167c885be7aa786d0e40d3f26248cd9a4007
-updated_at: "2026-05-02T08:18:58.632Z"
+git_head: 4a35efcd660efbba05c6a7807db5b9835cee656a
+diff_hash: b03f8aa92be45a3a65332da4d100706ecfbbc205a932e70d4ce495a66d7d30b6
+updated_at: "2026-05-03T14:37:45.840Z"
 ---
 
 # State
 
 ## Now
 
-- 当前任务：T001
-- 当前方向：将 LouisGo 主路径收敛为 `init -> start -> 自然对话 -> finish`。
-- 正式交接：如果存在，优先读取 `.louisgo/HANDOFF.md`。
+- task: NO_TASK
+- verification: passed
+- handoff: prefer `.louisgo/HANDOFF.md` when present
 
 ## Next
 
-- 完成底座重构后运行 `louisgo verify`。
-
-## Recovery Order
-
-1. `.louisgo/HANDOFF.md`
-2. `.louisgo/STATE.md`
-3. `.louisgo/MEMORY.md`
-4. `.louisgo/memory/*.md`
-5. `.louisgo/sessions/*.md`
+- run `louisgo context` for recovery; update this file after meaningful work

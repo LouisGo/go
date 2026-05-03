@@ -1,0 +1,81 @@
+import type { Command } from "commander";
+import type { Writable } from "node:stream";
+
+import {
+  contextServiceErrorCodes,
+  ContextServiceError,
+  generateContext,
+  type ContextServiceOptions,
+} from "../services/context-service.js";
+
+export interface RegisterContextCommandOptions extends ContextServiceOptions {
+  readonly stdout?: Writable;
+  readonly stderr?: Writable;
+  readonly setExitCode?: (exitCode: number) => void;
+}
+
+export function registerContextCommand(
+  program: Command,
+  options: RegisterContextCommandOptions = {},
+): void {
+  program
+    .command("context")
+    .description("生成 LouisGo prompt 上下文包")
+    .option("--budget <tokens>", "上下文预算，单位为估算 token", parseBudget)
+    .option("--goal <text>", "本轮目标，用于 context package 或 subagent capsule")
+    .option("--capsule", "生成 subagent context capsule 标题和约束")
+    .action(async (commandOptions: ContextCommandOptions) => {
+      const stdout = options.stdout ?? process.stdout;
+      const stderr = options.stderr ?? process.stderr;
+      const setExitCode =
+        options.setExitCode ??
+        ((exitCode: number) => {
+          process.exitCode = exitCode;
+        });
+
+      try {
+        const result = await generateContext({
+          ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
+          ...(commandOptions.budget === undefined ? {} : { budgetTokens: commandOptions.budget }),
+          ...(commandOptions.goal === undefined ? {} : { goal: commandOptions.goal }),
+          ...(commandOptions.capsule === undefined ? {} : { capsule: commandOptions.capsule }),
+        });
+
+        stdout.write(result.content);
+        stdout.write("\n");
+        setExitCode(0);
+      } catch (error) {
+        if (
+          !(error instanceof ContextServiceError) ||
+          error.code !== contextServiceErrorCodes.protocolIncomplete
+        ) {
+          throw error;
+        }
+
+        stderr.write("上下文生成失败：LouisGo 协议不完整，请先运行 louisgo init。\n");
+        if (error.issues.length > 0) {
+          stderr.write("需要处理的问题：\n");
+          for (const issue of error.issues) {
+            stderr.write(`- ${issue.relativePath}：${issue.message}\n`);
+          }
+        }
+        setExitCode(1);
+      }
+    });
+}
+
+interface ContextCommandOptions {
+  readonly budget?: number;
+  readonly goal?: string;
+  readonly capsule?: boolean;
+}
+
+function parseBudget(value: string): number {
+  const parsed = Number.parseInt(value, 10);
+
+  if (Number.isNaN(parsed)) {
+    throw new Error(`无效上下文预算：${value}`);
+  }
+
+  return parsed;
+}

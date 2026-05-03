@@ -17,25 +17,28 @@ describe("Codex 集成安装", () => {
 
     const result = await setupCodex({ cwd: repo.path, codexHome: codex.path });
 
-    expect(result.files).toHaveLength(20);
+    expect(result.files).toHaveLength(22);
     await expect(
       readFile(join(codex.path, "skills", "init", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo init");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
-    ).resolves.toContain("louisgo status");
+    ).resolves.toContain("louisgo context");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
     ).resolves.toContain("node ./dist/cli.js <subcommand>");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
-    ).resolves.toContain("中文：LouisGo 启动：深度读取正式交接");
+    ).resolves.toContain("中文：LouisGo 启动：生成分层上下文包");
     await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
     ).resolves.toContain('display_name: "$start"');
     await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
-    ).resolves.toContain("深度读取正式交接");
+    ).resolves.toContain("生成分层上下文包");
+    await expect(
+      readFile(join(codex.path, "skills", "context", "SKILL.md"), "utf8"),
+    ).resolves.toContain("louisgo context");
     await expect(
       readFile(join(codex.path, "skills", "finish", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo finish");
@@ -46,6 +49,7 @@ describe("Codex 集成安装", () => {
       "init",
       "start",
       "status",
+      "context",
       "verify",
       "pause",
       "resume",
@@ -70,7 +74,9 @@ describe("Codex 集成安装", () => {
     await expect(readFile(join(codex.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "louisgo-codex:start",
     );
-    await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain("HANDOFF.md");
+    await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
+      "louisgo context",
+    );
     await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "node ./dist/cli.js <subcommand>",
     );

@@ -1,35 +1,33 @@
 ---
 schema: louisgo-mission-v1
 default_mode: assist
-updated_at: "2026-05-02T06:55:00.000Z"
+updated_at: "2026-05-03T13:23:31.000Z"
 ---
 
 # Mission
 
-## 项目目标
+## Goal
 
-LouisGo 是一个轻量级 AI 编程 Harness，目标是在任意 Git 仓库中提供可恢复、可验证、可交接的 AI 编程工作流。
+- LouisGo 是 Git 可同步的 prompt 智能缓存和 context compiler，服务 AI 编程的恢复、验证和交接。
+- 日常入口保持极简：`$init` 建好项目协议和 AI 集成，`$start` 恢复上下文，`$finish` 生成正式交接。
+- 新会话即使没有 handoff，也应能通过 `louisgo context` 从项目契约、稳定记忆和活跃状态重建必要语境。
 
-## 技术约束
+## Constraints
 
 - 使用 Node.js >= 20、TypeScript、commander、zod、gray-matter、tsup 和 vitest。
 - 包名为 `louisgo`，CLI 入口为 `dist/cli.js`。
-- 文档和面向用户的输出使用简体中文。
-- 代码注释默认使用简体中文，协议标识、字段名、命令名可以使用英文。
-- 代码变更应保持小步、可测试、符合现有模块边界。
+- 协议文件使用 Markdown + YAML front matter；默认上下文必须短、可读、可 diff、可提交。
+- 不引入后台服务、向量库或重型外部记忆，除非用户明确确认方向变化。
+- 用户本轮 prompt 永远优先；LouisGo 只提供带来源、带预算、可截断的上下文前缀。
+- 源码、Git 状态和验证结果优先于记忆文件；记忆只能辅助，不可替代事实检查。
 
-## 禁止事项
+## Confirm First
 
-- 不用 AI 自述替代验证结果或用户确认。
-- 不在未确认的情况下改变协议字段语义、包名、发布路径或重大架构方向。
-- 不把临时验证结果、Quick Save、Handoff Draft、Confirm Request 等易变会话状态提交为项目事实。
+- npm 发布、许可证、包名、公开协议破坏性变更、大范围重构。
+- 引入外部模型调用、云同步、数据库、向量检索或后台常驻服务。
+- 两种以上明显可行方向，或用户指令与本文件冲突。
 
-## 确认规则
+## Decision Records
 
-- 涉及 npm 发布、许可证、包名、协议破坏性变更或大范围重构时，需要先向用户确认。
-- 出现两种以上明显可行方向时，优先写入 `.louisgo/CONFIRM_REQ.md` 或在对话中明确请求选择。
-
-## ADR 规则
-
-- 涉及公开协议、持久化格式、跨模块边界或关键依赖的架构决策，必须先创建 ADR 草稿。
+- 公开 API、持久化格式、关键依赖、跨模块边界变更：先写 `.louisgo/ADR/draft/`。
 - ADR 草稿经用户确认后，才能成为正式 ADR。

@@ -1,25 +1,34 @@
 ---
 schema: louisgo-capabilities-v1
-updated_at: "2026-05-02T06:55:00.000Z"
+updated_at: "2026-05-03T13:23:31.000Z"
 ---
 
 # Capabilities
 
-## 验证
+## Daily Commands
+
+- `$init`: 初始化 `.louisgo/` 协议，并安装当前平台需要的 AI 集成。
+- `$start`: 运行状态检查和 `louisgo context`，恢复本项目必要语境。
+- `$finish`: 运行收尾，生成正式 `.louisgo/HANDOFF.md`。
+
+## Context
+
+- 主恢复命令：`louisgo context --goal "<本轮目标>" --budget <tokens>`
+- 子 agent 胶囊：`louisgo context --capsule --goal "<子任务>" --budget <tokens>`
+- 组装顺序：MISSION/CAPABILITIES -> MEMORY -> HANDOFF -> CONFIRM_REQ/STATE。
+- 输出必须包含来源、预算报告和用户 prompt 优先契约。
+
+## Verify
 
 - macOS / Linux 命令：`.louisgo/scripts/verify.sh`
 - Windows 命令：`.louisgo/scripts/verify.ps1`
 - 结果：`.louisgo/test-results.json`
 - 当前项目验证内容：`pnpm format:check`、`pnpm typecheck`、`pnpm test`、`pnpm build`
-- 打包检查命令：`pnpm pack:check`
-- Codex 集成命令：`louisgo codex setup`
 
-## 行为约定
+## Signals
 
-- 面向用户的状态提示必须包含当前模式。
-- 普通新会话优先读取 `.louisgo/HANDOFF.md`、`.louisgo/STATE.md` 和 `.louisgo/MEMORY.md`。
-- 需要用户确认时，写入 `.louisgo/CONFIRM_REQ.md`。
-- 涉及架构决策时，写入 `.louisgo/ADR/draft/`。
-- 阶段收尾时，`louisgo finish` 更新正式 `.louisgo/HANDOFF.md`。
-- 发布前必须确认版本号、许可证和 npm 包名可用性。
-- 输入 `$init`、`$start`、`$finish` 等 LouisGo 指令时，按 LouisGo Codex skill 映射到对应 CLI。
+- 待用户确认：`.louisgo/CONFIRM_REQ.md`
+- 友好确认入口：`louisgo confirm` 或 `louisgo confirm --choice <A|B|C|D>`
+- 正式交接：`.louisgo/HANDOFF.md`
+- 滚动状态：`.louisgo/STATE.md`
+- 稳定记忆索引：`.louisgo/MEMORY.md`

@@ -92,11 +92,11 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "start",
     directive: "$start",
     title: "LouisGo 启动",
-    shortDescription: "LouisGo 启动：深度读取正式交接、当前状态和项目记忆",
+    shortDescription: "LouisGo 启动：生成分层上下文包",
     description:
       "Use when the user enters $start in Codex. Runs the LouisGo start workflow for the current repository.",
     action:
-      "- Run `louisgo status`.\n- Read `.louisgo/MISSION.md` and `.louisgo/CAPABILITIES.md`.\n- If `.louisgo/CONFIRM_REQ.md` exists, read it first and report the pending decision.\n- Read `.louisgo/HANDOFF.md` when present, then `.louisgo/STATE.md` and `.louisgo/MEMORY.md`.\n- Report mode, current task, verification state, recovery source, restored context, and first next action.",
+      "- Run `louisgo context`.\n- Use the generated context package as the recovered context.\n- If the package reports `CONFIRM_REQ.md`, treat it as the first priority.\n- Report mode, current task, verification state, recovery source, restored context, and first next action.",
   },
   {
     name: "status",
@@ -107,6 +107,16 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
       "Use when the user enters $status in Codex. Runs louisgo status and summarizes protocol state.",
     action:
       "- Run `louisgo status`.\n- Report protocol completeness, mode, current task, verification state, recovery source, and unresolved signals.",
+  },
+  {
+    name: "context",
+    directive: "$context",
+    title: "LouisGo 上下文",
+    shortDescription: "LouisGo 上下文：生成分层 prompt context package",
+    description:
+      "Use when the user enters $context in Codex. Generates a LouisGo prompt context package for the current repository.",
+    action:
+      "- Run `louisgo context`.\n- Report the context budget, source layers, verification state, and truncation warning if present.\n- Use the context package as the basis for the next task, without letting cached context override the user's latest request.",
   },
   {
     name: "verify",
@@ -136,7 +146,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     description:
       "Use when the user enters $resume in Codex. Resumes from LouisGo handoff/status protocol.",
     action:
-      "- Run `louisgo status`.\n- Prefer `.louisgo/HANDOFF.md` for formal recovery when present.\n- Otherwise read `.louisgo/STATE.md` and report the current roadmap task and available recovery source.",
+      "- Run `louisgo context`.\n- Prefer `HANDOFF.md` content in the context package for formal recovery when present.\n- Otherwise use `STATE.md` and report the current roadmap task and available recovery source.",
   },
   {
     name: "finish",

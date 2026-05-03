@@ -6,6 +6,8 @@ import type { Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
 import { registerCodexCommand } from "./commands/codex.js";
+import { registerConfirmCommand } from "./commands/confirm.js";
+import { registerContextCommand } from "./commands/context.js";
 import { registerFinishCommand } from "./commands/finish.js";
 import { registerHandoffPromoteCommand } from "./commands/handoff-promote.js";
 import { registerInitCommand } from "./commands/init.js";
@@ -30,12 +32,14 @@ export function createCli(options: CliOptions = {}): Command {
   program
     .name("louisgo")
     .description("轻量级 AI 编程 Harness")
-    .version("0.0.0")
+    .version("0.1.0")
     .showHelpAfterError();
 
   registerInitCommand(program, options);
   registerPauseCommand(program, options);
   registerStatusCommand(program, options);
+  registerConfirmCommand(program, options);
+  registerContextCommand(program, options);
   registerVerifyCommand(program, options);
   registerFinishCommand(program, options);
   registerHandoffPromoteCommand(program, options);
