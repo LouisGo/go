@@ -65,16 +65,3 @@ Example -- destructive op:
 `;
 }
 
-export function createDiagnoseSkill(): string {
-  return `# Diagnose
-
-When something is broken, trace the cause through the code before proposing a fix — do not guess from the error message alone. Run \`louisgo verify\` before and after the fix to confirm no regressions.
-`;
-}
-
-export function createZoomOutSkill(): string {
-  return `# Zoom Out
-
-When the user asks a broad question or you are deep in implementation, step back and show the big picture. Identify the layer, explain relationships to adjacent layers, and list options with one-line trade-offs.
-`;
-}

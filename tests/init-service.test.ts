@@ -47,8 +47,8 @@ describe("init 服务", () => {
     await expect(access(paths.verifyPs1)).resolves.toBeUndefined();
     await expect(access(join(paths.skillsDir, "grill.md"))).resolves.toBeUndefined();
     await expect(access(join(paths.skillsDir, "caveman.md"))).resolves.toBeUndefined();
-    await expect(access(join(paths.skillsDir, "diagnose.md"))).resolves.toBeUndefined();
-    await expect(access(join(paths.skillsDir, "zoom-out.md"))).resolves.toBeUndefined();
+    await expect(access(join(paths.skillsDir, "diagnose.md"))).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(join(paths.skillsDir, "zoom-out.md"))).rejects.toMatchObject({ code: "ENOENT" });
 
     const mission = await readFrontMatter(paths.mission, missionFrontMatterSchema);
     const capabilities = await readFrontMatter(paths.capabilities, capabilitiesFrontMatterSchema);

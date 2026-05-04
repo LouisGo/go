@@ -22,7 +22,7 @@ describe("CLI 端到端工作流", () => {
 
     const init = await runCli(repo.path, ["init"]);
     expect(init.stdout).toContain("LouisGo 初始化完成");
-    expect(init.stdout).toContain("创建文件：14");
+    expect(init.stdout).toContain("创建文件：12");
     expect(init.stdout).toContain("Codex 集成：完成");
     expect(init.stdout).toContain("下一步：新会话会自动读取 LouisGo 上下文");
 

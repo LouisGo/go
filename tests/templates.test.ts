@@ -96,8 +96,8 @@ describe("协议模板", () => {
     expect(document.body).toContain("NOT auto-injected");
     expect(document.body).toContain("grill");
     expect(document.body).toContain("caveman");
-    expect(document.body).toContain("diagnose");
-    expect(document.body).toContain("zoom-out");
+    expect(document.body).not.toContain("diagnose");
+    expect(document.body).not.toContain("zoom-out");
   });
 
   it("生成 CONFIRM_REQ.md 必要 Front Matter", async () => {

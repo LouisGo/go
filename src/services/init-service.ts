@@ -12,9 +12,7 @@ import { createRoadmapTemplate } from "../templates/roadmap.js";
 import { createLouisGoGitignoreTemplate, createRunLogTemplate } from "../templates/run-log.js";
 import {
   createCavemanSkill,
-  createDiagnoseSkill,
   createGrillSkill,
-  createZoomOutSkill,
 } from "../templates/skills.js";
 import { createStateTemplate } from "../templates/state.js";
 import { createVerifyPs1Template } from "../templates/verify-ps1.js";
@@ -110,14 +108,6 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     {
       filePath: join(paths.skillsDir, "caveman.md"),
       content: createCavemanSkill(),
-    },
-    {
-      filePath: join(paths.skillsDir, "diagnose.md"),
-      content: createDiagnoseSkill(),
-    },
-    {
-      filePath: join(paths.skillsDir, "zoom-out.md"),
-      content: createZoomOutSkill(),
     },
   ]);
 
