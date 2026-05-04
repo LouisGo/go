@@ -96,7 +96,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     description:
       "Use when the user enters $start in Codex. Runs the LouisGo start workflow for the current repository.",
     action:
-      "- Run `louisgo context`.\n- Use the generated context package as the recovered context.\n- If the package reports `CONFIRM_REQ.md`, treat it as the first priority.\n- Report mode, current task, verification state, recovery source, restored context, and first next action.",
+      "- Run `louisgo context`.\n- Use the generated context package as the recovered context.\n- If the package reports `CONFIRM_REQ.md`, run `louisgo confirm` and present the choices before continuing.\n- Report mode, current task, verification state, recovery source, restored context, and first next action.",
   },
   {
     name: "status",

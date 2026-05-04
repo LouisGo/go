@@ -4,9 +4,9 @@ mode: assist
 current_task: NO_TASK
 handoff: .louisgo/HANDOFF.md
 verification: passed
-git_head: 4a35efcd660efbba05c6a7807db5b9835cee656a
-diff_hash: b03f8aa92be45a3a65332da4d100706ecfbbc205a932e70d4ce495a66d7d30b6
-updated_at: "2026-05-03T14:37:45.840Z"
+git_head: 5479f20d357b57896fc3420a9e94d332560ffd22
+diff_hash: b521a960a27888a1f04515bcf5915cd2193e5a34edad697f7885efc91a6896a6
+updated_at: "2026-05-04T06:24:24.502Z"
 ---
 
 # State
@@ -15,8 +15,10 @@ updated_at: "2026-05-03T14:37:45.840Z"
 
 - task: NO_TASK
 - verification: passed
-- handoff: prefer `.louisgo/HANDOFF.md` when present
+- recovery: prefer `.louisgo/HANDOFF.md` when present; otherwise use this file and `.louisgo/MEMORY.md`
+- focus: fill this with the current concrete development goal
 
 ## Next
 
-- run `louisgo context` for recovery; update this file after meaningful work
+- first action: inspect `louisgo context`, then follow the user's latest prompt
+- after meaningful work: update this file, run verification when appropriate, then use `$finish` for formal handoff

@@ -13,11 +13,13 @@ updated_at: "${options.updatedAt}"
 
 ## Goal
 
-<!-- 用 1-3 条写清项目目标。 -->
+- Describe the project goal in 1-3 durable bullets.
+- LouisGo keeps AI coding context in Git so new sessions can recover without chat history.
 
 ## Constraints
 
-<!-- 写技术栈、命名、发布、兼容性等稳定约束。 -->
+- Record stable stack, naming, compatibility, release, and security constraints here.
+- User prompts override cached context; source, Git, and verification facts override memory.
 
 ## Confirm First
 

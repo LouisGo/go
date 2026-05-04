@@ -3,6 +3,9 @@ import { z } from "zod";
 export const louisGoModeSchema = z.enum(["auto", "assist", "manual"]);
 export type LouisGoMode = z.infer<typeof louisGoModeSchema>;
 
+export const workPhaseSchema = z.enum(["explore", "execute", "idle"]);
+export type WorkPhase = z.infer<typeof workPhaseSchema>;
+
 export const verificationStatusSchema = z.enum([
   "passed",
   "failed",
@@ -158,6 +161,7 @@ export const stateFrontMatterSchema = z
   .object({
     schema: z.literal("louisgo-state-v1"),
     mode: louisGoModeSchema,
+    phase: workPhaseSchema.optional(),
     current_task: taskReferenceSchema,
     handoff: z.string().min(1).optional(),
     verification: verificationStatusSchema,
@@ -168,6 +172,7 @@ export const stateFrontMatterSchema = z
   .transform((data) => ({
     schema: data.schema,
     mode: data.mode,
+    ...(data.phase === undefined ? {} : { phase: data.phase }),
     currentTask: data.current_task,
     ...(data.handoff === undefined ? {} : { handoff: data.handoff }),
     verification: data.verification,
@@ -187,3 +192,16 @@ export const memoryFrontMatterSchema = z
     updatedAt: data.updated_at,
   }));
 export type MemoryFrontMatter = z.output<typeof memoryFrontMatterSchema>;
+
+export const runLogFrontMatterSchema = z
+  .object({
+    schema: z.literal("louisgo-runlog-v1"),
+    updated_at: isoDateTimeSchema,
+    max_events: z.number().int().positive(),
+  })
+  .transform((data) => ({
+    schema: data.schema,
+    updatedAt: data.updated_at,
+    maxEvents: data.max_events,
+  }));
+export type RunLogFrontMatter = z.output<typeof runLogFrontMatterSchema>;

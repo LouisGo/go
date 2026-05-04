@@ -10,6 +10,7 @@ export interface RoadmapTask {
   readonly title: string;
   readonly completed: boolean;
   readonly line: number;
+  readonly completionSignal: string | null;
 }
 
 export interface RoadmapParseResult {
@@ -54,6 +55,13 @@ export function parseRoadmap(markdown: string): RoadmapParseResult {
     const text = match.groups.text?.trim() ?? "";
     const [taskId, ...titleParts] = text.split(/\s+/);
 
+    const fullTitle = titleParts.join(" ");
+    const signalMatch = fullTitle.match(/#completion:\s*(.+)$/);
+    const completionSignal = signalMatch !== null ? signalMatch[1]!.trim() : null;
+    const cleanTitle = completionSignal !== null
+      ? fullTitle.replace(/#completion:\s*.+$/, "").trim()
+      : fullTitle;
+
     if (mark === undefined) {
       continue;
     }
@@ -84,9 +92,10 @@ export function parseRoadmap(markdown: string): RoadmapParseResult {
     seenTaskIds.set(taskId, lineNumber);
     tasks.push({
       id: taskId,
-      title: titleParts.join(" "),
+      title: cleanTitle,
       completed: mark.toLowerCase() === "x",
       line: lineNumber,
+      completionSignal,
     });
   }
 

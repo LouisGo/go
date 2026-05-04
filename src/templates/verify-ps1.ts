@@ -22,19 +22,29 @@ if ($LASTEXITCODE -ne 0 -or -not $GitHead) {
   $HasHead = $true
 }
 $HashInput = [System.Text.StringBuilder]::new()
+$IgnoredPathspecs = @(
+  ':!.louisgo/test-results.json',
+  ':!.louisgo/RUNLOG.md',
+  ':!.louisgo/HANDOFF.md',
+  ':!.louisgo/HANDOFF_DRAFT.md',
+  ':!.louisgo/QUICK_SAVE.md',
+  ':!.louisgo/STATE.md',
+  ':!.louisgo/CONFIRM_REQ.md',
+  ':!.louisgo/sessions/**'
+)
 [void]$HashInput.Append("git_head\`0$GitHead\`0")
 [void]$HashInput.Append("status\`0")
-[void]$HashInput.Append((git status --porcelain=v1 -z -- . ':!.louisgo/test-results.json' | Out-String))
+[void]$HashInput.Append((git status --porcelain=v1 -z -- . @IgnoredPathspecs | Out-String))
 [void]$HashInput.Append("\`0diff\`0")
 if ($HasHead) {
-  [void]$HashInput.Append((git diff --binary HEAD -- . ':!.louisgo/test-results.json' | Out-String))
+  [void]$HashInput.Append((git diff --binary HEAD -- . @IgnoredPathspecs | Out-String))
 } else {
-  [void]$HashInput.Append((git diff --binary --cached -- . ':!.louisgo/test-results.json' | Out-String))
+  [void]$HashInput.Append((git diff --binary --cached -- . @IgnoredPathspecs | Out-String))
   [void]$HashInput.Append("\`0")
-  [void]$HashInput.Append((git diff --binary -- . ':!.louisgo/test-results.json' | Out-String))
+  [void]$HashInput.Append((git diff --binary -- . @IgnoredPathspecs | Out-String))
 }
 [void]$HashInput.Append("\`0untracked\`0")
-foreach ($File in (git ls-files --others --exclude-standard -- . ':!.louisgo/test-results.json' | Sort-Object)) {
+foreach ($File in (git ls-files --others --exclude-standard -- . @IgnoredPathspecs | Sort-Object)) {
   if (Test-Path -LiteralPath $File -PathType Leaf) {
     [void]$HashInput.Append("path\`0$File\`0hash\`0")
     [void]$HashInput.Append((Get-FileSha256 $File))

@@ -4,7 +4,16 @@ import { join } from "node:path";
 
 import { getGitHead, getGitRoot, noGitHead, runGit, type GitCommandOptions } from "./git.js";
 
-const testResultsPathspec = ":!.louisgo/test-results.json";
+const verificationIgnoredPathspecs = [
+  ":!.louisgo/test-results.json",
+  ":!.louisgo/RUNLOG.md",
+  ":!.louisgo/HANDOFF.md",
+  ":!.louisgo/HANDOFF_DRAFT.md",
+  ":!.louisgo/QUICK_SAVE.md",
+  ":!.louisgo/STATE.md",
+  ":!.louisgo/CONFIRM_REQ.md",
+  ":!.louisgo/sessions/**",
+] as const;
 
 export async function computeDiffHash(options: GitCommandOptions = {}): Promise<string> {
   const gitRoot = await getGitRoot(options);
@@ -35,23 +44,31 @@ export async function computeDiffHash(options: GitCommandOptions = {}): Promise<
 }
 
 async function getStatus(gitRoot: string): Promise<string> {
-  const result = await runGit(["status", "--porcelain=v1", "-z", "--", ".", testResultsPathspec], {
-    cwd: gitRoot,
-  });
+  const result = await runGit(
+    ["status", "--porcelain=v1", "-z", "--", ".", ...verificationIgnoredPathspecs],
+    {
+      cwd: gitRoot,
+    },
+  );
   return result.stdout;
 }
 
 async function getDiff(gitRoot: string, gitHead: string): Promise<string> {
   if (gitHead !== noGitHead) {
-    const result = await runGit(["diff", "--binary", "HEAD", "--", ".", testResultsPathspec], {
-      cwd: gitRoot,
-    });
+    const result = await runGit(
+      ["diff", "--binary", "HEAD", "--", ".", ...verificationIgnoredPathspecs],
+      {
+        cwd: gitRoot,
+      },
+    );
     return result.stdout;
   }
 
   const [stagedDiff, workTreeDiff] = await Promise.all([
-    runGit(["diff", "--binary", "--cached", "--", ".", testResultsPathspec], { cwd: gitRoot }),
-    runGit(["diff", "--binary", "--", ".", testResultsPathspec], { cwd: gitRoot }),
+    runGit(["diff", "--binary", "--cached", "--", ".", ...verificationIgnoredPathspecs], {
+      cwd: gitRoot,
+    }),
+    runGit(["diff", "--binary", "--", ".", ...verificationIgnoredPathspecs], { cwd: gitRoot }),
   ]);
 
   return `${stagedDiff.stdout}\0${workTreeDiff.stdout}`;
@@ -59,7 +76,15 @@ async function getDiff(gitRoot: string, gitHead: string): Promise<string> {
 
 async function getUntrackedFiles(gitRoot: string): Promise<readonly string[]> {
   const result = await runGit(
-    ["ls-files", "--others", "--exclude-standard", "-z", "--", ".", testResultsPathspec],
+    [
+      "ls-files",
+      "--others",
+      "--exclude-standard",
+      "-z",
+      "--",
+      ".",
+      ...verificationIgnoredPathspecs,
+    ],
     { cwd: gitRoot },
   );
 

@@ -12,8 +12,10 @@ export const protocolFileNames = {
   quickSave: "QUICK_SAVE.md",
   blocker: "BLOCKER.md",
   confirmReq: "CONFIRM_REQ.md",
+  runLog: "RUNLOG.md",
   capabilities: "CAPABILITIES.md",
   testResults: "test-results.json",
+  gitignore: ".gitignore",
 } as const;
 
 export const protocolDirectoryNames = {
@@ -40,8 +42,10 @@ export const protocolRelativePaths = {
   quickSave: protocolRelativePath(protocolFileNames.quickSave),
   blocker: protocolRelativePath(protocolFileNames.blocker),
   confirmReq: protocolRelativePath(protocolFileNames.confirmReq),
+  runLog: protocolRelativePath(protocolFileNames.runLog),
   capabilities: protocolRelativePath(protocolFileNames.capabilities),
   testResults: protocolRelativePath(protocolFileNames.testResults),
+  gitignore: protocolRelativePath(protocolFileNames.gitignore),
   adrDir: protocolRelativePath(protocolDirectoryNames.adr),
   adrDraftDir: protocolRelativePath(protocolDirectoryNames.adr, protocolDirectoryNames.adrDraft),
   memoryDir: protocolRelativePath(protocolDirectoryNames.memory),
@@ -63,8 +67,10 @@ export interface ProtocolPaths {
   readonly quickSave: string;
   readonly blocker: string;
   readonly confirmReq: string;
+  readonly runLog: string;
   readonly capabilities: string;
   readonly testResults: string;
+  readonly gitignore: string;
   readonly adrDir: string;
   readonly adrDraftDir: string;
   readonly memoryDir: string;
@@ -89,8 +95,10 @@ export function createProtocolPaths(workspaceRoot: string): ProtocolPaths {
     quickSave: absoluteProtocolPath(root, protocolFileNames.quickSave),
     blocker: absoluteProtocolPath(root, protocolFileNames.blocker),
     confirmReq: absoluteProtocolPath(root, protocolFileNames.confirmReq),
+    runLog: absoluteProtocolPath(root, protocolFileNames.runLog),
     capabilities: absoluteProtocolPath(root, protocolFileNames.capabilities),
     testResults: absoluteProtocolPath(root, protocolFileNames.testResults),
+    gitignore: absoluteProtocolPath(root, protocolFileNames.gitignore),
     adrDir: absoluteProtocolPath(root, protocolDirectoryNames.adr),
     adrDraftDir: absoluteProtocolPath(
       root,

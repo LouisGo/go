@@ -147,6 +147,7 @@ export async function generateHandoffSnapshot(
     createStateTemplate({
       updatedAt: context.generatedAt,
       mode: context.mode,
+      phase: context.phase,
       currentTask: context.taskId,
       verification: context.verification,
       gitHead: context.snapshot.gitHead,
@@ -198,6 +199,7 @@ export async function finishLouisGo(
 interface HandoffContext {
   readonly workspaceRoot: string;
   readonly mode: NonNullable<Awaited<ReturnType<typeof checkProtocolStatus>>["mode"]>;
+  readonly phase: string;
   readonly taskId: string;
   readonly snapshot: Awaited<ReturnType<typeof getCurrentGitSnapshot>>;
   readonly verification: VerificationStatus;
@@ -236,6 +238,7 @@ async function collectHandoffContext(options: FinishServiceOptions = {}): Promis
   return {
     workspaceRoot,
     mode: protocolStatus.mode,
+    phase: protocolStatus.phase,
     taskId,
     snapshot,
     verification,
@@ -251,6 +254,7 @@ async function collectHandoffContext(options: FinishServiceOptions = {}): Promis
 function createHandoffBodyInput(context: HandoffContext): HandoffBodyInput {
   return {
     taskId: context.taskId,
+    phase: context.phase,
     verification: context.verification,
     gitDiffSummary: context.gitDiffSummary,
     blockerSummary: context.blockerSummary,
@@ -274,8 +278,11 @@ async function readVerificationStatus(
 
 async function getGitDiffSummary(workspaceRoot: string): Promise<string> {
   const [status, diffStat] = await Promise.all([
-    runGit(["status", "--short"], { cwd: workspaceRoot }),
-    runGit(["diff", "--stat", "HEAD", "--"], { cwd: workspaceRoot, allowFailure: true }),
+    runGit(["status", "--short", "--", ".", ":!.louisgo/RUNLOG.md"], { cwd: workspaceRoot }),
+    runGit(["diff", "--stat", "HEAD", "--", ".", ":!.louisgo/RUNLOG.md"], {
+      cwd: workspaceRoot,
+      allowFailure: true,
+    }),
   ]);
   const sections: string[] = [];
 

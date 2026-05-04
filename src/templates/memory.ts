@@ -12,15 +12,17 @@ updated_at: "${options.updatedAt}"
 
 ## Stable Notes
 
-- Git-tracked prompt cache; source/Git/verify facts override memory.
-- \`HANDOFF.md\` is formal recovery; this file is a stable index.
+- LouisGo is a Git-tracked prompt cache for AI coding context.
+- Source, Git status, and verification results override memory.
+- \`HANDOFF.md\` is formal recovery; this file is the stable memory index.
+- Keep this file short; move reusable details into topic files only when they survive multiple sessions.
 
 ## Topic Files
 
-- Add topic files under \`.louisgo/memory/\` only when reused across sessions.
+- Add \`.louisgo/memory/<topic>.md\` files only for durable architecture, product, testing, or deployment knowledge.
 
 ## Recent Sessions
 
-- Add \`.louisgo/sessions/\` summaries only when useful for audit or handoff.
+- Add \`.louisgo/sessions/\` summaries only when useful for audit, handoff, or long-running work.
 `;
 }

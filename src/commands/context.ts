@@ -7,6 +7,7 @@ import {
   generateContext,
   type ContextServiceOptions,
 } from "../services/context-service.js";
+import { appendRunLogEvent } from "../services/run-log-service.js";
 
 export interface RegisterContextCommandOptions extends ContextServiceOptions {
   readonly stdout?: Writable;
@@ -43,6 +44,12 @@ export function registerContextCommand(
 
         stdout.write(result.content);
         stdout.write("\n");
+        await appendRunLogEvent({
+          cwd: result.workspaceRoot,
+          command: "context",
+          outcome: "success",
+          note: `budget=${result.budgetTokens}; estimated=${result.estimatedTokens}; sources=${result.sources.length}; truncated=${result.truncated}; capsule=${commandOptions.capsule === true ? "yes" : "no"}; goal=${commandOptions.goal === undefined ? "absent" : "present"}`,
+        });
         setExitCode(0);
       } catch (error) {
         if (
@@ -59,6 +66,12 @@ export function registerContextCommand(
             stderr.write(`- ${issue.relativePath}：${issue.message}\n`);
           }
         }
+        await appendRunLogEvent({
+          ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
+          command: "context",
+          outcome: "failure",
+          note: "protocol_incomplete",
+        }).catch(() => undefined);
         setExitCode(1);
       }
     });

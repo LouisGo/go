@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Writable } from "node:stream";
+import { Readable, Writable } from "node:stream";
 import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
@@ -60,6 +60,45 @@ describe("confirm 命令", () => {
     expect(stdout.text).toContain("已选择：B. 暂不发布");
     expect(stdout.text).toContain("任务：T002");
     expect(stdout.text).toContain("AI 应基于该选择继续执行");
+  });
+
+  it("支持交互式选择选项", async () => {
+    await using repo = await createGitRepo();
+    const initResult = await initLouisGo({ cwd: repo.path, now });
+    const paths = createProtocolPaths(initResult.workspaceRoot);
+    const stdout = new MemoryWritable();
+
+    await writeFile(paths.confirmReq, createConfirmReq(), "utf8");
+
+    const program = createCli({
+      cwd: repo.path,
+      stdin: Readable.from(["B\n"]),
+      stdout,
+    });
+    await program.parseAsync(["node", "louisgo", "confirm", "--interactive"]);
+
+    expect(stdout.text).toContain("请选择 A/B");
+    expect(stdout.text).toContain("已选择：B. 暂不发布");
+    expect(stdout.text).toContain("AI 应基于该选择继续执行");
+  });
+
+  it("支持交互式输入补充说明", async () => {
+    await using repo = await createGitRepo();
+    const initResult = await initLouisGo({ cwd: repo.path, now });
+    const paths = createProtocolPaths(initResult.workspaceRoot);
+    const stdout = new MemoryWritable();
+
+    await writeFile(paths.confirmReq, createConfirmReq(), "utf8");
+
+    const program = createCli({
+      cwd: repo.path,
+      stdin: Readable.from(["改用 Apache-2.0\n"]),
+      stdout,
+    });
+    await program.parseAsync(["node", "louisgo", "confirm", "-i"]);
+
+    expect(stdout.text).toContain("已输入补充说明：改用 Apache-2.0");
+    expect(stdout.text).toContain("AI 应基于该补充说明继续执行");
   });
 });
 

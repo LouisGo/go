@@ -31,6 +31,9 @@ describe("Codex 集成安装", () => {
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
     ).resolves.toContain("中文：LouisGo 启动：生成分层上下文包");
     await expect(
+      readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
+    ).resolves.toContain("run `louisgo confirm`");
+    await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
     ).resolves.toContain('display_name: "$start"');
     await expect(

@@ -77,6 +77,81 @@ ${"长交接内容\n".repeat(2_000)}`,
     expect(result.content).toContain("Context Budget Report");
     expect(result.sources).toContain(".louisgo/HANDOFF.md");
   });
+
+  it("execute 阶段在上下文头部包含 Stop Check", async () => {
+    await using repo = await createInitializedRepo();
+    const paths = createProtocolPaths(repo.path);
+
+    await writeFile(
+      paths.state,
+      `---
+schema: louisgo-state-v1
+mode: assist
+phase: execute
+current_task: T001
+verification: missing
+git_head: NO_HEAD
+diff_hash: NO_DIFF
+updated_at: "2026-05-01T12:00:00.000Z"
+---
+
+# State
+`,
+      "utf8",
+    );
+
+    await writeFile(
+      paths.roadmap,
+      `- [ ] T001 完成第一次 AI 编程闭环 #completion: 所有测试通过\n`,
+      "utf8",
+    );
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
+    expect(result.content).toContain("## Stop Check");
+    expect(result.content).toContain("完成标准：所有测试通过");
+  });
+
+  it("explore 阶段在上下文头部包含 Explore Reminders", async () => {
+    await using repo = await createInitializedRepo();
+    const paths = createProtocolPaths(repo.path);
+
+    await writeFile(
+      paths.state,
+      `---
+schema: louisgo-state-v1
+mode: assist
+phase: explore
+current_task: T001
+verification: missing
+git_head: NO_HEAD
+diff_hash: NO_DIFF
+updated_at: "2026-05-01T12:00:00.000Z"
+---
+
+# State
+`,
+      "utf8",
+    );
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
+    expect(result.content).toContain("## Explore Reminders");
+    expect(result.content).toContain("先理解现有代码和数据");
+  });
+
+  it("idle 阶段不添加额外指导段落", async () => {
+    await using repo = await createInitializedRepo();
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
+    expect(result.content).not.toContain("## Stop Check");
+    expect(result.content).not.toContain("## Explore Reminders");
+  });
+
+  it("上下文头部展示工作阶段", async () => {
+    await using repo = await createInitializedRepo();
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
+    expect(result.content).toContain("工作阶段：空闲（idle）");
+  });
 });
 
 interface TempRepo extends AsyncDisposable {

@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { createCli, isDirectRun } from "../src/cli.js";
+import { readPackageVersion } from "../src/package-info.js";
 
 describe("CLI 入口", () => {
   it("可以生成基础帮助信息", () => {
@@ -13,6 +14,7 @@ describe("CLI 入口", () => {
 
     expect(program.name()).toBe("louisgo");
     expect(program.description()).toContain("AI 编程 Harness");
+    expect(program.version()).toBe(readPackageVersion());
     expect(program.helpInformation()).toContain("Usage: louisgo");
   });
 

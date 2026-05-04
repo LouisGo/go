@@ -3,6 +3,7 @@ import type { LouisGoMode, VerificationStatus } from "../protocol/schemas.js";
 export interface StateTemplateOptions {
   readonly updatedAt: string;
   readonly mode?: LouisGoMode;
+  readonly phase?: string;
   readonly currentTask?: string;
   readonly verification?: VerificationStatus;
   readonly gitHead?: string;
@@ -11,6 +12,7 @@ export interface StateTemplateOptions {
 
 export function createStateTemplate(options: StateTemplateOptions): string {
   const mode = options.mode ?? "assist";
+  const phase = options.phase ?? "idle";
   const currentTask = options.currentTask ?? "T001";
   const verification = options.verification ?? "missing";
   const gitHead = options.gitHead ?? "NO_HEAD";
@@ -19,6 +21,7 @@ export function createStateTemplate(options: StateTemplateOptions): string {
   return `---
 schema: louisgo-state-v1
 mode: ${mode}
+phase: ${phase}
 current_task: ${currentTask}
 handoff: .louisgo/HANDOFF.md
 verification: ${verification}
@@ -33,10 +36,16 @@ updated_at: "${options.updatedAt}"
 
 - task: ${currentTask}
 - verification: ${verification}
-- handoff: prefer \`.louisgo/HANDOFF.md\` when present
+- recovery: prefer \`.louisgo/HANDOFF.md\` when present; otherwise use this file and \`.louisgo/MEMORY.md\`
+- focus: fill this with the current concrete development goal
 
 ## Next
 
-- run \`louisgo context\` for recovery; update this file after meaningful work
+- first action: inspect \`louisgo context\`, then follow the user's latest prompt
+- after meaningful work: update this file, run verification when appropriate, then use \`$finish\` for formal handoff
+
+## Evidence
+
+- claim: | basis: | implication:
 `;
 }

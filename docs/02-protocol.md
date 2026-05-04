@@ -14,6 +14,7 @@ LouisGo 协议目录位于仓库根目录：
 ├── QUICK_SAVE.md
 ├── BLOCKER.md
 ├── CONFIRM_REQ.md
+├── RUNLOG.md
 ├── test-results.json
 ├── memory/
 ├── sessions/
@@ -140,6 +141,17 @@ updated_at: "2026-05-02T12:00:00.000Z"
 
 未解决确认请求。存在时 AI 必须优先提示并等待用户选择，不能把它埋在普通 memory 里。
 
+### `RUNLOG.md`
+
+本地诊断日志。LouisGo 命令会自动追加短事件，记录命令名、结果、恢复来源、验证状态、确认请求、ADR 草稿数量和工作区摘要。
+
+规则：
+
+- 不记录用户 prompt 正文、聊天全文、源码内容或 secrets。
+- 默认由 `.louisgo/.gitignore` 忽略，不制造 Git 噪音。
+- 需要诊断时运行 `louisgo log --tail 30`，或直接发送 `.louisgo/RUNLOG.md`。
+- 日志只保留最近事件，避免长期 token 膨胀。
+
 ### `test-results.json`
 
 验证事实来源。最少包含：
@@ -160,6 +172,8 @@ passed | failed | error | skipped
 ```
 
 CLI 额外根据 Git HEAD 和 diff hash 判断 `missing`、`stale`。
+
+diff hash 会忽略 LouisGo 生成型恢复和诊断文件：`test-results.json`、`RUNLOG.md`、`HANDOFF.md`、`HANDOFF_DRAFT.md`、`QUICK_SAVE.md`、`STATE.md`、`CONFIRM_REQ.md` 和 `sessions/`。这样 `$finish` 或日志追加不会让刚完成的验证立刻过期；源码、验证脚本和未排除的协议文件变化仍会触发 stale。
 
 ## 缓存层级
 

@@ -3,6 +3,7 @@ import { basename, relative } from "node:path";
 import type { ZodType } from "zod";
 
 import { findGitRoot } from "../fs/workspace.js";
+import { getGitPorcelainStatus, type GitStatusEntry } from "../git/status.js";
 import { FrontMatterError, readFrontMatter } from "../protocol/frontmatter.js";
 import { createProtocolPaths, type ProtocolPaths } from "../protocol/paths.js";
 import { parseRoadmap, RoadmapParseError, type RoadmapTask } from "../protocol/roadmap.js";
@@ -16,6 +17,7 @@ import {
   stateFrontMatterSchema,
   type LouisGoMode,
   type VerificationStatus,
+  type WorkPhase,
 } from "../protocol/schemas.js";
 import { TestResultsError, testResultsErrorCodes } from "../protocol/test-results.js";
 import { checkVerificationFreshness } from "../verify/freshness.js";
@@ -43,11 +45,20 @@ export interface ProtocolStatus {
   readonly complete: boolean;
   readonly issues: readonly ProtocolIssue[];
   readonly mode: LouisGoMode | null;
+  readonly phase: WorkPhase;
   readonly currentTask: RoadmapTask | null;
   readonly recoverySource: RecoverySource;
   readonly verificationStatus: StatusVerificationState;
   readonly hasConfirmReq: boolean;
   readonly adrDrafts: readonly string[];
+  readonly workspace: WorkspaceSummary;
+}
+
+export interface WorkspaceSummary {
+  readonly clean: boolean;
+  readonly changedFiles: number;
+  readonly untrackedFiles: number;
+  readonly samplePaths: readonly string[];
 }
 
 export interface StatusServiceOptions {
@@ -69,23 +80,27 @@ export async function checkProtocolStatus(
   await checkRequiredPaths(paths, issues);
 
   const mode = await readMissionMode(paths, issues);
+  const phase = await readWorkPhase(paths, issues);
   const currentTask = await readCurrentTask(paths, issues);
   await validateOptionalFrontMatter(paths, issues);
   const recoverySource = await detectRecoverySource(paths);
   const verificationStatus = await readVerificationStatus(paths, issues);
   const hasConfirmReq = await pathExists(paths.confirmReq);
   const adrDrafts = await listAdrDrafts(paths);
+  const workspace = await readWorkspaceSummary(workspaceRoot);
 
   return {
     workspaceRoot,
     complete: issues.length === 0,
     issues,
     mode,
+    phase,
     currentTask,
     recoverySource,
     verificationStatus,
     hasConfirmReq,
     adrDrafts,
+    workspace,
   };
 }
 
@@ -140,6 +155,23 @@ async function readMissionMode(
   } catch (error) {
     issues.push(createFrontMatterIssue(paths, paths.mission, error));
     return null;
+  }
+}
+
+async function readWorkPhase(
+  paths: ProtocolPaths,
+  issues: ProtocolIssue[],
+): Promise<WorkPhase> {
+  if (!(await pathExists(paths.state))) {
+    return "idle";
+  }
+
+  try {
+    const document = await readFrontMatter(paths.state, stateFrontMatterSchema);
+    return document.frontMatter.phase ?? "idle";
+  } catch (error) {
+    issues.push(createFrontMatterIssue(paths, paths.state, error));
+    return "idle";
   }
 }
 
@@ -244,6 +276,36 @@ async function readVerificationStatus(
     );
     return "unchecked";
   }
+}
+
+async function readWorkspaceSummary(workspaceRoot: string): Promise<WorkspaceSummary> {
+  const entries = (await getGitPorcelainStatus({ cwd: workspaceRoot })).filter(
+    (entry) => !isDiagnosticOnlyPath(entry.path),
+  );
+  const untrackedFiles = entries.filter((entry) => isUntracked(entry)).length;
+
+  return {
+    clean: entries.length === 0,
+    changedFiles: entries.length,
+    untrackedFiles,
+    samplePaths: entries.slice(0, 5).map(formatStatusPath),
+  };
+}
+
+function isDiagnosticOnlyPath(path: string): boolean {
+  return path === ".louisgo/RUNLOG.md";
+}
+
+function isUntracked(entry: GitStatusEntry): boolean {
+  return entry.indexStatus === "?" && entry.workTreeStatus === "?";
+}
+
+function formatStatusPath(entry: GitStatusEntry): string {
+  if (entry.originalPath !== undefined) {
+    return `${entry.originalPath} -> ${entry.path}`;
+  }
+
+  return entry.path;
 }
 
 async function pathExists(filePath: string): Promise<boolean> {

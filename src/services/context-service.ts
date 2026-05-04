@@ -88,9 +88,12 @@ export async function generateContext(
   const header = createHeader({
     capsule: options.capsule === true,
     mode: status.mode,
+    phase: status.phase,
     currentTask: status.currentTask?.id ?? "无",
+    currentTaskCompletionSignal: status.currentTask?.completionSignal ?? null,
     verificationStatus: status.verificationStatus,
     recoverySource: status.recoverySource,
+    workspaceSummary: formatWorkspaceSummary(status.workspace),
     budgetTokens,
     ...(options.goal === undefined ? {} : { goal: options.goal }),
   });
@@ -180,9 +183,12 @@ function createHeader(params: {
   readonly capsule: boolean;
   readonly goal?: string;
   readonly mode: string;
+  readonly phase: string;
   readonly currentTask: string;
+  readonly currentTaskCompletionSignal: string | null;
   readonly verificationStatus: string;
   readonly recoverySource: string;
+  readonly workspaceSummary: string;
   readonly budgetTokens: number;
 }): string {
   const title = params.capsule ? "LouisGo Subagent Context Capsule" : "LouisGo Context Package";
@@ -201,11 +207,45 @@ function createHeader(params: {
     "## Runtime Summary",
     "",
     `- 模式：${params.mode}`,
+    `- 工作阶段：${formatWorkPhase(params.phase)}`,
     `- 当前任务：${params.currentTask}`,
     `- 验证状态：${params.verificationStatus}`,
     `- 恢复来源：${formatRecoverySource(params.recoverySource)}`,
+    `- 工作区：${params.workspaceSummary}`,
     `- 上下文预算：约 ${params.budgetTokens} tokens`,
     ...(goal === undefined || goal.length === 0 ? [] : [`- 本轮目标：${goal}`]),
+    "",
+    "## Operating Loop",
+    "",
+    "- 先用用户本轮请求确定真实任务，不要把历史上下文本身当任务。",
+    "- 做代码前核对相关源码、Git 状态和验证事实；记忆只提供方向。",
+    "- 只把可复用事实写入 `STATE.md` 或 `MEMORY.md`，不要记录聊天流水账。",
+    "- 阶段完成时运行验证并用 `$finish` 生成正式 `HANDOFF.md`。",
+    ...(params.phase === "execute"
+      ? [
+          "",
+          "## Stop Check",
+          "",
+          ...(params.currentTaskCompletionSignal !== null
+            ? [
+                `- 当前任务 ${params.currentTask} 完成标准：${params.currentTaskCompletionSignal}`,
+                "- 停止前确认完成标准已满足，如果不确定则继续推进。",
+              ]
+            : [
+              "- 停止前确认当前任务目标已达成，写出证据到 STATE.md Evidence 部分。",
+            ]),
+        ]
+      : []),
+    ...(params.phase === "explore"
+      ? [
+          "",
+          "## Explore Reminders",
+          "",
+          "- 先理解现有代码和数据，再提出修改方案。",
+          "- 记录发现到 STATE.md Evidence 部分，格式：claim | basis | implication。",
+          "- 探索阶段不执行大规模重构，以收集事实和确认方向为主。",
+        ]
+      : []),
     "",
     "## Source Layers",
     "",
@@ -371,7 +411,7 @@ function preserveHeadingSections(content: string, headings: readonly string[]): 
 }
 
 const frontMatterLinePattern =
-  /^(schema|mode|task_id|git_head|diff_hash|verification|generated_at|confirmed_at):/;
+  /^(schema|mode|phase|task_id|git_head|diff_hash|verification|generated_at|confirmed_at):/;
 
 function formatBudgetStatus(item: ContextBudgetItem): string {
   if (!item.included) {
@@ -419,6 +459,36 @@ function formatRecoverySource(source: string): string {
     default:
       return source;
   }
+}
+
+function formatWorkPhase(phase: string): string {
+  switch (phase) {
+    case "explore":
+      return "探索（explore）";
+    case "execute":
+      return "执行（execute）";
+    case "idle":
+      return "空闲（idle）";
+    default:
+      return phase;
+  }
+}
+
+function formatWorkspaceSummary(workspace: {
+  readonly clean: boolean;
+  readonly changedFiles: number;
+  readonly untrackedFiles: number;
+  readonly samplePaths: readonly string[];
+}): string {
+  if (workspace.clean) {
+    return "clean";
+  }
+
+  const untracked = workspace.untrackedFiles > 0 ? `，${workspace.untrackedFiles} 个未跟踪` : "";
+  const samples =
+    workspace.samplePaths.length > 0 ? `；样例：${workspace.samplePaths.join("，")}` : "";
+
+  return `${workspace.changedFiles} 个待处理变更${untracked}${samples}`;
 }
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {

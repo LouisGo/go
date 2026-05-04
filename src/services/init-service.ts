@@ -8,6 +8,7 @@ import { createCapabilitiesTemplate } from "../templates/capabilities.js";
 import { createMemoryTemplate } from "../templates/memory.js";
 import { createMissionTemplate } from "../templates/mission.js";
 import { createRoadmapTemplate } from "../templates/roadmap.js";
+import { createLouisGoGitignoreTemplate, createRunLogTemplate } from "../templates/run-log.js";
 import { createStateTemplate } from "../templates/state.js";
 import { createVerifyPs1Template } from "../templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../templates/verify-sh.js";
@@ -72,6 +73,14 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     {
       filePath: paths.blocker,
       content: createBlockerTemplate(),
+    },
+    {
+      filePath: paths.gitignore,
+      content: createLouisGoGitignoreTemplate(),
+    },
+    {
+      filePath: paths.runLog,
+      content: createRunLogTemplate({ updatedAt: timestamp }),
     },
     {
       filePath: paths.capabilities,

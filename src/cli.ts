@@ -2,7 +2,7 @@
 
 import { Command } from "commander";
 import { realpathSync } from "node:fs";
-import type { Writable } from "node:stream";
+import type { Readable, Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
 import { registerCodexCommand } from "./commands/codex.js";
@@ -11,14 +11,17 @@ import { registerContextCommand } from "./commands/context.js";
 import { registerFinishCommand } from "./commands/finish.js";
 import { registerHandoffPromoteCommand } from "./commands/handoff-promote.js";
 import { registerInitCommand } from "./commands/init.js";
+import { registerLogCommand } from "./commands/log.js";
 import { registerPauseCommand } from "./commands/pause.js";
 import { registerStatusCommand } from "./commands/status.js";
 import { registerVerifyCommand } from "./commands/verify.js";
+import { readPackageVersion } from "./package-info.js";
 
 export interface CliOptions {
   readonly cwd?: string;
   readonly codexHome?: string;
   readonly now?: () => Date;
+  readonly stdin?: Readable;
   readonly stdout?: Writable;
   readonly stderr?: Writable;
   readonly platform?: NodeJS.Platform;
@@ -32,7 +35,7 @@ export function createCli(options: CliOptions = {}): Command {
   program
     .name("louisgo")
     .description("轻量级 AI 编程 Harness")
-    .version("0.1.0")
+    .version(readPackageVersion())
     .showHelpAfterError();
 
   registerInitCommand(program, options);
@@ -44,6 +47,7 @@ export function createCli(options: CliOptions = {}): Command {
   registerFinishCommand(program, options);
   registerHandoffPromoteCommand(program, options);
   registerCodexCommand(program, options);
+  registerLogCommand(program, options);
 
   return program;
 }

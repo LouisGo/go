@@ -11,12 +11,20 @@ import { computeDiffHash } from "../src/git/diff-hash.js";
 const execFileAsync = promisify(execFile);
 
 describe("diff_hash", () => {
-  it("干净工作区生成稳定 hash，并忽略 test-results.json", async () => {
+  it("干净工作区生成稳定 hash，并忽略生成型恢复文件", async () => {
     await using repo = await createCommittedRepo();
     const firstHash = await computeDiffHash({ cwd: repo.path });
 
     await mkdir(join(repo.path, ".louisgo"), { recursive: true });
+    await mkdir(join(repo.path, ".louisgo", "sessions"), { recursive: true });
     await writeFile(join(repo.path, ".louisgo", "test-results.json"), "{}\n", "utf8");
+    await writeFile(join(repo.path, ".louisgo", "RUNLOG.md"), "# Run Log\n", "utf8");
+    await writeFile(join(repo.path, ".louisgo", "HANDOFF.md"), "# Handoff\n", "utf8");
+    await writeFile(join(repo.path, ".louisgo", "HANDOFF_DRAFT.md"), "# Draft\n", "utf8");
+    await writeFile(join(repo.path, ".louisgo", "QUICK_SAVE.md"), "# Quick Save\n", "utf8");
+    await writeFile(join(repo.path, ".louisgo", "STATE.md"), "# State\n", "utf8");
+    await writeFile(join(repo.path, ".louisgo", "CONFIRM_REQ.md"), "# Confirm\n", "utf8");
+    await writeFile(join(repo.path, ".louisgo", "sessions", "one.md"), "# Session\n", "utf8");
 
     await expect(computeDiffHash({ cwd: repo.path })).resolves.toBe(firstHash);
     expect(firstHash).toMatch(/^[a-f0-9]{64}$/);

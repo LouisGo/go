@@ -13,6 +13,7 @@ import {
   capabilitiesFrontMatterSchema,
   confirmReqFrontMatterSchema,
   missionFrontMatterSchema,
+  runLogFrontMatterSchema,
   testResultsSchema,
 } from "../src/protocol/schemas.js";
 import { createAdrDraftTemplate } from "../src/templates/adr-draft.js";
@@ -21,6 +22,7 @@ import { createCapabilitiesTemplate } from "../src/templates/capabilities.js";
 import { createConfirmReqTemplate } from "../src/templates/confirm-req.js";
 import { createMissionTemplate } from "../src/templates/mission.js";
 import { createRoadmapTemplate } from "../src/templates/roadmap.js";
+import { createLouisGoGitignoreTemplate, createRunLogTemplate } from "../src/templates/run-log.js";
 import { createVerifyPs1Template } from "../src/templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../src/templates/verify-sh.js";
 import { checkVerificationFreshness } from "../src/verify/freshness.js";
@@ -55,6 +57,22 @@ describe("协议模板", () => {
 
   it("生成 BLOCKER.md 极简日志模板", () => {
     expect(createBlockerTemplate()).toBe("# Blocker\n\n");
+  });
+
+  it("生成 RUNLOG.md 诊断日志模板", async () => {
+    await using tempDir = await createTempDir();
+    const filePath = join(tempDir.path, "RUNLOG.md");
+
+    await writeFile(filePath, createRunLogTemplate({ updatedAt: timestamp }), "utf8");
+
+    const document = await readFrontMatter(filePath, runLogFrontMatterSchema);
+    expect(document.frontMatter).toMatchObject({
+      schema: "louisgo-runlog-v1",
+      updatedAt: timestamp,
+      maxEvents: 80,
+    });
+    expect(document.body).toContain("louisgo-runlog:events");
+    expect(createLouisGoGitignoreTemplate()).toContain("RUNLOG.md");
   });
 
   it("生成 CAPABILITIES.md 必要 Front Matter 和验证入口", async () => {

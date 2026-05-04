@@ -6,6 +6,7 @@ import {
   type InitServiceOptions,
   type InitServiceResult,
 } from "../services/init-service.js";
+import { appendRunLogEvent } from "../services/run-log-service.js";
 import { setupCodex, type CodexSetupResult } from "../services/codex-service.js";
 
 export interface RegisterInitCommandOptions extends InitServiceOptions {
@@ -33,6 +34,13 @@ export function registerInitCommand(
               ...(options.env === undefined ? {} : { env: options.env }),
             });
       writeInitResult(options.stdout ?? process.stdout, result, codex);
+      await appendRunLogEvent({
+        cwd: result.workspaceRoot,
+        command: "init",
+        outcome: "success",
+        note: `files_created=${countFiles(result, "created")}; files_skipped=${countFiles(result, "skipped")}; codex=${codex === null ? "skipped" : "installed"}`,
+        ...(options.now === undefined ? {} : { now: options.now }),
+      });
     });
 }
 
@@ -53,4 +61,8 @@ function writeInitResult(
     stdout.write(`Codex 集成：完成（${codex.codexHome}）\n`);
   }
   stdout.write(`下一步：${result.nextSteps.join("；")}\n`);
+}
+
+function countFiles(result: InitServiceResult, status: "created" | "skipped"): number {
+  return result.files.filter((file) => file.status === status).length;
 }

@@ -7,6 +7,7 @@ import {
   type VerifyServiceOptions,
   type VerifyServiceResult,
 } from "../services/verify-service.js";
+import { appendRunLogEvent } from "../services/run-log-service.js";
 import { VerifyRunnerError, verifyRunnerErrorCodes } from "../verify/runner.js";
 import type { StaleReason } from "../verify/freshness.js";
 
@@ -35,6 +36,12 @@ export function registerVerifyCommand(
       try {
         const result = await verifyLouisGo(options);
         stdout.write(formatVerifyReport(result));
+        await appendRunLogEvent({
+          cwd: result.workspaceRoot,
+          command: "verify",
+          outcome: result.processExitCode === 0 ? "success" : "failure",
+          note: `status=${result.verificationStatus}; freshness=${result.freshness}; exit=${result.processExitCode}`,
+        });
         setExitCode(result.processExitCode);
       } catch (error) {
         if (!(error instanceof VerifyRunnerError)) {
@@ -42,6 +49,12 @@ export function registerVerifyCommand(
         }
 
         stderr.write(formatVerifyError(error));
+        await appendRunLogEvent({
+          ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
+          command: "verify",
+          outcome: "failure",
+          note: `runner_error=${error.code}`,
+        }).catch(() => undefined);
         setExitCode(1);
       }
     });

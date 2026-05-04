@@ -14,6 +14,7 @@ For ordinary coding requests in an enabled repo, read the available recovery con
 2. If the context package or status reports \`.louisgo/CONFIRM_REQ.md\`, run \`louisgo confirm\` and present the choices before continuing.
 3. If \`louisgo context\` is unavailable, fall back to reading \`.louisgo/CONFIRM_REQ.md\`, \`.louisgo/HANDOFF.md\`, \`.louisgo/STATE.md\`, and \`.louisgo/MEMORY.md\`.
 4. Topic files under \`.louisgo/memory/\` only when relevant.
+5. If the user asks to debug whether LouisGo helped, run \`louisgo log --tail 30\` and summarize \`.louisgo/RUNLOG.md\`.
 
 When the user's message starts with one of the LouisGo dollar directives below, treat it as an explicit workflow command, not ordinary prose.
 
@@ -113,6 +114,7 @@ For ordinary coding requests, before changing files, inspect the available Louis
 2. If the context package or status reports \`.louisgo/CONFIRM_REQ.md\`, run \`louisgo confirm\` and present the choices before continuing.
 3. If \`louisgo context\` is unavailable, read \`.louisgo/CONFIRM_REQ.md\`, \`.louisgo/HANDOFF.md\`, \`.louisgo/STATE.md\`, and \`.louisgo/MEMORY.md\`.
 4. Relevant files under \`.louisgo/memory/\` or \`.louisgo/sessions/\` only when needed.
+5. If the user asks to debug the LouisGo workflow, run \`louisgo log --tail 30\` and summarize \`.louisgo/RUNLOG.md\`.
 
 When the user message starts with a LouisGo dollar directive, treat it as an explicit command:
 

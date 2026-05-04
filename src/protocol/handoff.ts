@@ -34,6 +34,7 @@ export interface HandoffFrontMatterJson {
 
 export interface HandoffDraftBodyInput {
   readonly taskId?: string | null;
+  readonly phase?: string;
   readonly verification: VerificationStatus;
   readonly gitDiffSummary: string;
   readonly blockerSummary: string;
@@ -130,6 +131,7 @@ function createHandoffDocumentBody(
     input.taskId === undefined || input.taskId === null
       ? `当前 ROADMAP 没有可用任务，task_id 使用 ${missingTaskId} 占位。`
       : `当前任务：${input.taskId}`;
+  const phaseLine = input.phase !== undefined ? `- 工作阶段：${input.phase}` : null;
   const adrDraftSummary =
     input.adrDrafts.length === 0
       ? "无 ADR 草稿。"
@@ -140,7 +142,7 @@ function createHandoffDocumentBody(
 ## 交接摘要
 
 - ${taskLine}
-- 验证状态：${input.verification}
+${phaseLine !== null ? `${phaseLine}\n` : ""}- 验证状态：${input.verification}
 - 接手判断：${formatVerificationHandoffGuidance(input.verification)}
 
 ## 恢复建议

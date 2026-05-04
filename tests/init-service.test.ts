@@ -39,6 +39,8 @@ describe("init 服务", () => {
     await expect(access(paths.state)).resolves.toBeUndefined();
     await expect(access(paths.memory)).resolves.toBeUndefined();
     await expect(access(paths.blocker)).resolves.toBeUndefined();
+    await expect(access(paths.gitignore)).resolves.toBeUndefined();
+    await expect(access(paths.runLog)).resolves.toBeUndefined();
     await expect(access(paths.capabilities)).resolves.toBeUndefined();
     await expect(access(paths.verifySh)).resolves.toBeUndefined();
     await expect(access(paths.verifyPs1)).resolves.toBeUndefined();
@@ -48,6 +50,7 @@ describe("init 服务", () => {
     const state = await readFrontMatter(paths.state, stateFrontMatterSchema);
     const memory = await readFrontMatter(paths.memory, memoryFrontMatterSchema);
     const roadmap = parseRoadmap(await readFile(paths.roadmap, "utf8"));
+    const runLog = await readFile(paths.runLog, "utf8");
     const verifyShStat = await stat(paths.verifySh);
 
     expect(mission.frontMatter.defaultMode).toBe("assist");
@@ -55,6 +58,8 @@ describe("init 服务", () => {
     expect(state.frontMatter.currentTask).toBe("T001");
     expect(memory.body).toContain("HANDOFF.md");
     expect(roadmap.firstIncompleteTask?.id).toBe("T001");
+    expect(runLog).toContain("schema: louisgo-runlog-v1");
+    await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("RUNLOG.md");
     expect(verifyShStat.mode & 0o111).toBeGreaterThan(0);
     expect(result.files.every((file) => file.status === "created")).toBe(true);
     expect(result.nextSteps).toContain("需要深度重建时输入 $start");

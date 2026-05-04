@@ -17,18 +17,21 @@ describe("ROADMAP 解析", () => {
         title: "初始化项目",
         completed: true,
         line: 3,
+        completionSignal: null,
       },
       {
         id: "T002",
         title: "配置质量检查",
         completed: false,
         line: 4,
+        completionSignal: null,
       },
       {
         id: "T003",
         title: "定义协议路径",
         completed: false,
         line: 5,
+        completionSignal: null,
       },
     ]);
     expect(result.firstIncompleteTask?.id).toBe("T002");
@@ -117,5 +120,34 @@ describe("ROADMAP 解析", () => {
         },
       ]);
     }
+  });
+
+  it("从任务行提取完成信号", () => {
+    const result = parseRoadmap(
+      `- [ ] T001 实现登录 #completion: 所有登录测试通过且构建成功\n`,
+    );
+    expect(result.tasks).toEqual([
+      {
+        id: "T001",
+        title: "实现登录",
+        completed: false,
+        line: 1,
+        completionSignal: "所有登录测试通过且构建成功",
+      },
+    ]);
+  });
+
+  it("无完成信号时 completionSignal 为 null", () => {
+    const result = parseRoadmap(`- [ ] T001 实现登录\n`);
+    expect(result.tasks[0]?.completionSignal).toBeNull();
+  });
+
+  it("完成信号保留任务标题干净", () => {
+    const result = parseRoadmap(
+      `- [x] T001 修复 Bug #completion: 单元测试通过\n`,
+    );
+    expect(result.tasks[0]?.title).toBe("修复 Bug");
+    expect(result.tasks[0]?.completionSignal).toBe("单元测试通过");
+    expect(result.tasks[0]?.completed).toBe(true);
   });
 });

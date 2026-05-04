@@ -111,6 +111,36 @@ describe("协议 schema", () => {
       verification: "missing",
     });
 
+    // phase 可选字段
+    expect(
+      stateFrontMatterSchema.parse({
+        schema: "louisgo-state-v1",
+        mode: "assist",
+        phase: "explore",
+        current_task: "T001",
+        verification: "missing",
+        git_head: "abc123",
+        diff_hash: "def456",
+        updated_at: timestamp,
+      }),
+    ).toMatchObject({
+      mode: "assist",
+      phase: "explore",
+      currentTask: "T001",
+    });
+
+    expect(
+      stateFrontMatterSchema.parse({
+        schema: "louisgo-state-v1",
+        mode: "assist",
+        current_task: "T001",
+        verification: "missing",
+        git_head: "abc123",
+        diff_hash: "def456",
+        updated_at: timestamp,
+      }).phase,
+    ).toBeUndefined();
+
     expect(
       memoryFrontMatterSchema.parse({
         schema: "louisgo-memory-v1",
@@ -162,6 +192,19 @@ describe("协议 schema", () => {
         schema: "louisgo-mission-v1",
         default_mode: "assist",
         updated_at: "2026-05-01T20:00:00",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      stateFrontMatterSchema.safeParse({
+        schema: "louisgo-state-v1",
+        mode: "assist",
+        phase: "exploration",
+        current_task: "T001",
+        verification: "missing",
+        git_head: "abc123",
+        diff_hash: "def456",
+        updated_at: timestamp,
       }).success,
     ).toBe(false);
   });

@@ -18,6 +18,7 @@ describe("README 使用说明", () => {
       "init",
       "context",
       "confirm",
+      "log",
       "status",
       "verify",
       "pause",
@@ -34,6 +35,7 @@ describe("README 使用说明", () => {
     expect(readme).toContain("$finish");
     expect(readme).toContain("HANDOFF.md -> STATE.md -> MEMORY.md");
     expect(readme).toContain("louisgo context");
+    expect(readme).toContain("louisgo log");
     expect(readme).toContain("louisgo handoff promote");
     expect(
       program.commands

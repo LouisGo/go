@@ -37,8 +37,10 @@ describe("协议路径", () => {
       quickSave: join(expectedRoot, ".louisgo", "QUICK_SAVE.md"),
       blocker: join(expectedRoot, ".louisgo", "BLOCKER.md"),
       confirmReq: join(expectedRoot, ".louisgo", "CONFIRM_REQ.md"),
+      runLog: join(expectedRoot, ".louisgo", "RUNLOG.md"),
       capabilities: join(expectedRoot, ".louisgo", "CAPABILITIES.md"),
       testResults: join(expectedRoot, ".louisgo", "test-results.json"),
+      gitignore: join(expectedRoot, ".louisgo", ".gitignore"),
       adrDir: join(expectedRoot, ".louisgo", "ADR"),
       adrDraftDir: join(expectedRoot, ".louisgo", "ADR", "draft"),
       memoryDir: join(expectedRoot, ".louisgo", "memory"),
@@ -55,6 +57,7 @@ describe("协议路径", () => {
     expect(protocolRelativePaths.adrDraftDir).toBe(".louisgo/ADR/draft");
     expect(protocolRelativePaths.state).toBe(".louisgo/STATE.md");
     expect(protocolRelativePaths.memoryDir).toBe(".louisgo/memory");
+    expect(protocolRelativePaths.runLog).toBe(".louisgo/RUNLOG.md");
   });
 
   it("非 Git 仓库返回明确错误", async () => {

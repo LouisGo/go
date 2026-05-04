@@ -6,6 +6,7 @@ import {
   type CodexSetupOptions,
   type CodexSetupResult,
 } from "../services/codex-service.js";
+import { appendRunLogEvent } from "../services/run-log-service.js";
 
 export interface RegisterCodexCommandOptions extends CodexSetupOptions {
   readonly stdout?: Writable;
@@ -23,6 +24,12 @@ export function registerCodexCommand(
     .action(async () => {
       const result = await setupCodex(options);
       writeCodexSetupResult(options.stdout ?? process.stdout, result);
+      await appendRunLogEvent({
+        cwd: result.workspaceRoot,
+        command: "codex setup",
+        outcome: "success",
+        note: `files=${result.files.length}; codex_home=${result.codexHome}`,
+      });
     });
 }
 

@@ -23,7 +23,7 @@ describe("npm 包配置", () => {
     expect(packageJson.scripts).toMatchObject({
       build: "tsup",
       prepack: "pnpm build",
-      "pack:check": "npm pack --dry-run",
+      "pack:check": "node scripts/pack-check.mjs",
     });
   });
 });

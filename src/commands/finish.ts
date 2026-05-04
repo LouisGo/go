@@ -10,6 +10,7 @@ import {
   type FinishServiceOptions,
   type FinishServiceResult,
 } from "../services/finish-service.js";
+import { appendRunLogEvent } from "../services/run-log-service.js";
 
 export interface RegisterFinishCommandOptions extends FinishServiceOptions {
   readonly stdout?: Writable;
@@ -37,6 +38,12 @@ export function registerFinishCommand(
       try {
         const result = await finishLouisGo(options);
         stdout.write(formatFinishReport(result));
+        await appendRunLogEvent({
+          cwd: result.workspaceRoot,
+          command: "finish",
+          outcome: "success",
+          note: `task=${result.frontMatter.taskId}; verification=${result.verification}; confirm_cleanup=${result.confirmReqCleanup}; quick_save_cleanup=${result.quickSaveCleanup}`,
+        });
         setExitCode(0);
       } catch (error) {
         if (
@@ -53,6 +60,12 @@ export function registerFinishCommand(
             stderr.write(`- ${issue.relativePath}：${issue.message}\n`);
           }
         }
+        await appendRunLogEvent({
+          ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
+          command: "finish",
+          outcome: "failure",
+          note: "protocol_incomplete",
+        }).catch(() => undefined);
         setExitCode(1);
       }
     });

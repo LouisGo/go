@@ -30,12 +30,15 @@ describe("协议完整性检查", () => {
       workspaceRoot: initResult.workspaceRoot,
       complete: true,
       mode: "assist",
+      phase: "idle",
       recoverySource: "state",
       verificationStatus: "missing",
       hasConfirmReq: false,
       adrDrafts: [],
       issues: [],
     });
+    expect(status.workspace.clean).toBe(false);
+    expect(status.workspace.changedFiles).toBeGreaterThan(0);
     expect(status.currentTask).toMatchObject({
       id: "T001",
       completed: false,
@@ -211,6 +214,41 @@ schema: louisgo-mission-v1
         filePath: paths.testResults,
       }),
     );
+  });
+
+  it("从 STATE.md 读取工作阶段", async () => {
+    await using repo = await createGitRepo();
+    const initResult = await initLouisGo({ cwd: repo.path, now });
+    const paths = createProtocolPaths(initResult.workspaceRoot);
+
+    await writeFile(
+      paths.state,
+      `---
+schema: louisgo-state-v1
+mode: assist
+phase: explore
+current_task: T001
+verification: missing
+git_head: NO_HEAD
+diff_hash: NO_DIFF
+updated_at: "${timestamp}"
+---
+
+# State
+`,
+      "utf8",
+    );
+
+    const status = await checkProtocolStatus({ cwd: repo.path });
+    expect(status.phase).toBe("explore");
+  });
+
+  it("缺失 phase 时默认为 idle", async () => {
+    await using repo = await createGitRepo();
+    await initLouisGo({ cwd: repo.path, now });
+
+    const status = await checkProtocolStatus({ cwd: repo.path });
+    expect(status.phase).toBe("idle");
   });
 });
 

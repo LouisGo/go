@@ -1,35 +1,37 @@
 # 项目总览
 
-LouisGo 是仓库内 AI 编程记忆和交接协议。它的目标不是让用户记住更多命令，而是让 AI 在项目目录里持续维护可恢复上下文。
+LouisGo 的目标是让 AI 编程项目拥有一个 Git 可同步、可审计、可裁剪的上下文底座。它不是完整知识库，也不是后台记忆系统；它是把 AI 真正需要复用的 prompt 材料整理成 `.louisgo/` 协议。
 
-## 当前产品判断
-
-主路径收敛为：
+## 当前闭环
 
 ```text
-louisgo init -> $start -> 自然对话 -> $finish
+init 一次启用 -> 普通会话自动 context -> start 按需深度恢复 -> verify 记录事实 -> finish 正式交接
 ```
 
-- `init` 是一次性启用入口，默认完成协议初始化和 Codex 集成。
-- `$start` 是深度上下文重建入口，不要求每个新会话重复执行。
-- 新会话的默认恢复依赖 `AGENTS.md` 自动读取 `.louisgo/`。
-- `$finish` 写入正式 `HANDOFF.md`，它比滚动记忆拥有更高恢复优先级。
-- `status`、`verify`、`pause`、`handoff promote`、`codex setup` 保留为高级和兼容命令。
+这个闭环已经通过本仓库自举验证：
 
-## 文档地图
+- 本仓库可以用自己的 `.louisgo/` 恢复上下文。
+- `louisgo context` 可以生成带来源、预算和优先级契约的上下文包。
+- `louisgo status` 可以报告协议、恢复来源、验证状态和工作区 diff。
+- `louisgo verify` 可以运行项目门禁并写入机器可读结果。
+- `louisgo finish` 可以生成正式 `HANDOFF.md`，供新会话恢复。
+- `louisgo log` 可以输出本地诊断日志，帮助回看流程是否真正起作用。
+- 外部 Git 项目可以通过 `npx louisgo init` 或本地 `dist/cli.js init` 开始实验。
+
+## 文档边界
 
 | 文档 | 作用 |
 | --- | --- |
-| `README.md` | 对外入口和快速使用说明。 |
-| `docs/00-overview.md` | 当前文档地图和产品方向。 |
-| `docs/01-product.md` | 用户主路径、命令心智和恢复优先级。 |
-| `docs/02-protocol.md` | `.louisgo/` 文件协议和 Markdown 数据结构。 |
-| `docs/03-roadmap.md` | 接下来实现和收敛的路线图。 |
+| `README.md` | 对外安装、日常用法和外部项目实验。 |
+| `docs/01-product.md` | 产品心智、AI 行为和闭环定义。 |
+| `docs/02-protocol.md` | `.louisgo/` 文件协议和数据结构。 |
+| `docs/03-roadmap.md` | 已完成底座和下一阶段候选。 |
 
 ## 设计原则
 
-- 用户只需要少数入口，复杂协议由 AI 和 CLI 承担。
-- Markdown + YAML Front Matter 是默认协议格式；JSON 只用于机器验证结果。
-- 正式 handoff 和滚动 memory 分工明确：handoff 是权威交接，memory 是日常上下文。
-- 验证结果是事实来源，AI 自述不能替代验证、代码事实或用户确认。
-- 文档数量保持克制，过期设计应删除，不并存。
+- 日常入口保持少：`init`、自然对话、`$start`、`$finish`。
+- 用户本轮 prompt 永远优先；LouisGo 只提供上下文前缀。
+- Markdown + YAML Front Matter 是默认协议格式；JSON 只用于验证结果。
+- `HANDOFF.md` 是正式恢复，`STATE.md` / `MEMORY.md` 是日常辅助。
+- 源码、Git 和验证结果优先于记忆叙述。
+- 文档和协议文件保持短，能被新 AI 会话快速读取。

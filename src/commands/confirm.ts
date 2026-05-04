@@ -1,5 +1,6 @@
 import type { Command } from "commander";
-import type { Writable } from "node:stream";
+import { createInterface } from "node:readline/promises";
+import type { Readable, Writable } from "node:stream";
 
 import {
   ConfirmServiceError,
@@ -10,8 +11,10 @@ import {
   type ConfirmRequestView,
   type ConfirmServiceOptions,
 } from "../services/confirm-service.js";
+import { appendRunLogEvent } from "../services/run-log-service.js";
 
 export interface RegisterConfirmCommandOptions extends ConfirmServiceOptions {
+  readonly stdin?: Readable;
   readonly stdout?: Writable;
   readonly stderr?: Writable;
   readonly setExitCode?: (exitCode: number) => void;
@@ -19,6 +22,7 @@ export interface RegisterConfirmCommandOptions extends ConfirmServiceOptions {
 
 interface ConfirmCommandOptions {
   readonly choice?: string;
+  readonly interactive?: boolean;
 }
 
 export function registerConfirmCommand(
@@ -29,6 +33,7 @@ export function registerConfirmCommand(
     .command("confirm")
     .description("显示 LouisGo 确认请求并选择选项")
     .option("--choice <A|B|C|D>", "选择确认请求中的选项")
+    .option("-i, --interactive", "交互式提示用户输入选择或补充说明")
     .action(async (commandOptions: ConfirmCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
       const stderr = options.stderr ?? process.stderr;
@@ -45,20 +50,107 @@ export function registerConfirmCommand(
             choice: commandOptions.choice,
           });
           stdout.write(formatConfirmSelection(selection));
+          await appendRunLogEvent({
+            cwd: selection.workspaceRoot,
+            command: "confirm",
+            outcome: "success",
+            note: `choice=${selection.selectedChoice.key}; task=${selection.frontMatter.taskId}`,
+          });
+          return;
+        }
+
+        if (commandOptions.interactive === true) {
+          const request = await readConfirmRequest(options);
+          stdout.write(
+            await formatInteractiveConfirm(options.stdin ?? process.stdin, stdout, request),
+          );
+          await appendRunLogEvent({
+            ...(request === null
+              ? options.cwd === undefined
+                ? {}
+                : { cwd: options.cwd }
+              : { cwd: request.workspaceRoot }),
+            command: "confirm",
+            outcome: request === null ? "info" : "success",
+            note:
+              request === null
+                ? "no_request"
+                : `interactive=true; task=${request.frontMatter.taskId}`,
+          });
           return;
         }
 
         const request = await readConfirmRequest(options);
         stdout.write(formatConfirmRequest(request));
+        await appendRunLogEvent({
+          ...(request === null
+            ? options.cwd === undefined
+              ? {}
+              : { cwd: options.cwd }
+            : { cwd: request.workspaceRoot }),
+          command: "confirm",
+          outcome: request === null ? "info" : "success",
+          note: request === null ? "no_request" : `view=true; task=${request.frontMatter.taskId}`,
+        });
       } catch (error) {
         if (!(error instanceof ConfirmServiceError)) {
           throw error;
         }
 
         stderr.write(`${formatConfirmError(error)}\n`);
+        await appendRunLogEvent({
+          ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
+          command: "confirm",
+          outcome: "failure",
+          note: `error=${error.code}`,
+        }).catch(() => undefined);
         setExitCode(1);
       }
     });
+}
+
+async function formatInteractiveConfirm(
+  stdin: Readable,
+  stdout: Writable,
+  request: ConfirmRequestView | null,
+): Promise<string> {
+  if (request === null) {
+    return "当前没有未解决确认请求。\n";
+  }
+
+  stdout.write(`${formatConfirmRequest(request)}\n`);
+
+  const answer = await askQuestion(
+    stdin,
+    stdout,
+    `请选择 ${formatChoiceKeys(request)}，或输入补充说明：`,
+  );
+  const input = answer.trim();
+
+  if (input.length === 0) {
+    throw new ConfirmServiceError({
+      code: confirmServiceErrorCodes.choiceInvalid,
+      message: "未输入选择或补充说明",
+    });
+  }
+
+  const selectedChoice = request.choices.find((choice) => choice.key === input.toUpperCase());
+
+  if (selectedChoice !== undefined) {
+    return `${formatConfirmSelection({ ...request, selectedChoice })}\n`;
+  }
+
+  return `${formatCustomInput(request, input)}\n`;
+}
+
+async function askQuestion(input: Readable, output: Writable, prompt: string): Promise<string> {
+  const readline = createInterface({ input, output });
+
+  try {
+    return await readline.question(`${prompt} `);
+  } finally {
+    readline.close();
+  }
 }
 
 function formatConfirmRequest(request: ConfirmRequestView | null): string {
@@ -91,6 +183,26 @@ function formatConfirmSelection(selection: ConfirmChoiceSelection): string {
     "",
     "下一步：AI 应基于该选择继续执行，并在处理完成后清理确认请求或生成新的交接。",
   ].join("\n");
+}
+
+function formatCustomInput(request: ConfirmRequestView, input: string): string {
+  return [
+    `已输入补充说明：${input}`,
+    `任务：${request.frontMatter.taskId}`,
+    `来源：${request.relativePath}`,
+    "",
+    "下一步：AI 应基于该补充说明继续执行，并在处理完成后清理确认请求或生成新的交接。",
+  ].join("\n");
+}
+
+function formatChoiceKeys(request: ConfirmRequestView): string {
+  const keys = request.choices.map((choice) => choice.key);
+
+  if (keys.length === 0) {
+    return "选项字母";
+  }
+
+  return keys.join("/");
 }
 
 function formatConfirmError(error: ConfirmServiceError): string {

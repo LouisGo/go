@@ -22,13 +22,13 @@
   ],
   "scripts": {
     "build": "tsup",
-    "format": "prettier --write \"*.{json,ts}\" \"{src,tests}/**/*.ts\"",
-    "format:check": "prettier --check \"*.{json,ts}\" \"{src,tests}/**/*.ts\"",
+    "format": "prettier --write \"*.{json,ts}\" \"scripts/**/*.mjs\" \"{src,tests}/**/*.ts\"",
+    "format:check": "prettier --check \"*.{json,ts}\" \"scripts/**/*.mjs\" \"{src,tests}/**/*.ts\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "test:e2e": "vitest run --config vitest.config.ts tests/e2e.test.ts",
     "prepack": "pnpm build",
-    "pack:check": "npm pack --dry-run",
+    "pack:check": "node scripts/pack-check.mjs",
     "start": "node ./dist/cli.js"
   },
   "engines": {

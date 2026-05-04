@@ -22,11 +22,12 @@ describe("CLI 端到端工作流", () => {
 
     const init = await runCli(repo.path, ["init"]);
     expect(init.stdout).toContain("LouisGo 初始化完成");
+    expect(init.stdout).toContain("创建文件：10");
     expect(init.stdout).toContain("Codex 集成：完成");
     expect(init.stdout).toContain("下一步：新会话会自动读取 LouisGo 上下文");
 
     const initialStatus = await runCli(repo.path, ["status"]);
-    expect(initialStatus.stdout).toContain("[assist] 协议完整，当前任务 T001");
+    expect(initialStatus.stdout).toContain("[assist/idle] 协议完整，当前任务 T001");
     expect(initialStatus.stdout).toContain("验证状态 missing");
     expect(initialStatus.stdout).toContain("恢复来源 STATE");
 
@@ -52,15 +53,19 @@ describe("CLI 端到端工作流", () => {
 
     const finish = await runCli(repo.path, ["finish"]);
     expect(finish.stdout).toContain("LouisGo 正式交接已更新");
-    expect(finish.stdout).toContain("验证状态：stale");
+    expect(finish.stdout).toContain("验证状态：skipped");
     expect(finish.stdout).toContain("Quick Save：已转存并清理");
     await expect(access(join(repo.path, ".louisgo", "HANDOFF.md"))).resolves.toBeUndefined();
     await expectFileMissing(join(repo.path, ".louisgo", "HANDOFF_DRAFT.md"));
     await expectFileMissing(join(repo.path, ".louisgo", "QUICK_SAVE.md"));
 
     const finalStatus = await runCli(repo.path, ["status"]);
-    expect(finalStatus.stdout).toContain("验证状态 stale");
+    expect(finalStatus.stdout).toContain("验证状态 skipped");
     expect(finalStatus.stdout).toContain("恢复来源 HANDOFF");
+
+    const log = await runCli(repo.path, ["log", "--tail", "5"]);
+    expect(log.stdout).toContain("# Run Log");
+    expect(log.stdout).toContain("finish");
   }, 20_000);
 
   it("未解决确认请求和 ADR 草稿能在 status / finish 中体现", async () => {
