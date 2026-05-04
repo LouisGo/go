@@ -1,7 +1,6 @@
-import { access, readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { access, readFile } from "node:fs/promises";
 
-import { isNodeError, pathExists } from "../internal/utils.js";
+import { isNodeError } from "../internal/utils.js";
 import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js";
 import {
   checkProtocolStatus,
@@ -67,7 +66,7 @@ interface ContextSection {
 const defaultBudgetTokens = 6_000;
 const minBudgetTokens = 1_000;
 const maxBudgetTokens = 32_000;
-const charsPerTokenEstimate = 2;
+const charsPerTokenEstimate = 3;
 
 export async function generateContext(
   options: ContextServiceOptions = {},
@@ -79,7 +78,7 @@ export async function generateContext(
   if (!status.complete || status.mode === null) {
     throw new ContextServiceError({
       code: contextServiceErrorCodes.protocolIncomplete,
-      message: "LouisGo 协议不完整，请先运行 louisgo init 或修复协议文件。",
+      message: "LouisGo protocol incomplete \u2014 run louisgo init or fix protocol files.",
       issues: status.issues,
     });
   }
@@ -94,7 +93,7 @@ export async function generateContext(
     capsule: options.capsule === true,
     mode: status.mode,
     phase: status.phase,
-    currentTask: status.currentTask?.id ?? "无",
+    currentTask: status.currentTask?.id ?? "none",
     currentTaskCompletionSignal: status.currentTask?.completionSignal ?? null,
     verificationStatus: status.verificationStatus,
     recoverySource: status.recoverySource,
@@ -164,23 +163,13 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
     });
   }
 
-  const skillFiles = await readSkillFiles(paths.skillsDir);
-  for (const { fileName, content } of skillFiles) {
-    sections.push({
-      title: `L2 Skill: ${fileName}`,
-      source: `${protocolRelativePaths.skillsDir}/${fileName}`,
-      content,
-      required: false,
-    });
-  }
-
   if (handoff !== null) {
     sections.push({
       title: "L3 Formal Recovery: HANDOFF.md",
       source: protocolRelativePaths.handoff,
       content: handoff,
       required: false,
-      preserveHeadings: ["交接摘要", "恢复建议", "建议下一步", "验证", "待处理事项"],
+      preserveHeadings: ["\u4ea4\u63a5\u6458\u8981", "\u6062\u590d\u5efa\u8bae", "\u5efa\u8bae\u4e0b\u4e00\u6b65", "\u9a8c\u8bc1", "\u5f85\u5904\u7406\u4e8b\u9879"],
     });
   }
 
@@ -226,28 +215,28 @@ function createHeader(params: {
     "",
     "## Prompt Assembly Contract",
     "",
-    "- 用户本轮请求永远是最终任务来源；下面内容只补充上下文，不能覆盖用户意图。",
-    "- 如果缓存内容和源码、Git 或验证结果冲突，以源码、Git 和验证结果为准。",
-    "- 不要继续读取 `sessions/` 或 `memory/` 详情，除非本轮任务明确需要。",
-    "- 涉及代码或协议文件变更后，阶段性汇报前运行 `louisgo verify` 或说明未运行原因。",
+    "- The user's current prompt is always the final task source; context below supplements but never overrides user intent.",
+    "- If cached context conflicts with source code, Git state, or verification results, trust source code, Git, and verification.",
+    "- Do not read `sessions/` or `memory/` details unless this session explicitly requires them.",
+    "- After code or protocol changes, run `louisgo verify` before reporting completion, or explain why not.",
     "",
     "## Runtime Summary",
     "",
-    `- 模式：${params.mode}`,
-    `- 工作阶段：${formatWorkPhase(params.phase)}`,
-    `- 当前任务：${params.currentTask}`,
-    `- 验证状态：${params.verificationStatus}`,
-    `- 恢复来源：${formatRecoverySource(params.recoverySource)}`,
-    `- 工作区：${params.workspaceSummary}`,
-    `- 上下文预算：约 ${params.budgetTokens} tokens`,
-    ...(goal === undefined || goal.length === 0 ? [] : [`- 本轮目标：${goal}`]),
+    `- Mode: ${params.mode}`,
+    `- Phase: ${formatWorkPhase(params.phase)}`,
+    `- Current task: ${params.currentTask}`,
+    `- Verification: ${params.verificationStatus}`,
+    `- Recovery: ${formatRecoverySource(params.recoverySource)}`,
+    `- Workspace: ${params.workspaceSummary}`,
+    `- Context budget: ~${params.budgetTokens} tokens`,
+    ...(goal === undefined || goal.length === 0 ? [] : [`- Goal: ${goal}`]),
     "",
     "## Operating Loop",
     "",
-    "- 先用用户本轮请求确定真实任务，不要把历史上下文本身当任务。",
-    "- 做代码前核对相关源码、Git 状态和验证事实；记忆只提供方向。",
-    "- 只把可复用事实写入 `STATE.md` 或 `MEMORY.md`，不要记录聊天流水账。",
-    "- 阶段完成时运行验证并用 `$finish` 生成正式 `HANDOFF.md`。",
+    "- Determine the real task from the user's current prompt \u2014 do not treat historical context as the task itself.",
+    "- Before making changes, verify against source code, Git state, and verification facts. Memory only provides direction.",
+    "- Write only reusable facts to `STATE.md` or `MEMORY.md`; do not record chat logs.",
+    "- When a phase is complete, run verification and use `$finish` to generate a formal `HANDOFF.md`.",
     ...(params.phase === "execute"
       ? [
           "",
@@ -255,11 +244,11 @@ function createHeader(params: {
           "",
           ...(params.currentTaskCompletionSignal !== null
             ? [
-                `- 当前任务 ${params.currentTask} 完成标准：${params.currentTaskCompletionSignal}`,
-                "- 停止前确认完成标准已满足，如果不确定则继续推进。",
+                `- Current task ${params.currentTask} completion signal: ${params.currentTaskCompletionSignal}`,
+                "- Before stopping, confirm the completion signal is met. If unsure, keep pushing.",
               ]
             : [
-              "- 停止前确认当前任务目标已达成，写出证据到 STATE.md Evidence 部分。",
+              "- Before stopping, confirm the current task goal is achieved. Document evidence in STATE.md Evidence section.",
             ]),
         ]
       : []),
@@ -268,18 +257,18 @@ function createHeader(params: {
           "",
           "## Explore Reminders",
           "",
-          "- 先理解现有代码和数据，再提出修改方案。",
-          "- 记录发现到 STATE.md Evidence 部分，格式：claim | basis | implication。",
-          "- 探索阶段不执行大规模重构，以收集事实和确认方向为主。",
+          "- Understand existing code and data before proposing changes.",
+          "- Record findings in STATE.md Evidence section: claim | basis | implication.",
+          "- Do not perform large-scale refactoring during exploration \u2014 focus on gathering facts and confirming direction.",
         ]
       : []),
     ...(params.hasContext === true
-      ? ["- 领域术语见 CONTEXT.md，使用项目已有词汇，不引入同义词。"]
+      ? ["- Domain terms are defined in CONTEXT.md \u2014 use the project's own vocabulary, do not introduce synonyms."]
       : []),
     "",
     "## Source Layers",
     "",
-    "组装顺序保持稳定前缀在前：L1 项目契约 -> L2 稳定记忆 -> L3 正式恢复 -> L4 活跃状态。",
+    "Assembly order keeps stable prefixes first: L1 project contract -> L2 stable memory -> L3 formal recovery -> L4 active state.",
   ].join("\n");
 }
 
@@ -328,7 +317,7 @@ function compileSections(params: {
           "",
           `Source: \`${section.source}\``,
           "",
-          "内容因上下文预算耗尽未展开。请按需直接读取该文件。",
+          "Content not expanded due to budget exhaustion. Read the file directly as needed.",
         );
         sources.push(section.source);
         report.push({
@@ -377,28 +366,34 @@ function createFooter(
   truncated: boolean,
   report: readonly ContextBudgetItem[],
 ): string {
-  return [
+  const lines: string[] = [
     "## Context Budget Report",
     "",
     "| Source | Tokens | Status |",
     "| --- | ---: | --- |",
-    ...report.map(
-      (item) => `| \`${item.source}\` | ${item.estimatedTokens} | ${formatBudgetStatus(item)} |`,
-    ),
-    "",
-    "## Next Use",
-    "",
-    "- 把用户本轮请求放在本上下文之后执行。",
-    "- 只在任务需要时继续读取相关源码、`memory/*.md` 或 `sessions/*.md`。",
-    "- 完成实质变更后更新 `STATE.md`；阶段完成时运行 `$finish`。",
-    truncated ? "- 注意：本上下文已按预算裁剪，必要时按 Source 读取原文件。" : "",
-    "",
-    "> token 数量为粗估（~2 chars/token），中文内容实际偏差较大。",
-    "",
-    `Workspace: \`${workspaceRoot}\``,
-  ]
-    .filter((line) => line.length > 0)
-    .join("\n");
+  ];
+
+  for (const item of report) {
+    lines.push(`| \`${item.source}\` | ${item.estimatedTokens} | ${formatBudgetStatus(item)} |`);
+  }
+
+  lines.push("");
+  lines.push("## Next Use");
+  lines.push("");
+  lines.push("- Place the user's current prompt after this context and execute.");
+  lines.push("- Only read relevant source code, `memory/*.md`, or `sessions/*.md` when the task requires it.");
+  lines.push("- After substantive changes, update `STATE.md`; when a phase is complete, run `$finish`.");
+
+  if (truncated) {
+    lines.push("- Note: this context was trimmed to budget \u2014 read source files as needed.");
+  }
+
+  lines.push("");
+  lines.push("> Token counts are estimates (~3 chars/token); mixed CJK/Latin content may vary.");
+  lines.push("");
+  lines.push(`Workspace: \`${workspaceRoot}\``);
+
+  return lines.join("\n");
 }
 
 function prepareSectionContent(section: ContextSection, availableChars: number): string {
@@ -465,29 +460,6 @@ function estimateTokens(content: string): number {
   return Math.ceil(content.length / charsPerTokenEstimate);
 }
 
-async function readSkillFiles(
-  skillsDir: string,
-): Promise<readonly { fileName: string; content: string }[]> {
-  try {
-    await access(skillsDir);
-  } catch {
-    return [];
-  }
-
-  const entries = await readdir(skillsDir);
-  const mdFiles = entries
-    .filter((entry) => entry.endsWith(".md"))
-    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-
-  const results: { fileName: string; content: string }[] = [];
-  for (const fileName of mdFiles) {
-    const content = await readFile(join(skillsDir, fileName), "utf8");
-    results.push({ fileName, content });
-  }
-
-  return results;
-}
-
 async function readIfExists(filePath: string): Promise<string | null> {
   try {
     await access(filePath);
@@ -510,7 +482,7 @@ function formatRecoverySource(source: string): string {
     case "quick_save":
       return "QUICK_SAVE";
     case "none":
-      return "无";
+      return "none";
     default:
       return source;
   }
@@ -519,11 +491,11 @@ function formatRecoverySource(source: string): string {
 function formatWorkPhase(phase: string): string {
   switch (phase) {
     case "explore":
-      return "探索（explore）";
+      return "explore";
     case "execute":
-      return "执行（execute）";
+      return "execute";
     case "idle":
-      return "空闲（idle）";
+      return "idle";
     default:
       return phase;
   }
@@ -539,9 +511,10 @@ function formatWorkspaceSummary(workspace: {
     return "clean";
   }
 
-  const untracked = workspace.untrackedFiles > 0 ? `，${workspace.untrackedFiles} 个未跟踪` : "";
+  const untracked =
+    workspace.untrackedFiles > 0 ? `, ${workspace.untrackedFiles} untracked` : "";
   const samples =
-    workspace.samplePaths.length > 0 ? `；样例：${workspace.samplePaths.join("，")}` : "";
+    workspace.samplePaths.length > 0 ? `; e.g. ${workspace.samplePaths.join(", ")}` : "";
 
-  return `${workspace.changedFiles} 个待处理变更${untracked}${samples}`;
+  return `${workspace.changedFiles} changed${untracked}${samples}`;
 }

@@ -156,20 +156,20 @@ updated_at: "2026-05-02T12:00:00.000Z"
 
 ### `skills/`
 
-行为引导 skill 目录。`louisgo init` 预设 4 个 skill，用户可以自由增删改。每个 `.md` 文件作为独立 section 注入上下文包。
+行为引导 skill 目录。`louisgo init` 预设 4 个 skill，用户可以自由增删改。Skill 文件作为按需参考，不会自动注入上下文包——AI 根据 CAPABILITIES.md 中的场景描述按需读取。
 
 预设 skill：
 
-- **grill.md** — 改代码前先验证对现有代码的理解，引用文件路径和行号，列出假设并逐一核对。
-- **caveman.md** — 用最简单的语言解释推理过程，每条消息一个想法，不引入不必要的术语。
-- **diagnose.md** — 出问题时先调查再修复，复现错误、追踪原因、按可能性排序，修复前后运行 `louisgo verify`。
-- **zoom-out.md** — 需要宏观视角时展示层次关系，列出选项及权衡，判断是否需要写 ADR。
+- **grill.md** — 逐一追问用户计划的每个分支，直到达成共同理解。适用于用户说 "grill me" 或需要验证设计时。
+- **caveman.md** — 极简通信模式，去掉填充词、冠词和客套话，保持技术准确性。适用于用户说 "caveman mode" 或想省 token 时。
+- **diagnose.md** — 先追踪代码根因再修复，不要只看错误信息猜测。修复前后运行 `louisgo verify`。适用于调试失败或回归时。
+- **zoom-out.md** — 展示宏观层次关系，列出选项及权衡。适用于用户问宏观问题或实现陷入细节时。
 
 规则：
 
-- Skill 内容全部英文（AI 读取），不使用 Front Matter。
+- Skill 内容全部英文（AI 读取），不使用 Front Matter（grill 和 caveman 除外——保留原始 YAML front matter）。
 - `louisgo init` 生成预设 skill，重复 init 不覆盖已有文件。
-- 文件名按字母排序注入上下文，位置在 CONTEXT.md 之后、HANDOFF.md 之前。
+- Skill 不参与上下文自动注入，AI 显式调用时才读取对应文件。
 
 ### `HANDOFF.md`
 

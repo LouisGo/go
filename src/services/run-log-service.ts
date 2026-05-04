@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
+import { getGitHead } from "../git/git.js";
 import { findGitRoot } from "../fs/workspace.js";
 import { isNodeError, pathExists } from "../internal/utils.js";
 import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js";
@@ -48,7 +49,8 @@ export async function appendRunLogEvent(
   const timestamp = (options.now?.() ?? new Date()).toISOString();
   const existing = await readOrCreateRunLog(paths.runLog, timestamp);
   const parsed = parseRunLog(existing);
-  const event = createRunLogEvent(timestamp, options.command, options.outcome, options.note);
+  const diagnosticNote = await buildDiagnosticNote(workspaceRoot, options.note);
+  const event = createRunLogEvent(timestamp, options.command, options.outcome, diagnosticNote);
   const events = [event, ...parsed.events].slice(0, defaultRunLogMaxEvents);
   const content = formatRunLog(parsed.head, events, timestamp);
 
@@ -118,8 +120,47 @@ function createRunLogEvent(
     `- outcome: ${outcome}`,
     ...(sanitizedNote === undefined || sanitizedNote.length === 0
       ? []
-      : [`- note: ${sanitizedNote.replace(/\s+/g, " ").slice(0, 240)}`]),
+      : [`- note: ${sanitizedNote.replace(/\s+/g, " ").slice(0, 300)}`]),
   ].join("\n");
+}
+
+async function buildDiagnosticNote(
+  workspaceRoot: string,
+  userNote?: string,
+): Promise<string | undefined> {
+  const parts: string[] = [];
+
+  try {
+    const gitHead = await getGitHead({ cwd: workspaceRoot });
+    parts.push(`head:${gitHead.slice(0, 8)}`);
+  } catch {
+    // Git unavailable — skip
+  }
+
+  try {
+    const testResults = await readTestResultsSafe(workspaceRoot);
+    parts.push(`verify:${testResults.status}`);
+  } catch {
+    // test-results.json missing or invalid — skip
+  }
+
+  const diagnostic = parts.join(" ");
+  if (userNote?.trim()) {
+    return `${diagnostic} ${userNote.trim().replace(/\s+/g, " ").slice(0, 200)}`.trim();
+  }
+
+  return diagnostic.length > 0 ? diagnostic : undefined;
+}
+
+async function readTestResultsSafe(
+  workspaceRoot: string,
+): Promise<{ readonly status: string }> {
+  const paths = createProtocolPaths(workspaceRoot);
+  const raw = await readFile(paths.testResults, "utf8");
+  const json = JSON.parse(raw) as { readonly status?: unknown };
+  const status = typeof json.status === "string" ? json.status : "unknown";
+
+  return { status };
 }
 
 function parseRunLog(content: string): ParsedRunLog {

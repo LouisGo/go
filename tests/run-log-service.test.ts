@@ -29,7 +29,8 @@ describe("run log service", () => {
     expect(log?.relativePath).toBe(".louisgo/RUNLOG.md");
     expect(log?.content).toContain("### 2026-05-01T12:00:00.000Z context");
     expect(log?.content).toContain("- outcome: success");
-    expect(log?.content).toContain("- note: budget=1500");
+    expect(log?.content).toContain("- note:");
+    expect(log?.content).toContain("budget=1500");
   });
 
   it("支持只读取最近 N 条事件", async () => {

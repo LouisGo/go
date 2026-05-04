@@ -92,6 +92,8 @@ describe("协议模板", () => {
     expect(document.body).toContain("## ADR Guidance");
     expect(document.body).toContain("是否难以逆转");
     expect(document.body).toContain("## Active Skills");
+    expect(document.body).toContain("on-demand reference");
+    expect(document.body).toContain("NOT auto-injected");
     expect(document.body).toContain("grill");
     expect(document.body).toContain("caveman");
     expect(document.body).toContain("diagnose");

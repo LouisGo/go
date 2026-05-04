@@ -33,7 +33,7 @@ describe("CLI 端到端工作流", () => {
 
     const context = await runCli(repo.path, ["context", "--goal", "E2E 外部项目实验"]);
     expect(context.stdout).toContain("# LouisGo Context Package");
-    expect(context.stdout).toContain("本轮目标：E2E 外部项目实验");
+    expect(context.stdout).toContain("Goal: E2E 外部项目实验");
     expect(context.stdout).toContain("Source: `.louisgo/MISSION.md`");
 
     const verify = await runCli(repo.path, ["verify"], { allowedExitCodes: [1] });

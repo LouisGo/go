@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, rm, unlink, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -14,41 +14,41 @@ const execFileAsync = promisify(execFile);
 const now = () => new Date("2026-05-01T12:00:00.000Z");
 
 describe("context service", () => {
-  it("生成带来源和预算的上下文包", async () => {
+  it("generates context package with sources and budget report", async () => {
     await using repo = await createInitializedRepo();
 
     const result = await generateContext({
       cwd: repo.path,
       budgetTokens: 2_000,
-      goal: "实验验证 prompt cache",
+      goal: "experiment prompt cache",
     });
 
     expect(result.content).toContain("# LouisGo Context Package");
-    expect(result.content).toContain("用户本轮请求永远是最终任务来源");
+    expect(result.content).toContain("The user's current prompt is always the final task source");
     expect(result.content).toContain("Source: `.louisgo/MISSION.md`");
     expect(result.content).toContain("Source: `.louisgo/CAPABILITIES.md`");
     expect(result.content).toContain("Source: `.louisgo/MEMORY.md`");
     expect(result.content).toContain("Source: `.louisgo/STATE.md`");
-    expect(result.content).toContain("本轮目标：实验验证 prompt cache");
+    expect(result.content).toContain("Goal: experiment prompt cache");
     expect(result.sources).toContain(".louisgo/MISSION.md");
     expect(result.estimatedTokens).toBeLessThanOrEqual(result.budgetTokens + 500);
   });
 
-  it("生成 subagent context capsule", async () => {
+  it("generates subagent context capsule", async () => {
     await using repo = await createInitializedRepo();
 
     const result = await generateContext({
       cwd: repo.path,
       capsule: true,
-      goal: "审查验证流程",
+      goal: "review verification flow",
     });
 
     expect(result.content).toContain("# LouisGo Subagent Context Capsule");
-    expect(result.content).toContain("本轮目标：审查验证流程");
-    expect(result.content).toContain("不要继续读取 `sessions/`");
+    expect(result.content).toContain("Goal: review verification flow");
+    expect(result.content).toContain("Do not read `sessions/`");
   });
 
-  it("预算较小时裁剪长文件并保留来源", async () => {
+  it("truncates long files and preserves sources when budget is small", async () => {
     await using repo = await createInitializedRepo();
     const paths = createProtocolPaths(repo.path);
 
@@ -66,7 +66,7 @@ generated_at: "2026-05-01T12:00:00.000Z"
 
 # Handoff
 
-${"长交接内容\n".repeat(2_000)}`,
+${"long handoff content\n".repeat(2_000)}`,
       "utf8",
     );
 
@@ -78,7 +78,7 @@ ${"长交接内容\n".repeat(2_000)}`,
     expect(result.sources).toContain(".louisgo/HANDOFF.md");
   });
 
-  it("execute 阶段在上下文头部包含 Stop Check", async () => {
+  it("includes Stop Check section in execute phase", async () => {
     await using repo = await createInitializedRepo();
     const paths = createProtocolPaths(repo.path);
 
@@ -102,16 +102,16 @@ updated_at: "2026-05-01T12:00:00.000Z"
 
     await writeFile(
       paths.roadmap,
-      `- [ ] T001 完成第一次 AI 编程闭环 #completion: 所有测试通过\n`,
+      `- [ ] T001 complete first AI coding loop #completion: all tests pass\n`,
       "utf8",
     );
 
     const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
     expect(result.content).toContain("## Stop Check");
-    expect(result.content).toContain("完成标准：所有测试通过");
+    expect(result.content).toContain("completion signal: all tests pass");
   });
 
-  it("explore 阶段在上下文头部包含 Explore Reminders", async () => {
+  it("includes Explore Reminders section in explore phase", async () => {
     await using repo = await createInitializedRepo();
     const paths = createProtocolPaths(repo.path);
 
@@ -135,10 +135,10 @@ updated_at: "2026-05-01T12:00:00.000Z"
 
     const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
     expect(result.content).toContain("## Explore Reminders");
-    expect(result.content).toContain("先理解现有代码和数据");
+    expect(result.content).toContain("Understand existing code and data before proposing changes");
   });
 
-  it("idle 阶段不添加额外指导段落", async () => {
+  it("idle phase does not add extra guidance sections", async () => {
     await using repo = await createInitializedRepo();
 
     const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
@@ -146,14 +146,14 @@ updated_at: "2026-05-01T12:00:00.000Z"
     expect(result.content).not.toContain("## Explore Reminders");
   });
 
-  it("上下文头部展示工作阶段", async () => {
+  it("header shows work phase", async () => {
     await using repo = await createInitializedRepo();
 
     const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
-    expect(result.content).toContain("工作阶段：空闲（idle）");
+    expect(result.content).toContain("Phase: idle");
   });
 
-  it("存在 CONTEXT.md 时包含在上下文中", async () => {
+  it("includes CONTEXT.md in context when it exists", async () => {
     await using repo = await createInitializedRepo();
     const paths = createProtocolPaths(repo.path);
 
@@ -168,60 +168,27 @@ updated_at: "2026-05-01T12:00:00.000Z"
     expect(result.content).toContain("L2 Domain Glossary: CONTEXT.md");
     expect(result.content).toContain("Source: `.louisgo/CONTEXT.md`");
     expect(result.sources).toContain(".louisgo/CONTEXT.md");
-    expect(result.content).toContain("领域术语见 CONTEXT.md");
+    expect(result.content).toContain("Domain terms are defined in CONTEXT.md");
   });
 
-  it("不存在 CONTEXT.md 时上下文正常且不包含术语提示", async () => {
+  it("no CONTEXT.md means no domain term hint", async () => {
     await using repo = await createInitializedRepo();
 
     const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
 
     expect(result.sources).not.toContain(".louisgo/CONTEXT.md");
-    expect(result.content).not.toContain("领域术语见 CONTEXT.md");
+    expect(result.content).not.toContain("Domain terms are defined in CONTEXT.md");
   });
 
-  it("init 后上下文包含预设 skills", async () => {
+  it("skills are not auto-injected into context package", async () => {
     await using repo = await createInitializedRepo();
 
     const result = await generateContext({ cwd: repo.path, budgetTokens: 8_000 });
 
-    expect(result.content).toContain("L2 Skill: caveman.md");
-    expect(result.content).toContain("L2 Skill: diagnose.md");
-    expect(result.content).toContain("L2 Skill: grill.md");
-    expect(result.content).toContain("L2 Skill: zoom-out.md");
-    expect(result.sources).toContain(".louisgo/skills/caveman.md");
-    expect(result.sources).toContain(".louisgo/skills/diagnose.md");
-    expect(result.sources).toContain(".louisgo/skills/grill.md");
-    expect(result.sources).toContain(".louisgo/skills/zoom-out.md");
-  });
-
-  it("自定义 skill 文件出现在上下文中", async () => {
-    await using repo = await createInitializedRepo();
-    const paths = createProtocolPaths(repo.path);
-
-    await writeFile(
-      join(paths.skillsDir, "my-skill.md"),
-      "# My Skill\n\nBe concise.\n",
-      "utf8",
-    );
-
-    const result = await generateContext({ cwd: repo.path, budgetTokens: 8_000 });
-
-    expect(result.content).toContain("L2 Skill: my-skill.md");
-    expect(result.content).toContain("Be concise.");
-    expect(result.sources).toContain(".louisgo/skills/my-skill.md");
-  });
-
-  it("删除 skill 后不再出现在上下文中", async () => {
-    await using repo = await createInitializedRepo();
-    const paths = createProtocolPaths(repo.path);
-
-    await unlink(join(paths.skillsDir, "grill.md"));
-
-    const result = await generateContext({ cwd: repo.path, budgetTokens: 8_000 });
-
-    expect(result.content).not.toContain("L2 Skill: grill.md");
-    expect(result.content).toContain("L2 Skill: caveman.md");
+    expect(result.sources).not.toContain(".louisgo/skills/caveman.md");
+    expect(result.sources).not.toContain(".louisgo/skills/diagnose.md");
+    expect(result.sources).not.toContain(".louisgo/skills/grill.md");
+    expect(result.sources).not.toContain(".louisgo/skills/zoom-out.md");
   });
 });
 

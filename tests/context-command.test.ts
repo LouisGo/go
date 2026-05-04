@@ -41,7 +41,7 @@ describe("context 命令", () => {
     expect(exitCode).toBe(0);
     expect(stderr.text).toBe("");
     expect(stdout.text).toContain("# LouisGo Context Package");
-    expect(stdout.text).toContain("本轮目标：外部项目实验");
+    expect(stdout.text).toContain("Goal: 外部项目实验");
     expect(stdout.text).toContain("Source: `.louisgo/MISSION.md`");
   });
 
