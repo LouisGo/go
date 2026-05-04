@@ -89,6 +89,13 @@ describe("协议模板", () => {
     expect(document.body).toContain(".louisgo/scripts/verify.sh");
     expect(document.body).toContain(".louisgo/scripts/verify.ps1");
     expect(document.body).toContain(".louisgo/test-results.json");
+    expect(document.body).toContain("## ADR Guidance");
+    expect(document.body).toContain("是否难以逆转");
+    expect(document.body).toContain("## Active Skills");
+    expect(document.body).toContain("grill");
+    expect(document.body).toContain("caveman");
+    expect(document.body).toContain("diagnose");
+    expect(document.body).toContain("zoom-out");
   });
 
   it("生成 CONFIRM_REQ.md 必要 Front Matter", async () => {
@@ -131,7 +138,8 @@ describe("协议模板", () => {
       confirmedAt: null,
     });
     expect(document.body).toContain("## 决策");
-    expect(document.body).toContain("## 备选方案");
+    expect(document.body).toContain("是否难以逆转");
+    expect(document.body).not.toContain("## 备选方案");
   });
 
   it("verify.sh 模板可以生成最小 test-results.json", async () => {

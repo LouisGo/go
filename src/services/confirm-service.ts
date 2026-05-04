@@ -1,6 +1,5 @@
-import { access } from "node:fs/promises";
-
 import { findGitRoot } from "../fs/workspace.js";
+import { pathExists } from "../internal/utils.js";
 import { readFrontMatter } from "../protocol/frontmatter.js";
 import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js";
 import { confirmReqFrontMatterSchema, type ConfirmReqFrontMatter } from "../protocol/schemas.js";
@@ -156,11 +155,3 @@ function parseChoices(source: string): ConfirmChoice[] {
     }));
 }
 
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}

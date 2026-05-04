@@ -1,4 +1,4 @@
-import { access } from "node:fs/promises";
+import { pathExists } from "../internal/utils.js";
 
 import { createProtocolPaths } from "../protocol/paths.js";
 import { writeQuickSave } from "../protocol/quick-save.js";
@@ -79,11 +79,3 @@ export async function pauseLouisGo(options: PauseServiceOptions = {}): Promise<P
   };
 }
 
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}

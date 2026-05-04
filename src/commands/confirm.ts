@@ -55,7 +55,7 @@ export function registerConfirmCommand(
             command: "confirm",
             outcome: "success",
             note: `choice=${selection.selectedChoice.key}; task=${selection.frontMatter.taskId}`,
-          });
+          }).catch(() => undefined);
           return;
         }
 
@@ -76,7 +76,7 @@ export function registerConfirmCommand(
               request === null
                 ? "no_request"
                 : `interactive=true; task=${request.frontMatter.taskId}`,
-          });
+          }).catch(() => undefined);
           return;
         }
 
@@ -91,7 +91,7 @@ export function registerConfirmCommand(
           command: "confirm",
           outcome: request === null ? "info" : "success",
           note: request === null ? "no_request" : `view=true; task=${request.frontMatter.taskId}`,
-        });
+        }).catch(() => undefined);
       } catch (error) {
         if (!(error instanceof ConfirmServiceError)) {
           throw error;

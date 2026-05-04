@@ -1,5 +1,7 @@
-import { access, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
 
+import { isNodeError, pathExists } from "../internal/utils.js";
 import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js";
 import {
   checkProtocolStatus,
@@ -65,7 +67,7 @@ interface ContextSection {
 const defaultBudgetTokens = 6_000;
 const minBudgetTokens = 1_000;
 const maxBudgetTokens = 32_000;
-const charsPerTokenEstimate = 4;
+const charsPerTokenEstimate = 2;
 
 export async function generateContext(
   options: ContextServiceOptions = {},
@@ -85,6 +87,9 @@ export async function generateContext(
   const budgetTokens = normalizeBudget(options.budgetTokens);
   const paths = createProtocolPaths(status.workspaceRoot);
   const sections = await createSections(status.workspaceRoot);
+  const hasContext = sections.some(
+    (s) => s.source === protocolRelativePaths.context,
+  );
   const header = createHeader({
     capsule: options.capsule === true,
     mode: status.mode,
@@ -95,6 +100,7 @@ export async function generateContext(
     recoverySource: status.recoverySource,
     workspaceSummary: formatWorkspaceSummary(status.workspace),
     budgetTokens,
+    hasContext,
     ...(options.goal === undefined ? {} : { goal: options.goal }),
   });
   const compiled = compileSections({
@@ -123,6 +129,7 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
   const handoff = await readIfExists(paths.handoff);
   const state = await readIfExists(paths.state);
   const memory = await readIfExists(paths.memory);
+  const context = await readIfExists(paths.context);
 
   sections.push(
     {
@@ -145,6 +152,25 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
       source: protocolRelativePaths.memory,
       content: memory,
       required: true,
+    });
+  }
+
+  if (context !== null) {
+    sections.push({
+      title: "L2 Domain Glossary: CONTEXT.md",
+      source: protocolRelativePaths.context,
+      content: context,
+      required: false,
+    });
+  }
+
+  const skillFiles = await readSkillFiles(paths.skillsDir);
+  for (const { fileName, content } of skillFiles) {
+    sections.push({
+      title: `L2 Skill: ${fileName}`,
+      source: `${protocolRelativePaths.skillsDir}/${fileName}`,
+      content,
+      required: false,
     });
   }
 
@@ -190,6 +216,7 @@ function createHeader(params: {
   readonly recoverySource: string;
   readonly workspaceSummary: string;
   readonly budgetTokens: number;
+  readonly hasContext?: boolean;
 }): string {
   const title = params.capsule ? "LouisGo Subagent Context Capsule" : "LouisGo Context Package";
   const goal = params.goal?.trim();
@@ -245,6 +272,9 @@ function createHeader(params: {
           "- 记录发现到 STATE.md Evidence 部分，格式：claim | basis | implication。",
           "- 探索阶段不执行大规模重构，以收集事实和确认方向为主。",
         ]
+      : []),
+    ...(params.hasContext === true
+      ? ["- 领域术语见 CONTEXT.md，使用项目已有词汇，不引入同义词。"]
       : []),
     "",
     "## Source Layers",
@@ -363,6 +393,8 @@ function createFooter(
     "- 完成实质变更后更新 `STATE.md`；阶段完成时运行 `$finish`。",
     truncated ? "- 注意：本上下文已按预算裁剪，必要时按 Source 读取原文件。" : "",
     "",
+    "> token 数量为粗估（~2 chars/token），中文内容实际偏差较大。",
+    "",
     `Workspace: \`${workspaceRoot}\``,
   ]
     .filter((line) => line.length > 0)
@@ -433,6 +465,29 @@ function estimateTokens(content: string): number {
   return Math.ceil(content.length / charsPerTokenEstimate);
 }
 
+async function readSkillFiles(
+  skillsDir: string,
+): Promise<readonly { fileName: string; content: string }[]> {
+  try {
+    await access(skillsDir);
+  } catch {
+    return [];
+  }
+
+  const entries = await readdir(skillsDir);
+  const mdFiles = entries
+    .filter((entry) => entry.endsWith(".md"))
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+
+  const results: { fileName: string; content: string }[] = [];
+  for (const fileName of mdFiles) {
+    const content = await readFile(join(skillsDir, fileName), "utf8");
+    results.push({ fileName, content });
+  }
+
+  return results;
+}
+
 async function readIfExists(filePath: string): Promise<string | null> {
   try {
     await access(filePath);
@@ -489,8 +544,4 @@ function formatWorkspaceSummary(workspace: {
     workspace.samplePaths.length > 0 ? `；样例：${workspace.samplePaths.join("，")}` : "";
 
   return `${workspace.changedFiles} 个待处理变更${untracked}${samples}`;
-}
-
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
 }

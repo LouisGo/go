@@ -43,7 +43,7 @@ export function registerFinishCommand(
           command: "finish",
           outcome: "success",
           note: `task=${result.frontMatter.taskId}; verification=${result.verification}; confirm_cleanup=${result.confirmReqCleanup}; quick_save_cleanup=${result.quickSaveCleanup}`,
-        });
+        }).catch(() => undefined);
         setExitCode(0);
       } catch (error) {
         if (

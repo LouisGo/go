@@ -1,6 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
+import { isNodeError } from "../internal/utils.js";
+
 export const safeWriteStatuses = {
   created: "created",
   skipped: "skipped",
@@ -97,6 +99,3 @@ function createWriteFailedError(filePath: string, cause: unknown): SafeWriteErro
   });
 }
 
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
-}

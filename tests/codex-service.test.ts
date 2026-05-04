@@ -29,7 +29,7 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("node ./dist/cli.js <subcommand>");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
-    ).resolves.toContain("中文：LouisGo 启动：生成分层上下文包");
+    ).resolves.toContain("启动");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
     ).resolves.toContain("run `louisgo confirm`");
@@ -70,7 +70,7 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("LouisGo Workflow");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
-    ).resolves.toContain("中文：LouisGo 工作流：自动读取项目记忆");
+    ).resolves.toContain("Restores project context from .louisgo/");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "agents", "openai.yaml"), "utf8"),
     ).resolves.toContain("自动读取 .louisgo 记忆");

@@ -2,6 +2,17 @@ import { join, posix, resolve } from "node:path";
 
 export const louisgoDirectoryName = ".louisgo";
 
+export const verificationIgnoredRelativePaths = [
+  ".louisgo/test-results.json",
+  ".louisgo/RUNLOG.md",
+  ".louisgo/HANDOFF.md",
+  ".louisgo/HANDOFF_DRAFT.md",
+  ".louisgo/QUICK_SAVE.md",
+  ".louisgo/STATE.md",
+  ".louisgo/CONFIRM_REQ.md",
+  ".louisgo/sessions/",
+] as const;
+
 export const protocolFileNames = {
   mission: "MISSION.md",
   roadmap: "ROADMAP.md",
@@ -14,6 +25,7 @@ export const protocolFileNames = {
   confirmReq: "CONFIRM_REQ.md",
   runLog: "RUNLOG.md",
   capabilities: "CAPABILITIES.md",
+  context: "CONTEXT.md",
   testResults: "test-results.json",
   gitignore: ".gitignore",
 } as const;
@@ -24,6 +36,7 @@ export const protocolDirectoryNames = {
   memory: "memory",
   sessions: "sessions",
   scripts: "scripts",
+  skills: "skills",
 } as const;
 
 export const protocolScriptNames = {
@@ -44,6 +57,7 @@ export const protocolRelativePaths = {
   confirmReq: protocolRelativePath(protocolFileNames.confirmReq),
   runLog: protocolRelativePath(protocolFileNames.runLog),
   capabilities: protocolRelativePath(protocolFileNames.capabilities),
+  context: protocolRelativePath(protocolFileNames.context),
   testResults: protocolRelativePath(protocolFileNames.testResults),
   gitignore: protocolRelativePath(protocolFileNames.gitignore),
   adrDir: protocolRelativePath(protocolDirectoryNames.adr),
@@ -51,6 +65,7 @@ export const protocolRelativePaths = {
   memoryDir: protocolRelativePath(protocolDirectoryNames.memory),
   sessionsDir: protocolRelativePath(protocolDirectoryNames.sessions),
   scriptsDir: protocolRelativePath(protocolDirectoryNames.scripts),
+  skillsDir: protocolRelativePath(protocolDirectoryNames.skills),
   verifySh: protocolRelativePath(protocolDirectoryNames.scripts, protocolScriptNames.verifySh),
   verifyPs1: protocolRelativePath(protocolDirectoryNames.scripts, protocolScriptNames.verifyPs1),
 } as const;
@@ -69,6 +84,7 @@ export interface ProtocolPaths {
   readonly confirmReq: string;
   readonly runLog: string;
   readonly capabilities: string;
+  readonly context: string;
   readonly testResults: string;
   readonly gitignore: string;
   readonly adrDir: string;
@@ -76,6 +92,7 @@ export interface ProtocolPaths {
   readonly memoryDir: string;
   readonly sessionsDir: string;
   readonly scriptsDir: string;
+  readonly skillsDir: string;
   readonly verifySh: string;
   readonly verifyPs1: string;
 }
@@ -97,6 +114,7 @@ export function createProtocolPaths(workspaceRoot: string): ProtocolPaths {
     confirmReq: absoluteProtocolPath(root, protocolFileNames.confirmReq),
     runLog: absoluteProtocolPath(root, protocolFileNames.runLog),
     capabilities: absoluteProtocolPath(root, protocolFileNames.capabilities),
+    context: absoluteProtocolPath(root, protocolFileNames.context),
     testResults: absoluteProtocolPath(root, protocolFileNames.testResults),
     gitignore: absoluteProtocolPath(root, protocolFileNames.gitignore),
     adrDir: absoluteProtocolPath(root, protocolDirectoryNames.adr),
@@ -108,6 +126,7 @@ export function createProtocolPaths(workspaceRoot: string): ProtocolPaths {
     memoryDir: absoluteProtocolPath(root, protocolDirectoryNames.memory),
     sessionsDir: absoluteProtocolPath(root, protocolDirectoryNames.sessions),
     scriptsDir: absoluteProtocolPath(root, protocolDirectoryNames.scripts),
+    skillsDir: absoluteProtocolPath(root, protocolDirectoryNames.skills),
     verifySh: absoluteProtocolPath(
       root,
       protocolDirectoryNames.scripts,

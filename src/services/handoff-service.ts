@@ -1,6 +1,5 @@
-import { access } from "node:fs/promises";
-
 import { findGitRoot } from "../fs/workspace.js";
+import { isNodeError, pathExists } from "../internal/utils.js";
 import { FrontMatterError, readFrontMatter } from "../protocol/frontmatter.js";
 import { writeHandoff, type WriteHandoffResult } from "../protocol/handoff.js";
 import { createProtocolPaths } from "../protocol/paths.js";
@@ -116,15 +115,3 @@ function promoteDraftBody(body: string): string {
   return body.replace(/^# Handoff Draft(\r?\n)/, "# Handoff$1");
 }
 
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
-}

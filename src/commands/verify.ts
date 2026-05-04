@@ -41,7 +41,7 @@ export function registerVerifyCommand(
           command: "verify",
           outcome: result.processExitCode === 0 ? "success" : "failure",
           note: `status=${result.verificationStatus}; freshness=${result.freshness}; exit=${result.processExitCode}`,
-        });
+        }).catch(() => undefined);
         setExitCode(result.processExitCode);
       } catch (error) {
         if (!(error instanceof VerifyRunnerError)) {

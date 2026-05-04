@@ -40,7 +40,7 @@ export function registerInitCommand(
         outcome: "success",
         note: `files_created=${countFiles(result, "created")}; files_skipped=${countFiles(result, "skipped")}; codex=${codex === null ? "skipped" : "installed"}`,
         ...(options.now === undefined ? {} : { now: options.now }),
-      });
+      }).catch(() => undefined);
     });
 }
 

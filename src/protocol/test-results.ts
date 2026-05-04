@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
+import { isNodeError } from "../internal/utils.js";
 import { testResultsSchema, type TestResults, type TestResultStatus } from "./schemas.js";
 
 export const testResultsErrorCodes = {
@@ -126,6 +127,3 @@ export function serializeTestResults(input: TestResultsInput): TestResultsJson {
   };
 }
 
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
-}

@@ -1,7 +1,8 @@
-import { access, mkdir } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 
 import { findGitRoot } from "../fs/workspace.js";
+import { pathExists } from "../internal/utils.js";
 import { readFrontMatter, writeFrontMatter } from "./frontmatter.js";
 import { createProtocolPaths } from "./paths.js";
 import {
@@ -133,11 +134,3 @@ function normalizeTaskReference(taskId?: string | null): string {
   return taskId === undefined || taskId === null || taskId.length === 0 ? missingTaskId : taskId;
 }
 
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}

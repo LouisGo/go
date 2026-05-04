@@ -1,13 +1,14 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
+import { findGitRoot } from "../fs/workspace.js";
+import { isNodeError, pathExists } from "../internal/utils.js";
 import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js";
 import {
   defaultRunLogMaxEvents,
   createRunLogTemplate,
   runLogEventsMarker,
 } from "../templates/run-log.js";
-import { checkProtocolStatus, type ProtocolStatus } from "./status-service.js";
 
 export interface RunLogServiceOptions {
   readonly cwd?: string;
@@ -42,27 +43,19 @@ interface ParsedRunLog {
 export async function appendRunLogEvent(
   options: AppendRunLogEventOptions,
 ): Promise<ReadRunLogResult> {
-  const status = await checkProtocolStatus({
-    ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
-  });
-  const paths = createProtocolPaths(status.workspaceRoot);
+  const workspaceRoot = await findGitRoot(options.cwd);
+  const paths = createProtocolPaths(workspaceRoot);
   const timestamp = (options.now?.() ?? new Date()).toISOString();
   const existing = await readOrCreateRunLog(paths.runLog, timestamp);
   const parsed = parseRunLog(existing);
-  const event = createRunLogEvent({
-    timestamp,
-    status,
-    command: options.command,
-    outcome: options.outcome,
-    ...(options.note === undefined ? {} : { note: options.note }),
-  });
+  const event = createRunLogEvent(timestamp, options.command, options.outcome, options.note);
   const events = [event, ...parsed.events].slice(0, defaultRunLogMaxEvents);
   const content = formatRunLog(parsed.head, events, timestamp);
 
   await writeFile(paths.runLog, content, "utf8");
 
   return {
-    workspaceRoot: status.workspaceRoot,
+    workspaceRoot,
     filePath: paths.runLog,
     relativePath: protocolRelativePaths.runLog,
     content,
@@ -73,10 +66,8 @@ export async function appendRunLogEvent(
 export async function readRunLog(
   options: ReadRunLogOptions = {},
 ): Promise<ReadRunLogResult | null> {
-  const status = await checkProtocolStatus({
-    ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
-  });
-  const paths = createProtocolPaths(status.workspaceRoot);
+  const workspaceRoot = await findGitRoot(options.cwd);
+  const paths = createProtocolPaths(workspaceRoot);
 
   if (!(await pathExists(paths.runLog))) {
     return null;
@@ -92,7 +83,7 @@ export async function readRunLog(
     options.tailEvents === undefined ? content : formatRunLog(parsed.head, events, null);
 
   return {
-    workspaceRoot: status.workspaceRoot,
+    workspaceRoot,
     filePath: paths.runLog,
     relativePath: protocolRelativePaths.runLog,
     content: output,
@@ -113,27 +104,21 @@ async function readOrCreateRunLog(filePath: string, timestamp: string): Promise<
   }
 }
 
-function createRunLogEvent(params: {
-  readonly timestamp: string;
-  readonly status: ProtocolStatus;
-  readonly command: string;
-  readonly outcome: RunLogOutcome;
-  readonly note?: string;
-}): string {
-  const note = params.note?.trim();
+function createRunLogEvent(
+  timestamp: string,
+  command: string,
+  outcome: RunLogOutcome,
+  note?: string,
+): string {
+  const sanitizedNote = note?.trim();
 
   return [
-    `### ${params.timestamp} ${params.command}`,
+    `### ${timestamp} ${command}`,
     "",
-    `- outcome: ${params.outcome}`,
-    `- mode: ${params.status.mode ?? "unknown"}`,
-    `- task: ${params.status.currentTask?.id ?? "none"}`,
-    `- verification: ${params.status.verificationStatus}`,
-    `- recovery: ${formatRecoverySource(params.status.recoverySource)}`,
-    `- workspace: ${formatWorkspace(params.status)}`,
-    `- confirm_req: ${params.status.hasConfirmReq ? "yes" : "no"}`,
-    `- adr_drafts: ${params.status.adrDrafts.length}`,
-    ...(note === undefined || note.length === 0 ? [] : [`- note: ${sanitizeNote(note)}`]),
+    `- outcome: ${outcome}`,
+    ...(sanitizedNote === undefined || sanitizedNote.length === 0
+      ? []
+      : [`- note: ${sanitizedNote.replace(/\s+/g, " ").slice(0, 240)}`]),
   ].join("\n");
 }
 
@@ -171,42 +156,4 @@ function formatRunLog(head: string, events: readonly string[], updatedAt: string
   const eventText = events.length === 0 ? "" : `\n\n${events.join("\n\n")}`;
 
   return `${nextHead.trimEnd()}\n${runLogEventsMarker}${eventText}\n`;
-}
-
-function formatWorkspace(status: ProtocolStatus): string {
-  if (status.workspace.clean) {
-    return "clean";
-  }
-
-  return `${status.workspace.changedFiles} changed, ${status.workspace.untrackedFiles} untracked`;
-}
-
-function formatRecoverySource(source: ProtocolStatus["recoverySource"]): string {
-  switch (source) {
-    case "handoff":
-      return "HANDOFF";
-    case "state":
-      return "STATE";
-    case "quick_save":
-      return "QUICK_SAVE";
-    case "none":
-      return "none";
-  }
-}
-
-function sanitizeNote(note: string): string {
-  return note.replace(/\s+/g, " ").slice(0, 240);
-}
-
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
 }

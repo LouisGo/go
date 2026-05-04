@@ -1,7 +1,7 @@
 export function createCodexSkillTemplate(): string {
   return `---
 name: louisgo-workflow
-description: Use when the user enters LouisGo workflow directives like $init, $start, or $finish, or when working inside a repo that contains .louisgo. 中文：LouisGo 工作流：自动读取项目记忆并映射核心指令。
+description: "Restores project context from .louisgo/ protocol files and maps LouisGo dollar directives to CLI commands. Use when the user enters $init, $start, $status, $context, $verify, $finish, or when working inside a repository that contains .louisgo/."
 ---
 
 # LouisGo Workflow
@@ -51,6 +51,7 @@ export interface CodexDirectiveSkillTemplateOptions {
   readonly name: string;
   readonly directive: string;
   readonly title: string;
+  readonly chineseTitle?: string;
   readonly shortDescription: string;
   readonly description: string;
   readonly action: string;
@@ -61,10 +62,10 @@ export function createCodexDirectiveSkillTemplate(
 ): string {
   return `---
 name: ${options.name}
-description: ${options.description} 中文：${options.shortDescription}。
+description: ${options.description}
 ---
 
-# ${options.title}
+# ${options.title}${options.chineseTitle !== undefined ? ` (${options.chineseTitle})` : ""}
 
 When the user invokes \`${options.directive}\`, treat it as an explicit LouisGo workflow command.
 

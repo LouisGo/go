@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
 import { findGitRoot } from "../fs/workspace.js";
+import { isNodeError } from "../internal/utils.js";
 import {
   createCodexAgentsBlock,
   createCodexDirectiveSkillOpenAiYaml,
@@ -81,89 +82,99 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
   {
     name: "init",
     directive: "$init",
-    title: "LouisGo 初始化",
+    title: "LouisGo Init",
+    chineseTitle: "初始化",
     shortDescription: "LouisGo 初始化：创建协议目录并安装 Codex 集成",
     description:
-      "Use when the user enters $init in Codex. Initializes LouisGo protocol files and Codex integration for the current repository.",
+      "Initializes LouisGo protocol files and Codex integration for the current repository. Use when the user enters $init in Codex.",
     action:
       "- Run `louisgo init`.\n- Report that `.louisgo/` protocol files were created or skipped safely.\n- Report Codex integration status and the next action.",
   },
   {
     name: "start",
     directive: "$start",
-    title: "LouisGo 启动",
+    title: "LouisGo Start",
+    chineseTitle: "启动",
     shortDescription: "LouisGo 启动：生成分层上下文包",
     description:
-      "Use when the user enters $start in Codex. Runs the LouisGo start workflow for the current repository.",
+      "Runs the LouisGo start workflow to restore context for the current repository. Use when the user enters $start in Codex.",
     action:
       "- Run `louisgo context`.\n- Use the generated context package as the recovered context.\n- If the package reports `CONFIRM_REQ.md`, run `louisgo confirm` and present the choices before continuing.\n- Report mode, current task, verification state, recovery source, restored context, and first next action.",
   },
   {
     name: "status",
     directive: "$status",
-    title: "LouisGo 状态",
+    title: "LouisGo Status",
+    chineseTitle: "状态",
     shortDescription: "LouisGo 状态：查看协议完整性、当前任务、验证状态和恢复来源",
     description:
-      "Use when the user enters $status in Codex. Runs louisgo status and summarizes protocol state.",
+      "Runs louisgo status and summarizes protocol state. Use when the user enters $status in Codex.",
     action:
       "- Run `louisgo status`.\n- Report protocol completeness, mode, current task, verification state, recovery source, and unresolved signals.",
   },
   {
     name: "context",
     directive: "$context",
-    title: "LouisGo 上下文",
+    title: "LouisGo Context",
+    chineseTitle: "上下文",
     shortDescription: "LouisGo 上下文：生成分层 prompt context package",
     description:
-      "Use when the user enters $context in Codex. Generates a LouisGo prompt context package for the current repository.",
+      "Generates a LouisGo prompt context package for the current repository. Use when the user enters $context in Codex.",
     action:
       "- Run `louisgo context`.\n- Report the context budget, source layers, verification state, and truncation warning if present.\n- Use the context package as the basis for the next task, without letting cached context override the user's latest request.",
   },
   {
     name: "verify",
     directive: "$verify",
-    title: "LouisGo 验证",
+    title: "LouisGo Verify",
+    chineseTitle: "验证",
     shortDescription: "LouisGo 验证：运行仓库验证脚本并报告新鲜度",
     description:
-      "Use when the user enters $verify in Codex. Runs LouisGo verification for the current repository.",
+      "Runs LouisGo verification for the current repository. Use when the user enters $verify in Codex.",
     action:
       "- Run `louisgo verify`.\n- Relay verification status, freshness, summary, exit-code meaning, and stale reason if present.",
   },
   {
     name: "pause",
     directive: "$pause",
-    title: "LouisGo 暂停",
+    title: "LouisGo Pause",
+    chineseTitle: "暂停",
     shortDescription: "LouisGo 暂停：兼容旧流程，写入 QUICK_SAVE.md",
     description:
-      "Use when the user enters $pause in Codex. Writes a LouisGo Quick Save checkpoint.",
+      "Writes a LouisGo Quick Save checkpoint. Use when the user enters $pause in Codex.",
     action:
       "- Run `louisgo pause`.\n- Report where `QUICK_SAVE.md` was written and remind the user that it is a short-term recovery point.",
   },
   {
     name: "resume",
     directive: "$resume",
-    title: "LouisGo 恢复",
+    title: "LouisGo Resume",
+    chineseTitle: "恢复",
     shortDescription: "LouisGo 恢复：兼容旧流程，优先读取 HANDOFF 和 STATE",
     description:
-      "Use when the user enters $resume in Codex. Resumes from LouisGo handoff/status protocol.",
+      "Resumes from LouisGo handoff/status protocol. Use when the user enters $resume in Codex.",
     action:
       "- Run `louisgo context`.\n- Prefer `HANDOFF.md` content in the context package for formal recovery when present.\n- Otherwise use `STATE.md` and report the current roadmap task and available recovery source.",
   },
   {
     name: "finish",
     directive: "$finish",
-    title: "LouisGo 收尾",
+    title: "LouisGo Finish",
+    chineseTitle: "收尾",
     shortDescription: "LouisGo 收尾：更新正式 HANDOFF.md 和当前状态",
-    description: "Use when the user enters $finish in Codex. Generates a LouisGo handoff snapshot.",
+    description:
+      "Generates a LouisGo handoff snapshot. Use when the user enters $finish in Codex.",
     action:
       "- Run `louisgo finish`.\n- Report the `HANDOFF.md` path, verification status, cleanup result, and first next action for the next session.",
   },
   {
     name: "handoff-promote",
     directive: "$handoff-promote",
-    title: "LouisGo 提升交接",
+    title: "LouisGo Handoff Promote",
+    chineseTitle: "提升交接",
     shortDescription: "LouisGo 交接：兼容旧流程，将 HANDOFF_DRAFT.md 提升为 HANDOFF.md",
     description:
-      "Use when the user enters $handoff-promote in Codex. Promotes the LouisGo handoff draft to a formal handoff.",
+      "Promotes the LouisGo handoff draft to a formal handoff. Use when the user enters $handoff-promote in Codex.",
     action:
       "- Run `louisgo handoff promote`.\n- Report `HANDOFF.md`, verification status, and recovery implication.",
   },
@@ -245,6 +256,3 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
-}

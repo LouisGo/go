@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -70,7 +70,7 @@ ${"长交接内容\n".repeat(2_000)}`,
       "utf8",
     );
 
-    const result = await generateContext({ cwd: repo.path, budgetTokens: 1_000 });
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
 
     expect(result.truncated).toBe(true);
     expect(result.content).toContain("[semantic-truncated: .louisgo/HANDOFF.md]");
@@ -151,6 +151,77 @@ updated_at: "2026-05-01T12:00:00.000Z"
 
     const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
     expect(result.content).toContain("工作阶段：空闲（idle）");
+  });
+
+  it("存在 CONTEXT.md 时包含在上下文中", async () => {
+    await using repo = await createInitializedRepo();
+    const paths = createProtocolPaths(repo.path);
+
+    await writeFile(
+      paths.context,
+      "# Domain Glossary\n\n- **Widget**: a UI component _Avoid_: gadget\n",
+      "utf8",
+    );
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
+
+    expect(result.content).toContain("L2 Domain Glossary: CONTEXT.md");
+    expect(result.content).toContain("Source: `.louisgo/CONTEXT.md`");
+    expect(result.sources).toContain(".louisgo/CONTEXT.md");
+    expect(result.content).toContain("领域术语见 CONTEXT.md");
+  });
+
+  it("不存在 CONTEXT.md 时上下文正常且不包含术语提示", async () => {
+    await using repo = await createInitializedRepo();
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
+
+    expect(result.sources).not.toContain(".louisgo/CONTEXT.md");
+    expect(result.content).not.toContain("领域术语见 CONTEXT.md");
+  });
+
+  it("init 后上下文包含预设 skills", async () => {
+    await using repo = await createInitializedRepo();
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 8_000 });
+
+    expect(result.content).toContain("L2 Skill: caveman.md");
+    expect(result.content).toContain("L2 Skill: diagnose.md");
+    expect(result.content).toContain("L2 Skill: grill.md");
+    expect(result.content).toContain("L2 Skill: zoom-out.md");
+    expect(result.sources).toContain(".louisgo/skills/caveman.md");
+    expect(result.sources).toContain(".louisgo/skills/diagnose.md");
+    expect(result.sources).toContain(".louisgo/skills/grill.md");
+    expect(result.sources).toContain(".louisgo/skills/zoom-out.md");
+  });
+
+  it("自定义 skill 文件出现在上下文中", async () => {
+    await using repo = await createInitializedRepo();
+    const paths = createProtocolPaths(repo.path);
+
+    await writeFile(
+      join(paths.skillsDir, "my-skill.md"),
+      "# My Skill\n\nBe concise.\n",
+      "utf8",
+    );
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 8_000 });
+
+    expect(result.content).toContain("L2 Skill: my-skill.md");
+    expect(result.content).toContain("Be concise.");
+    expect(result.sources).toContain(".louisgo/skills/my-skill.md");
+  });
+
+  it("删除 skill 后不再出现在上下文中", async () => {
+    await using repo = await createInitializedRepo();
+    const paths = createProtocolPaths(repo.path);
+
+    await unlink(join(paths.skillsDir, "grill.md"));
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 8_000 });
+
+    expect(result.content).not.toContain("L2 Skill: grill.md");
+    expect(result.content).toContain("L2 Skill: caveman.md");
   });
 });
 

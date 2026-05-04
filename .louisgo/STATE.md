@@ -16,7 +16,7 @@ updated_at: "2026-05-04T06:24:24.502Z"
 - task: NO_TASK
 - verification: passed
 - recovery: prefer `.louisgo/HANDOFF.md` when present; otherwise use this file and `.louisgo/MEMORY.md`
-- focus: fill this with the current concrete development goal
+- focus: CONTEXT.md protocol support, ADR template simplification, Codex skill description normalization
 
 ## Next
 

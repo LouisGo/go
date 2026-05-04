@@ -24,6 +24,6 @@ export function registerStatusCommand(
         command: "status",
         outcome: status.complete ? "success" : "failure",
         note: `issues=${status.issues.length}`,
-      });
+      }).catch(() => undefined);
     });
 }

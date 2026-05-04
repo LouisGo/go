@@ -39,6 +39,7 @@ describe("协议路径", () => {
       confirmReq: join(expectedRoot, ".louisgo", "CONFIRM_REQ.md"),
       runLog: join(expectedRoot, ".louisgo", "RUNLOG.md"),
       capabilities: join(expectedRoot, ".louisgo", "CAPABILITIES.md"),
+      context: join(expectedRoot, ".louisgo", "CONTEXT.md"),
       testResults: join(expectedRoot, ".louisgo", "test-results.json"),
       gitignore: join(expectedRoot, ".louisgo", ".gitignore"),
       adrDir: join(expectedRoot, ".louisgo", "ADR"),
@@ -46,6 +47,7 @@ describe("协议路径", () => {
       memoryDir: join(expectedRoot, ".louisgo", "memory"),
       sessionsDir: join(expectedRoot, ".louisgo", "sessions"),
       scriptsDir: join(expectedRoot, ".louisgo", "scripts"),
+      skillsDir: join(expectedRoot, ".louisgo", "skills"),
       verifySh: join(expectedRoot, ".louisgo", "scripts", "verify.sh"),
       verifyPs1: join(expectedRoot, ".louisgo", "scripts", "verify.ps1"),
     });
@@ -57,7 +59,9 @@ describe("协议路径", () => {
     expect(protocolRelativePaths.adrDraftDir).toBe(".louisgo/ADR/draft");
     expect(protocolRelativePaths.state).toBe(".louisgo/STATE.md");
     expect(protocolRelativePaths.memoryDir).toBe(".louisgo/memory");
+    expect(protocolRelativePaths.skillsDir).toBe(".louisgo/skills");
     expect(protocolRelativePaths.runLog).toBe(".louisgo/RUNLOG.md");
+    expect(protocolRelativePaths.context).toBe(".louisgo/CONTEXT.md");
   });
 
   it("非 Git 仓库返回明确错误", async () => {

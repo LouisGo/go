@@ -1,6 +1,7 @@
-import { access, readFile, rm, writeFile } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 
 import { runGit } from "../git/git.js";
+import { pathExists } from "../internal/utils.js";
 import { createProtocolPaths } from "../protocol/paths.js";
 import { readFrontMatter } from "../protocol/frontmatter.js";
 import {
@@ -373,11 +374,3 @@ function hasMeaningfulProtocolBody(body: string): boolean {
   });
 }
 
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}

@@ -1,4 +1,5 @@
 import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
 
 import { safeWriteFile, type SafeWriteResult } from "../fs/safe-write.js";
 import { findGitRoot } from "../fs/workspace.js";
@@ -9,6 +10,12 @@ import { createMemoryTemplate } from "../templates/memory.js";
 import { createMissionTemplate } from "../templates/mission.js";
 import { createRoadmapTemplate } from "../templates/roadmap.js";
 import { createLouisGoGitignoreTemplate, createRunLogTemplate } from "../templates/run-log.js";
+import {
+  createCavemanSkill,
+  createDiagnoseSkill,
+  createGrillSkill,
+  createZoomOutSkill,
+} from "../templates/skills.js";
 import { createStateTemplate } from "../templates/state.js";
 import { createVerifyPs1Template } from "../templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../templates/verify-sh.js";
@@ -47,6 +54,7 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     paths.adrDraftDir,
     paths.memoryDir,
     paths.sessionsDir,
+    paths.skillsDir,
   ];
 
   for (const directory of directories) {
@@ -94,6 +102,22 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     {
       filePath: paths.verifyPs1,
       content: createVerifyPs1Template(),
+    },
+    {
+      filePath: join(paths.skillsDir, "grill.md"),
+      content: createGrillSkill(),
+    },
+    {
+      filePath: join(paths.skillsDir, "caveman.md"),
+      content: createCavemanSkill(),
+    },
+    {
+      filePath: join(paths.skillsDir, "diagnose.md"),
+      content: createDiagnoseSkill(),
+    },
+    {
+      filePath: join(paths.skillsDir, "zoom-out.md"),
+      content: createZoomOutSkill(),
     },
   ]);
 

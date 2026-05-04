@@ -49,7 +49,7 @@ export function registerContextCommand(
           command: "context",
           outcome: "success",
           note: `budget=${result.budgetTokens}; estimated=${result.estimatedTokens}; sources=${result.sources.length}; truncated=${result.truncated}; capsule=${commandOptions.capsule === true ? "yes" : "no"}; goal=${commandOptions.goal === undefined ? "absent" : "present"}`,
-        });
+        }).catch(() => undefined);
         setExitCode(0);
       } catch (error) {
         if (

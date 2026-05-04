@@ -29,7 +29,7 @@ export function registerCodexCommand(
         command: "codex setup",
         outcome: "success",
         note: `files=${result.files.length}; codex_home=${result.codexHome}`,
-      });
+      }).catch(() => undefined);
     });
 }
 

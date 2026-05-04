@@ -6,6 +6,7 @@ LouisGo 协议目录位于仓库根目录：
 .louisgo/
 ├── MISSION.md
 ├── CAPABILITIES.md
+├── CONTEXT.md
 ├── STATE.md
 ├── MEMORY.md
 ├── ROADMAP.md
@@ -18,6 +19,11 @@ LouisGo 协议目录位于仓库根目录：
 ├── test-results.json
 ├── memory/
 ├── sessions/
+├── skills/
+│   ├── caveman.md
+│   ├── diagnose.md
+│   ├── grill.md
+│   └── zoom-out.md
 ├── ADR/
 │   └── draft/
 └── scripts/
@@ -124,6 +130,47 @@ updated_at: "2026-05-02T12:00:00.000Z"
 - sessions/2026-05-02-xxxx.md
 ```
 
+### `CONTEXT.md`
+
+项目领域术语表（可选）。AI 每次恢复上下文时，如果此文件存在，会使用其中定义的术语，避免同义词歧义。
+
+此文件没有 Front Matter，由 AI 或用户按需创建，`louisgo init` 不自动生成。
+
+建议结构：
+
+```markdown
+# {Project Name} Domain Glossary
+
+## Language
+
+- **Term**: definition _Avoid_: alias1, alias2
+
+## Relationships
+
+- term A relates to term B because...
+
+## Flagged Ambiguities
+
+- term X was used to mean both Y and Z — resolved: ...
+```
+
+### `skills/`
+
+行为引导 skill 目录。`louisgo init` 预设 4 个 skill，用户可以自由增删改。每个 `.md` 文件作为独立 section 注入上下文包。
+
+预设 skill：
+
+- **grill.md** — 改代码前先验证对现有代码的理解，引用文件路径和行号，列出假设并逐一核对。
+- **caveman.md** — 用最简单的语言解释推理过程，每条消息一个想法，不引入不必要的术语。
+- **diagnose.md** — 出问题时先调查再修复，复现错误、追踪原因、按可能性排序，修复前后运行 `louisgo verify`。
+- **zoom-out.md** — 需要宏观视角时展示层次关系，列出选项及权衡，判断是否需要写 ADR。
+
+规则：
+
+- Skill 内容全部英文（AI 读取），不使用 Front Matter。
+- `louisgo init` 生成预设 skill，重复 init 不覆盖已有文件。
+- 文件名按字母排序注入上下文，位置在 CONTEXT.md 之后、HANDOFF.md 之前。
+
 ### `HANDOFF.md`
 
 正式交接快照。它是 L3 正式恢复缓存，存在时优先于普通记忆。
@@ -181,7 +228,7 @@ diff hash 会忽略 LouisGo 生成型恢复和诊断文件：`test-results.json`
 | --- | --- | --- | --- | --- |
 | L0 平台入口 | `AGENTS.md` 和未来平台适配文件 | `louisgo init` / 用户 | 否 | 是 |
 | L1 项目契约 | `MISSION.md`、`CAPABILITIES.md` | 用户为主，AI 辅助 | 否 | 是 |
-| L2 稳定索引 | `MEMORY.md`、`memory/*.md` | AI / 用户 | 少量变化 | 是 |
+| L2 稳定索引 | `MEMORY.md`、`CONTEXT.md`、`skills/*.md`、`memory/*.md` | AI / 用户 | 少量变化 | 是 |
 | L3 正式恢复 | `HANDOFF.md` | `$finish` / AI | 阶段性变化 | 是 |
 | L4 活跃状态 | `STATE.md`、`CONFIRM_REQ.md`、`sessions/*.md` | AI | 经常变化 | 是，必要时可按项目策略忽略 sessions 详情 |
 | L5 任务技能 | Codex skills、未来平台 skill/rule | `louisgo init` / 用户 | 按工作流变化 | 平台相关 |

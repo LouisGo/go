@@ -34,6 +34,7 @@ describe("init 服务", () => {
     await expect(access(paths.adrDraftDir)).resolves.toBeUndefined();
     await expect(access(paths.memoryDir)).resolves.toBeUndefined();
     await expect(access(paths.sessionsDir)).resolves.toBeUndefined();
+    await expect(access(paths.skillsDir)).resolves.toBeUndefined();
     await expect(access(paths.mission)).resolves.toBeUndefined();
     await expect(access(paths.roadmap)).resolves.toBeUndefined();
     await expect(access(paths.state)).resolves.toBeUndefined();
@@ -44,6 +45,10 @@ describe("init 服务", () => {
     await expect(access(paths.capabilities)).resolves.toBeUndefined();
     await expect(access(paths.verifySh)).resolves.toBeUndefined();
     await expect(access(paths.verifyPs1)).resolves.toBeUndefined();
+    await expect(access(join(paths.skillsDir, "grill.md"))).resolves.toBeUndefined();
+    await expect(access(join(paths.skillsDir, "caveman.md"))).resolves.toBeUndefined();
+    await expect(access(join(paths.skillsDir, "diagnose.md"))).resolves.toBeUndefined();
+    await expect(access(join(paths.skillsDir, "zoom-out.md"))).resolves.toBeUndefined();
 
     const mission = await readFrontMatter(paths.mission, missionFrontMatterSchema);
     const capabilities = await readFrontMatter(paths.capabilities, capabilitiesFrontMatterSchema);

@@ -1,11 +1,12 @@
-import { access, readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, relative } from "node:path";
 import type { ZodType } from "zod";
 
 import { findGitRoot } from "../fs/workspace.js";
 import { getGitPorcelainStatus, type GitStatusEntry } from "../git/status.js";
+import { isNodeError, pathExists } from "../internal/utils.js";
 import { FrontMatterError, readFrontMatter } from "../protocol/frontmatter.js";
-import { createProtocolPaths, type ProtocolPaths } from "../protocol/paths.js";
+import { createProtocolPaths, type ProtocolPaths, verificationIgnoredRelativePaths } from "../protocol/paths.js";
 import { parseRoadmap, RoadmapParseError, type RoadmapTask } from "../protocol/roadmap.js";
 import {
   capabilitiesFrontMatterSchema,
@@ -293,7 +294,9 @@ async function readWorkspaceSummary(workspaceRoot: string): Promise<WorkspaceSum
 }
 
 function isDiagnosticOnlyPath(path: string): boolean {
-  return path === ".louisgo/RUNLOG.md";
+  return verificationIgnoredRelativePaths.some(
+    (ignored) => path === ignored || path.startsWith(ignored),
+  );
 }
 
 function isUntracked(entry: GitStatusEntry): boolean {
@@ -306,15 +309,6 @@ function formatStatusPath(entry: GitStatusEntry): string {
   }
 
   return entry.path;
-}
-
-async function pathExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 async function statIfExists(filePath: string): Promise<Awaited<ReturnType<typeof stat>> | null> {

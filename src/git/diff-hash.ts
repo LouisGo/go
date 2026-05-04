@@ -2,17 +2,11 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { verificationIgnoredRelativePaths } from "../protocol/paths.js";
 import { getGitHead, getGitRoot, noGitHead, runGit, type GitCommandOptions } from "./git.js";
 
 const verificationIgnoredPathspecs = [
-  ":!.louisgo/test-results.json",
-  ":!.louisgo/RUNLOG.md",
-  ":!.louisgo/HANDOFF.md",
-  ":!.louisgo/HANDOFF_DRAFT.md",
-  ":!.louisgo/QUICK_SAVE.md",
-  ":!.louisgo/STATE.md",
-  ":!.louisgo/CONFIRM_REQ.md",
-  ":!.louisgo/sessions/**",
+  ...verificationIgnoredRelativePaths.map((p) => `:!${p}`),
 ] as const;
 
 export async function computeDiffHash(options: GitCommandOptions = {}): Promise<string> {
