@@ -114,4 +114,3 @@ async function readHandoffDraft(filePath: string) {
 function promoteDraftBody(body: string): string {
   return body.replace(/^# Handoff Draft(\r?\n)/, "# Handoff$1");
 }
-

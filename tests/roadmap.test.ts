@@ -123,9 +123,7 @@ describe("ROADMAP 解析", () => {
   });
 
   it("从任务行提取完成信号", () => {
-    const result = parseRoadmap(
-      `- [ ] T001 实现登录 #completion: 所有登录测试通过且构建成功\n`,
-    );
+    const result = parseRoadmap(`- [ ] T001 实现登录 #completion: 所有登录测试通过且构建成功\n`);
     expect(result.tasks).toEqual([
       {
         id: "T001",
@@ -143,9 +141,7 @@ describe("ROADMAP 解析", () => {
   });
 
   it("完成信号保留任务标题干净", () => {
-    const result = parseRoadmap(
-      `- [x] T001 修复 Bug #completion: 单元测试通过\n`,
-    );
+    const result = parseRoadmap(`- [x] T001 修复 Bug #completion: 单元测试通过\n`);
     expect(result.tasks[0]?.title).toBe("修复 Bug");
     expect(result.tasks[0]?.completionSignal).toBe("单元测试通过");
     expect(result.tasks[0]?.completed).toBe(true);

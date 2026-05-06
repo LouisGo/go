@@ -65,6 +65,7 @@ $IgnoredPathspecs = @(
   ':!.louisgo/QUICK_SAVE.md',
   ':!.louisgo/STATE.md',
   ':!.louisgo/CONFIRM_REQ.md',
+  ':!.louisgo/stats/**',
   ':!.louisgo/sessions/**'
 )
 [void]$HashInput.Append("git_head`0$GitHead`0")

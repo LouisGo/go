@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
 import { createCli } from "../src/cli.js";
+import { readStatsEvents } from "../src/stats/store.js";
 import { initLouisGo } from "../src/services/init-service.js";
 
 const execFileAsync = promisify(execFile);
@@ -43,6 +44,18 @@ describe("context 命令", () => {
     expect(stdout.text).toContain("# LouisGo Context Package");
     expect(stdout.text).toContain("Goal: 外部项目实验");
     expect(stdout.text).toContain("Source: `.louisgo/MISSION.md`");
+
+    const events = await readStatsEvents({ cwd: repo.path });
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      source: "context",
+      tool: "louisgo",
+      event: "louisgo.context",
+      confidence: "estimated",
+    });
+    expect(
+      events[0]?.context?.sections.some((section) => section.source === ".louisgo/MISSION.md"),
+    ).toBe(true);
   });
 
   it("协议缺失时提示先 init", async () => {

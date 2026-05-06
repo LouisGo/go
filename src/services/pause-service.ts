@@ -78,4 +78,3 @@ export async function pauseLouisGo(options: PauseServiceOptions = {}): Promise<P
     frontMatter: result.frontMatter,
   };
 }
-

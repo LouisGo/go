@@ -73,6 +73,7 @@ describe("协议模板", () => {
     });
     expect(document.body).toContain("louisgo-runlog:events");
     expect(createLouisGoGitignoreTemplate()).toContain("RUNLOG.md");
+    expect(createLouisGoGitignoreTemplate()).toContain("stats/");
   });
 
   it("生成 CAPABILITIES.md 必要 Front Matter 和验证入口", async () => {
@@ -89,6 +90,8 @@ describe("协议模板", () => {
     expect(document.body).toContain(".louisgo/scripts/verify.sh");
     expect(document.body).toContain(".louisgo/scripts/verify.ps1");
     expect(document.body).toContain(".louisgo/test-results.json");
+    expect(document.body).toContain("louisgo stats");
+    expect(document.body).toContain("louisgo stats import codex");
     expect(document.body).toContain("## ADR Guidance");
     expect(document.body).toContain("是否难以逆转");
     expect(document.body).toContain("## Active Skills");

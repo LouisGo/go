@@ -26,6 +26,8 @@ updated_at: "${options.updatedAt}"
 ## Context
 
 - Start/recover: \`louisgo context\`
+- Observe token/context stats: \`louisgo stats\`
+- Import Codex usage explicitly: \`louisgo stats import codex --days 7\`
 - Pending decision UI: \`louisgo confirm\`
 - Finish: \`louisgo finish\`
 - Pending decision: \`.louisgo/CONFIRM_REQ.md\`

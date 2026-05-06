@@ -33,5 +33,6 @@ ${runLogEventsMarker}
 
 export function createLouisGoGitignoreTemplate(): string {
   return `RUNLOG.md
+stats/
 `;
 }

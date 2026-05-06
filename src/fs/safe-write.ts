@@ -98,4 +98,3 @@ function createWriteFailedError(filePath: string, cause: unknown): SafeWriteErro
     cause,
   });
 }
-

@@ -17,6 +17,7 @@ describe("diff_hash", () => {
 
     await mkdir(join(repo.path, ".louisgo"), { recursive: true });
     await mkdir(join(repo.path, ".louisgo", "sessions"), { recursive: true });
+    await mkdir(join(repo.path, ".louisgo", "stats"), { recursive: true });
     await writeFile(join(repo.path, ".louisgo", "test-results.json"), "{}\n", "utf8");
     await writeFile(join(repo.path, ".louisgo", "RUNLOG.md"), "# Run Log\n", "utf8");
     await writeFile(join(repo.path, ".louisgo", "HANDOFF.md"), "# Handoff\n", "utf8");
@@ -25,6 +26,7 @@ describe("diff_hash", () => {
     await writeFile(join(repo.path, ".louisgo", "STATE.md"), "# State\n", "utf8");
     await writeFile(join(repo.path, ".louisgo", "CONFIRM_REQ.md"), "# Confirm\n", "utf8");
     await writeFile(join(repo.path, ".louisgo", "sessions", "one.md"), "# Session\n", "utf8");
+    await writeFile(join(repo.path, ".louisgo", "stats", "events.jsonl"), "{}\n", "utf8");
 
     await expect(computeDiffHash({ cwd: repo.path })).resolves.toBe(firstHash);
     expect(firstHash).toMatch(/^[a-f0-9]{64}$/);

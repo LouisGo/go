@@ -279,8 +279,10 @@ async function readVerificationStatus(
 
 async function getGitDiffSummary(workspaceRoot: string): Promise<string> {
   const [status, diffStat] = await Promise.all([
-    runGit(["status", "--short", "--", ".", ":!.louisgo/RUNLOG.md"], { cwd: workspaceRoot }),
-    runGit(["diff", "--stat", "HEAD", "--", ".", ":!.louisgo/RUNLOG.md"], {
+    runGit(["status", "--short", "--", ".", ":!.louisgo/RUNLOG.md", ":!.louisgo/stats/**"], {
+      cwd: workspaceRoot,
+    }),
+    runGit(["diff", "--stat", "HEAD", "--", ".", ":!.louisgo/RUNLOG.md", ":!.louisgo/stats/**"], {
       cwd: workspaceRoot,
       allowFailure: true,
     }),
@@ -373,4 +375,3 @@ function hasMeaningfulProtocolBody(body: string): boolean {
     );
   });
 }
-

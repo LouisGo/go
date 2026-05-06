@@ -10,10 +10,7 @@ import { createMemoryTemplate } from "../templates/memory.js";
 import { createMissionTemplate } from "../templates/mission.js";
 import { createRoadmapTemplate } from "../templates/roadmap.js";
 import { createLouisGoGitignoreTemplate, createRunLogTemplate } from "../templates/run-log.js";
-import {
-  createCavemanSkill,
-  createGrillSkill,
-} from "../templates/skills.js";
+import { createCavemanSkill, createGrillSkill } from "../templates/skills.js";
 import { createStateTemplate } from "../templates/state.js";
 import { createVerifyPs1Template } from "../templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../templates/verify-sh.js";
@@ -52,6 +49,7 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     paths.adrDraftDir,
     paths.memoryDir,
     paths.sessionsDir,
+    paths.statsDir,
     paths.skillsDir,
   ];
 

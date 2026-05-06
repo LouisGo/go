@@ -126,4 +126,3 @@ export function serializeTestResults(input: TestResultsInput): TestResultsJson {
     summary: input.summary,
   };
 }
-

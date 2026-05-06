@@ -46,6 +46,9 @@ describe("协议路径", () => {
       adrDraftDir: join(expectedRoot, ".louisgo", "ADR", "draft"),
       memoryDir: join(expectedRoot, ".louisgo", "memory"),
       sessionsDir: join(expectedRoot, ".louisgo", "sessions"),
+      statsDir: join(expectedRoot, ".louisgo", "stats"),
+      statsEvents: join(expectedRoot, ".louisgo", "stats", "events.jsonl"),
+      statsImports: join(expectedRoot, ".louisgo", "stats", "imports.json"),
       scriptsDir: join(expectedRoot, ".louisgo", "scripts"),
       skillsDir: join(expectedRoot, ".louisgo", "skills"),
       verifySh: join(expectedRoot, ".louisgo", "scripts", "verify.sh"),
@@ -62,6 +65,7 @@ describe("协议路径", () => {
     expect(protocolRelativePaths.skillsDir).toBe(".louisgo/skills");
     expect(protocolRelativePaths.runLog).toBe(".louisgo/RUNLOG.md");
     expect(protocolRelativePaths.context).toBe(".louisgo/CONTEXT.md");
+    expect(protocolRelativePaths.statsEvents).toBe(".louisgo/stats/events.jsonl");
   });
 
   it("非 Git 仓库返回明确错误", async () => {

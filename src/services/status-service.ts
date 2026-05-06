@@ -6,7 +6,11 @@ import { findGitRoot } from "../fs/workspace.js";
 import { getGitPorcelainStatus, type GitStatusEntry } from "../git/status.js";
 import { isNodeError, pathExists } from "../internal/utils.js";
 import { FrontMatterError, readFrontMatter } from "../protocol/frontmatter.js";
-import { createProtocolPaths, type ProtocolPaths, verificationIgnoredRelativePaths } from "../protocol/paths.js";
+import {
+  createProtocolPaths,
+  type ProtocolPaths,
+  verificationIgnoredRelativePaths,
+} from "../protocol/paths.js";
 import { parseRoadmap, RoadmapParseError, type RoadmapTask } from "../protocol/roadmap.js";
 import {
   capabilitiesFrontMatterSchema,
@@ -159,10 +163,7 @@ async function readMissionMode(
   }
 }
 
-async function readWorkPhase(
-  paths: ProtocolPaths,
-  issues: ProtocolIssue[],
-): Promise<WorkPhase> {
+async function readWorkPhase(paths: ProtocolPaths, issues: ProtocolIssue[]): Promise<WorkPhase> {
   if (!(await pathExists(paths.state))) {
     return "idle";
   }

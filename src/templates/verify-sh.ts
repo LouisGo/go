@@ -22,17 +22,17 @@ create_diff_hash() {
   {
     printf 'git_head\\0%s\\0' "$GIT_HEAD"
     printf 'status\\0'
-    git status --porcelain=v1 -z -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/sessions/**'
+    git status --porcelain=v1 -z -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/stats/**' ':!.louisgo/sessions/**'
     printf '\\0diff\\0'
     if git rev-parse --verify HEAD >/dev/null 2>&1; then
-      git diff --binary HEAD -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/sessions/**'
+      git diff --binary HEAD -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/stats/**' ':!.louisgo/sessions/**'
     else
-      git diff --binary --cached -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/sessions/**'
+      git diff --binary --cached -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/stats/**' ':!.louisgo/sessions/**'
       printf '\\0'
-      git diff --binary -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/sessions/**'
+      git diff --binary -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/stats/**' ':!.louisgo/sessions/**'
     fi
     printf '\\0untracked\\0'
-    git ls-files --others --exclude-standard -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/sessions/**' | LC_ALL=C sort | while IFS= read -r file; do
+    git ls-files --others --exclude-standard -- . ':!.louisgo/test-results.json' ':!.louisgo/RUNLOG.md' ':!.louisgo/HANDOFF.md' ':!.louisgo/HANDOFF_DRAFT.md' ':!.louisgo/QUICK_SAVE.md' ':!.louisgo/STATE.md' ':!.louisgo/CONFIRM_REQ.md' ':!.louisgo/stats/**' ':!.louisgo/sessions/**' | LC_ALL=C sort | while IFS= read -r file; do
       if [ -f "$file" ]; then
         printf 'path\\0%s\\0hash\\0' "$file"
         file_hash="$(file_sha256 "$file")"

@@ -19,6 +19,7 @@
 - ADR 草稿模板简化：三问过滤、可选段落、一段式支持。
 - Codex skill 描述规范化：英文两句话模式、中文标题移入 body。
 - 上下文头部领域术语提示：CONTEXT.md 存在时自动添加术语提示。
+- Codex-first stats：本地 context token 估算、Codex usage 显式导入、cached token ratio 和 simulated savings。
 
 ## 下一阶段候选
 
@@ -28,6 +29,7 @@
 - P4：改进 `context --capsule`，生成更明确的 subagent 写入边界和返回格式。
 - P5：CONTEXT.md 自动填充：AI 在探索阶段自动从代码中提取候选术语。
 - P6：多平台规则输出：为 Claude Code、Gemini CLI 等生成对应的 memory/rules 文件。
+- P7：扩展 stats adapter 到 Claude Code、OpenCode、Cursor，并支持用户自定义 pricing。
 
 ## 不做
 

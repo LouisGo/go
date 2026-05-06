@@ -8,8 +8,11 @@ import {
   type ContextServiceOptions,
 } from "../services/context-service.js";
 import { appendRunLogEvent } from "../services/run-log-service.js";
+import { createContextStatsEvent } from "../stats/events.js";
+import { appendStatsEvents } from "../stats/store.js";
 
 export interface RegisterContextCommandOptions extends ContextServiceOptions {
+  readonly now?: () => Date;
   readonly stdout?: Writable;
   readonly stderr?: Writable;
   readonly setExitCode?: (exitCode: number) => void;
@@ -44,6 +47,15 @@ export function registerContextCommand(
 
         stdout.write(result.content);
         stdout.write("\n");
+        await appendStatsEvents({
+          cwd: result.workspaceRoot,
+          events: [
+            createContextStatsEvent({
+              timestamp: (options.now?.() ?? new Date()).toISOString(),
+              context: result.stats,
+            }),
+          ],
+        }).catch(() => undefined);
         await appendRunLogEvent({
           cwd: result.workspaceRoot,
           command: "context",

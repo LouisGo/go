@@ -162,8 +162,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     title: "LouisGo Finish",
     chineseTitle: "收尾",
     shortDescription: "LouisGo 收尾：更新正式 HANDOFF.md 和当前状态",
-    description:
-      "Generates a LouisGo handoff snapshot. Use when the user enters $finish in Codex.",
+    description: "Generates a LouisGo handoff snapshot. Use when the user enters $finish in Codex.",
     action:
       "- Run `louisgo finish`.\n- Report the `HANDOFF.md` path, verification status, cleanup result, and first next action for the next session.",
   },
@@ -255,4 +254,3 @@ function ensureTrailingNewline(content: string): string {
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
-

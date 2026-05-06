@@ -2,6 +2,13 @@ import { access, readFile } from "node:fs/promises";
 
 import { isNodeError } from "../internal/utils.js";
 import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js";
+import { countTextTokens, truncateToTokens } from "../stats/token-counter.js";
+import type {
+  ContextSectionStats,
+  ContextStats,
+  StatsLayer,
+  StatsStability,
+} from "../stats/events.js";
 import {
   checkProtocolStatus,
   type ProtocolIssue,
@@ -29,11 +36,14 @@ export interface GenerateContextResult {
   readonly sources: readonly string[];
   readonly report: readonly ContextBudgetItem[];
   readonly truncated: boolean;
+  readonly stats: ContextStats;
 }
 
 export interface ContextBudgetItem {
   readonly source: string;
   readonly title: string;
+  readonly layer: StatsLayer;
+  readonly stability: StatsStability;
   readonly estimatedTokens: number;
   readonly included: boolean;
   readonly truncated: boolean;
@@ -59,6 +69,8 @@ interface ContextSection {
   readonly title: string;
   readonly source: string;
   readonly content: string;
+  readonly layer: StatsLayer;
+  readonly stability: StatsStability;
   readonly required: boolean;
   readonly preserveHeadings?: readonly string[];
 }
@@ -66,7 +78,6 @@ interface ContextSection {
 const defaultBudgetTokens = 6_000;
 const minBudgetTokens = 1_000;
 const maxBudgetTokens = 32_000;
-const charsPerTokenEstimate = 3;
 
 export async function generateContext(
   options: ContextServiceOptions = {},
@@ -86,9 +97,7 @@ export async function generateContext(
   const budgetTokens = normalizeBudget(options.budgetTokens);
   const paths = createProtocolPaths(status.workspaceRoot);
   const sections = await createSections(status.workspaceRoot);
-  const hasContext = sections.some(
-    (s) => s.source === protocolRelativePaths.context,
-  );
+  const hasContext = sections.some((s) => s.source === protocolRelativePaths.context);
   const header = createHeader({
     capsule: options.capsule === true,
     mode: status.mode,
@@ -109,15 +118,26 @@ export async function generateContext(
   });
   const footer = createFooter(paths.workspaceRoot, compiled.truncated, compiled.report);
   const content = `${compiled.content}\n${footer}`;
+  const estimatedTokens = countTextTokens(content);
+  const stats = createContextStats({
+    budgetTokens,
+    compiledContextTokens: countTextTokens(compiled.content),
+    fullProtocolBaselineTokens: compiled.fullProtocolBaselineTokens,
+    avoidedContextTokens: compiled.avoidedContextTokens,
+    cacheEligiblePrefixTokens: compiled.cacheEligiblePrefixTokens,
+    truncated: compiled.truncated,
+    report: compiled.report,
+  });
 
   return {
     workspaceRoot: status.workspaceRoot,
     content,
     budgetTokens,
-    estimatedTokens: estimateTokens(content),
+    estimatedTokens,
     sources: compiled.sources,
     report: compiled.report,
     truncated: compiled.truncated,
+    stats,
   };
 }
 
@@ -135,12 +155,16 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
       title: "L1 Project Contract: MISSION.md",
       source: protocolRelativePaths.mission,
       content: await readFile(paths.mission, "utf8"),
+      layer: "L1",
+      stability: "stable",
       required: true,
     },
     {
       title: "L1 Project Contract: CAPABILITIES.md",
       source: protocolRelativePaths.capabilities,
       content: await readFile(paths.capabilities, "utf8"),
+      layer: "L1",
+      stability: "stable",
       required: true,
     },
   );
@@ -150,6 +174,8 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
       title: "L2 Stable Memory Index: MEMORY.md",
       source: protocolRelativePaths.memory,
       content: memory,
+      layer: "L2",
+      stability: "stable",
       required: true,
     });
   }
@@ -159,6 +185,8 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
       title: "L2 Domain Glossary: CONTEXT.md",
       source: protocolRelativePaths.context,
       content: context,
+      layer: "L2",
+      stability: "stable",
       required: false,
     });
   }
@@ -168,8 +196,16 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
       title: "L3 Formal Recovery: HANDOFF.md",
       source: protocolRelativePaths.handoff,
       content: handoff,
+      layer: "L3",
+      stability: "dynamic",
       required: false,
-      preserveHeadings: ["\u4ea4\u63a5\u6458\u8981", "\u6062\u590d\u5efa\u8bae", "\u5efa\u8bae\u4e0b\u4e00\u6b65", "\u9a8c\u8bc1", "\u5f85\u5904\u7406\u4e8b\u9879"],
+      preserveHeadings: [
+        "\u4ea4\u63a5\u6458\u8981",
+        "\u6062\u590d\u5efa\u8bae",
+        "\u5efa\u8bae\u4e0b\u4e00\u6b65",
+        "\u9a8c\u8bc1",
+        "\u5f85\u5904\u7406\u4e8b\u9879",
+      ],
     });
   }
 
@@ -178,6 +214,8 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
       title: "L4 Urgent Signal: CONFIRM_REQ.md",
       source: protocolRelativePaths.confirmReq,
       content: confirmReq,
+      layer: "L4",
+      stability: "dynamic",
       required: true,
     });
   }
@@ -187,6 +225,8 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
       title: "L4 Active State: STATE.md",
       source: protocolRelativePaths.state,
       content: state,
+      layer: "L4",
+      stability: "dynamic",
       required: true,
     });
   }
@@ -248,8 +288,8 @@ function createHeader(params: {
                 "- Before stopping, confirm the completion signal is met. If unsure, keep pushing.",
               ]
             : [
-              "- Before stopping, confirm the current task goal is achieved. Document evidence in STATE.md Evidence section.",
-            ]),
+                "- Before stopping, confirm the current task goal is achieved. Document evidence in STATE.md Evidence section.",
+              ]),
         ]
       : []),
     ...(params.phase === "explore"
@@ -263,7 +303,9 @@ function createHeader(params: {
         ]
       : []),
     ...(params.hasContext === true
-      ? ["- Domain terms are defined in CONTEXT.md \u2014 use the project's own vocabulary, do not introduce synonyms."]
+      ? [
+          "- Domain terms are defined in CONTEXT.md \u2014 use the project's own vocabulary, do not introduce synonyms.",
+        ]
       : []),
     "",
     "## Source Layers",
@@ -281,20 +323,27 @@ function compileSections(params: {
   readonly sources: readonly string[];
   readonly report: readonly ContextBudgetItem[];
   readonly truncated: boolean;
+  readonly fullProtocolBaselineTokens: number;
+  readonly avoidedContextTokens: number;
+  readonly cacheEligiblePrefixTokens: number;
 } {
-  const maxChars = params.budgetTokens * charsPerTokenEstimate;
   const pieces = [params.header];
   const sources: string[] = [];
   const report: ContextBudgetItem[] = [
     {
       source: "runtime",
       title: "Prompt Assembly Contract",
-      estimatedTokens: estimateTokens(params.header),
+      layer: "runtime",
+      stability: "stable",
+      estimatedTokens: countTextTokens(params.header),
       included: true,
       truncated: false,
     },
   ];
-  let usedChars = params.header.length;
+  let usedTokens = countTextTokens(params.header);
+  let fullProtocolBaselineTokens = usedTokens;
+  let cacheEligiblePrefixTokens = usedTokens;
+  let stablePrefixOpen = true;
   let truncated = false;
 
   for (const section of params.sections) {
@@ -307,57 +356,84 @@ function compileSections(params: {
       "~~~markdown\n",
     ].join("\n");
     const suffix = "\n~~~";
-    const available = maxChars - usedChars - prefix.length - suffix.length;
+    const normalized = section.content.trim();
+    const prefixTokens = countTextTokens(prefix);
+    const suffixTokens = countTextTokens(suffix);
+    const normalizedTokens = countTextTokens(normalized);
+    const available = params.budgetTokens - usedTokens - prefixTokens - suffixTokens;
+
+    fullProtocolBaselineTokens += prefixTokens + normalizedTokens + suffixTokens;
 
     if (available <= 0) {
       if (section.required) {
-        pieces.push(
+        const omittedContent = [
           "",
           `## ${section.title}`,
           "",
           `Source: \`${section.source}\``,
           "",
           "Content not expanded due to budget exhaustion. Read the file directly as needed.",
-        );
+        ].join("\n");
+        pieces.push(omittedContent);
         sources.push(section.source);
+        const omittedTokens = countTextTokens(omittedContent);
+        usedTokens += omittedTokens;
         report.push({
           source: section.source,
           title: section.title,
+          layer: section.layer,
+          stability: section.stability,
           estimatedTokens: 0,
           included: false,
           truncated: true,
         });
       }
       truncated = true;
+      stablePrefixOpen = stablePrefixOpen && section.stability === "stable";
       continue;
     }
 
-    const normalized = section.content.trim();
     const prepared = prepareSectionContent(section, available);
+    const preparedTokens = countTextTokens(prepared);
     const nextContent =
-      prepared.length > available
-        ? `${prepared.slice(0, Math.max(0, available - 120)).trimEnd()}\n\n[truncated: ${section.source}]`
+      preparedTokens > available
+        ? truncateSectionContent(prepared, available, section.source)
         : prepared;
+    const nextTokens = countTextTokens(nextContent);
 
     pieces.push(prefix + nextContent + suffix);
     sources.push(section.source);
-    usedChars += prefix.length + nextContent.length + suffix.length;
-    const sectionTruncated = nextContent.length < normalized.length;
+    usedTokens += prefixTokens + nextTokens + suffixTokens;
+    const sectionTruncated = nextContent !== normalized;
     report.push({
       source: section.source,
       title: section.title,
-      estimatedTokens: estimateTokens(nextContent),
+      layer: section.layer,
+      stability: section.stability,
+      estimatedTokens: nextTokens,
       included: true,
       truncated: sectionTruncated,
     });
     truncated = truncated || sectionTruncated;
+
+    if (stablePrefixOpen && section.stability === "stable") {
+      cacheEligiblePrefixTokens += prefixTokens + nextTokens + suffixTokens;
+    } else {
+      stablePrefixOpen = false;
+    }
   }
 
+  const compiledContent = pieces.join("\n");
+  const compiledTokens = countTextTokens(compiledContent);
+
   return {
-    content: pieces.join("\n"),
+    content: compiledContent,
     sources,
     report,
     truncated,
+    fullProtocolBaselineTokens,
+    avoidedContextTokens: Math.max(0, fullProtocolBaselineTokens - compiledTokens),
+    cacheEligiblePrefixTokens,
   };
 }
 
@@ -381,25 +457,31 @@ function createFooter(
   lines.push("## Next Use");
   lines.push("");
   lines.push("- Place the user's current prompt after this context and execute.");
-  lines.push("- Only read relevant source code, `memory/*.md`, or `sessions/*.md` when the task requires it.");
-  lines.push("- After substantive changes, update `STATE.md`; when a phase is complete, run `$finish`.");
+  lines.push(
+    "- Only read relevant source code, `memory/*.md`, or `sessions/*.md` when the task requires it.",
+  );
+  lines.push(
+    "- After substantive changes, update `STATE.md`; when a phase is complete, run `$finish`.",
+  );
 
   if (truncated) {
     lines.push("- Note: this context was trimmed to budget \u2014 read source files as needed.");
   }
 
   lines.push("");
-  lines.push("> Token counts are estimates (~3 chars/token); mixed CJK/Latin content may vary.");
+  lines.push(
+    "> Token counts are local `o200k_base` tokenizer estimates; Codex usage imports remain the source of truth for actual tokens.",
+  );
   lines.push("");
   lines.push(`Workspace: \`${workspaceRoot}\``);
 
   return lines.join("\n");
 }
 
-function prepareSectionContent(section: ContextSection, availableChars: number): string {
+function prepareSectionContent(section: ContextSection, availableTokens: number): string {
   const normalized = section.content.trim();
 
-  if (normalized.length <= availableChars || section.preserveHeadings === undefined) {
+  if (countTextTokens(normalized) <= availableTokens || section.preserveHeadings === undefined) {
     return normalized;
   }
 
@@ -410,6 +492,45 @@ function prepareSectionContent(section: ContextSection, availableChars: number):
   }
 
   return `${preserved}\n\n[semantic-truncated: ${section.source}]`;
+}
+
+function truncateSectionContent(content: string, availableTokens: number, source: string): string {
+  const marker = `\n\n[truncated: ${source}]`;
+  const markerTokens = countTextTokens(marker);
+  const maxContentTokens = Math.max(0, availableTokens - markerTokens);
+  const truncated = truncateToTokens(content, maxContentTokens);
+
+  return `${truncated.text.trimEnd()}${marker}`;
+}
+
+function createContextStats(params: {
+  readonly budgetTokens: number;
+  readonly compiledContextTokens: number;
+  readonly fullProtocolBaselineTokens: number;
+  readonly avoidedContextTokens: number;
+  readonly cacheEligiblePrefixTokens: number;
+  readonly truncated: boolean;
+  readonly report: readonly ContextBudgetItem[];
+}): ContextStats {
+  const sections: ContextSectionStats[] = params.report.map((item) => ({
+    source: item.source,
+    title: item.title,
+    layer: item.layer,
+    stability: item.stability,
+    tokens: item.estimatedTokens,
+    included: item.included,
+    truncated: item.truncated,
+  }));
+
+  return {
+    budget_tokens: params.budgetTokens,
+    compiled_context_tokens: params.compiledContextTokens,
+    full_protocol_baseline_tokens: params.fullProtocolBaselineTokens,
+    avoided_context_tokens: params.avoidedContextTokens,
+    cache_eligible_prefix_tokens: params.cacheEligiblePrefixTokens,
+    truncated: params.truncated,
+    sections,
+  };
 }
 
 function preserveHeadingSections(content: string, headings: readonly string[]): string {
@@ -454,10 +575,6 @@ function normalizeBudget(value?: number): number {
   }
 
   return Math.min(maxBudgetTokens, Math.max(minBudgetTokens, Math.floor(value)));
-}
-
-function estimateTokens(content: string): number {
-  return Math.ceil(content.length / charsPerTokenEstimate);
 }
 
 async function readIfExists(filePath: string): Promise<string | null> {
@@ -511,8 +628,7 @@ function formatWorkspaceSummary(workspace: {
     return "clean";
   }
 
-  const untracked =
-    workspace.untrackedFiles > 0 ? `, ${workspace.untrackedFiles} untracked` : "";
+  const untracked = workspace.untrackedFiles > 0 ? `, ${workspace.untrackedFiles} untracked` : "";
   const samples =
     workspace.samplePaths.length > 0 ? `; e.g. ${workspace.samplePaths.join(", ")}` : "";
 

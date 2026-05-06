@@ -133,4 +133,3 @@ ${taskLine}
 function normalizeTaskReference(taskId?: string | null): string {
   return taskId === undefined || taskId === null || taskId.length === 0 ? missingTaskId : taskId;
 }
-

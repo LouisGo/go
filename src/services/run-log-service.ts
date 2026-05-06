@@ -152,9 +152,7 @@ async function buildDiagnosticNote(
   return diagnostic.length > 0 ? diagnostic : undefined;
 }
 
-async function readTestResultsSafe(
-  workspaceRoot: string,
-): Promise<{ readonly status: string }> {
+async function readTestResultsSafe(workspaceRoot: string): Promise<{ readonly status: string }> {
   const paths = createProtocolPaths(workspaceRoot);
   const raw = await readFile(paths.testResults, "utf8");
   const json = JSON.parse(raw) as { readonly status?: unknown };

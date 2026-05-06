@@ -58,9 +58,8 @@ export function parseRoadmap(markdown: string): RoadmapParseResult {
     const fullTitle = titleParts.join(" ");
     const signalMatch = fullTitle.match(/#completion:\s*(.+)$/);
     const completionSignal = signalMatch !== null ? signalMatch[1]!.trim() : null;
-    const cleanTitle = completionSignal !== null
-      ? fullTitle.replace(/#completion:\s*.+$/, "").trim()
-      : fullTitle;
+    const cleanTitle =
+      completionSignal !== null ? fullTitle.replace(/#completion:\s*.+$/, "").trim() : fullTitle;
 
     if (mark === undefined) {
       continue;

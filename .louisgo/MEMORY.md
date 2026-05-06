@@ -1,6 +1,6 @@
 ---
 schema: louisgo-memory-v1
-updated_at: "2026-05-04T06:21:00.000Z"
+updated_at: "2026-05-06T16:20:00.000Z"
 ---
 
 # Memory
@@ -22,6 +22,7 @@ updated_at: "2026-05-04T06:21:00.000Z"
 - `HANDOFF.md`、`STATE.md`、`QUICK_SAVE.md` 等生成型恢复文件不再计入验证 diff hash，避免 `$finish` 后验证立即无意义 stale。
 - `RUNLOG.md` 是本地诊断日志：自动记录 LouisGo 命令级事件和状态摘要，默认被 `.louisgo/.gitignore` 忽略，调试时可发给 AI。
 - T008 已通过本仓库测试和临时外部 Git 项目 smoke：`louisgo log --tail 10` 能输出 init/context/verify/finish 事件。
+- T016 引入 Codex-first stats：`louisgo context` 写本地 token/section 事件，`louisgo stats import codex` 显式导入 Codex JSONL usage，`.louisgo/stats/` 默认忽略且不保存 prompt/回复/源码。
 
 ## Topic Files
 

@@ -154,4 +154,3 @@ function parseChoices(source: string): ConfirmChoice[] {
       text: match[2]!.trim(),
     }));
 }
-

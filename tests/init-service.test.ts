@@ -34,6 +34,7 @@ describe("init 服务", () => {
     await expect(access(paths.adrDraftDir)).resolves.toBeUndefined();
     await expect(access(paths.memoryDir)).resolves.toBeUndefined();
     await expect(access(paths.sessionsDir)).resolves.toBeUndefined();
+    await expect(access(paths.statsDir)).resolves.toBeUndefined();
     await expect(access(paths.skillsDir)).resolves.toBeUndefined();
     await expect(access(paths.mission)).resolves.toBeUndefined();
     await expect(access(paths.roadmap)).resolves.toBeUndefined();
@@ -47,8 +48,12 @@ describe("init 服务", () => {
     await expect(access(paths.verifyPs1)).resolves.toBeUndefined();
     await expect(access(join(paths.skillsDir, "grill.md"))).resolves.toBeUndefined();
     await expect(access(join(paths.skillsDir, "caveman.md"))).resolves.toBeUndefined();
-    await expect(access(join(paths.skillsDir, "diagnose.md"))).rejects.toMatchObject({ code: "ENOENT" });
-    await expect(access(join(paths.skillsDir, "zoom-out.md"))).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(join(paths.skillsDir, "diagnose.md"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+    await expect(access(join(paths.skillsDir, "zoom-out.md"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
 
     const mission = await readFrontMatter(paths.mission, missionFrontMatterSchema);
     const capabilities = await readFrontMatter(paths.capabilities, capabilitiesFrontMatterSchema);
@@ -65,6 +70,7 @@ describe("init 服务", () => {
     expect(roadmap.firstIncompleteTask?.id).toBe("T001");
     expect(runLog).toContain("schema: louisgo-runlog-v1");
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("RUNLOG.md");
+    await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("stats/");
     expect(verifyShStat.mode & 0o111).toBeGreaterThan(0);
     expect(result.files.every((file) => file.status === "created")).toBe(true);
     expect(result.nextSteps).toContain("需要深度重建时输入 $start");

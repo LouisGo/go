@@ -10,6 +10,7 @@ export const verificationIgnoredRelativePaths = [
   ".louisgo/QUICK_SAVE.md",
   ".louisgo/STATE.md",
   ".louisgo/CONFIRM_REQ.md",
+  ".louisgo/stats/",
   ".louisgo/sessions/",
 ] as const;
 
@@ -35,8 +36,14 @@ export const protocolDirectoryNames = {
   adrDraft: "draft",
   memory: "memory",
   sessions: "sessions",
+  stats: "stats",
   scripts: "scripts",
   skills: "skills",
+} as const;
+
+export const protocolStatsFileNames = {
+  events: "events.jsonl",
+  imports: "imports.json",
 } as const;
 
 export const protocolScriptNames = {
@@ -64,6 +71,9 @@ export const protocolRelativePaths = {
   adrDraftDir: protocolRelativePath(protocolDirectoryNames.adr, protocolDirectoryNames.adrDraft),
   memoryDir: protocolRelativePath(protocolDirectoryNames.memory),
   sessionsDir: protocolRelativePath(protocolDirectoryNames.sessions),
+  statsDir: protocolRelativePath(protocolDirectoryNames.stats),
+  statsEvents: protocolRelativePath(protocolDirectoryNames.stats, protocolStatsFileNames.events),
+  statsImports: protocolRelativePath(protocolDirectoryNames.stats, protocolStatsFileNames.imports),
   scriptsDir: protocolRelativePath(protocolDirectoryNames.scripts),
   skillsDir: protocolRelativePath(protocolDirectoryNames.skills),
   verifySh: protocolRelativePath(protocolDirectoryNames.scripts, protocolScriptNames.verifySh),
@@ -91,6 +101,9 @@ export interface ProtocolPaths {
   readonly adrDraftDir: string;
   readonly memoryDir: string;
   readonly sessionsDir: string;
+  readonly statsDir: string;
+  readonly statsEvents: string;
+  readonly statsImports: string;
   readonly scriptsDir: string;
   readonly skillsDir: string;
   readonly verifySh: string;
@@ -125,6 +138,17 @@ export function createProtocolPaths(workspaceRoot: string): ProtocolPaths {
     ),
     memoryDir: absoluteProtocolPath(root, protocolDirectoryNames.memory),
     sessionsDir: absoluteProtocolPath(root, protocolDirectoryNames.sessions),
+    statsDir: absoluteProtocolPath(root, protocolDirectoryNames.stats),
+    statsEvents: absoluteProtocolPath(
+      root,
+      protocolDirectoryNames.stats,
+      protocolStatsFileNames.events,
+    ),
+    statsImports: absoluteProtocolPath(
+      root,
+      protocolDirectoryNames.stats,
+      protocolStatsFileNames.imports,
+    ),
     scriptsDir: absoluteProtocolPath(root, protocolDirectoryNames.scripts),
     skillsDir: absoluteProtocolPath(root, protocolDirectoryNames.skills),
     verifySh: absoluteProtocolPath(

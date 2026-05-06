@@ -10,12 +10,13 @@ npx louisgo init -> 直接和 AI 开发 -> $start 按需恢复 -> $finish 阶段
 
 用户不应该记一堆生命周期命令。高级命令存在，但主要由 AI、测试和调试流程调用。
 
-| 入口 | 触发时机 | 产品效果 |
-| --- | --- | --- |
-| `louisgo init` | 一个 Git 项目第一次启用 LouisGo | 创建 `.louisgo/` 协议和平台入口，让 AI 以后自动恢复上下文。 |
-| 自然对话 | 80%-90% 日常开发 | AI 在改文件前读取 `louisgo context`，然后按用户最新 prompt 执行。 |
-| `$start` | 语境失真、长任务重启、用户要求重新开始 | 重新编译上下文包，报告恢复来源、验证状态和第一步。 |
-| `$finish` | 阶段完成、换会话、换机器、准备提交 | 生成正式 `HANDOFF.md`，记录验证、diff、阻塞和下一步。 |
+| 入口            | 触发时机                                    | 产品效果                                                          |
+| --------------- | ------------------------------------------- | ----------------------------------------------------------------- |
+| `louisgo init`  | 一个 Git 项目第一次启用 LouisGo             | 创建 `.louisgo/` 协议和平台入口，让 AI 以后自动恢复上下文。       |
+| 自然对话        | 80%-90% 日常开发                            | AI 在改文件前读取 `louisgo context`，然后按用户最新 prompt 执行。 |
+| `$start`        | 语境失真、长任务重启、用户要求重新开始      | 重新编译上下文包，报告恢复来源、验证状态和第一步。                |
+| `$finish`       | 阶段完成、换会话、换机器、准备提交          | 生成正式 `HANDOFF.md`，记录验证、diff、阻塞和下一步。             |
+| `louisgo stats` | 需要判断 token 消耗、缓存命中和上下文膨胀时 | 汇总本地 context stats 和显式导入的 Codex token usage。           |
 
 ## AI 行为契约
 
@@ -30,6 +31,8 @@ AI 在启用 LouisGo 的仓库中工作时，应遵守这条顺序：
 如果存在 `CONFIRM_REQ.md`，AI 必须先把选择展示给用户。`louisgo confirm --interactive` 是终端 fallback，不是 Codex 原生 TUI confirm；在 Codex 中应由 AI 把结构化选项呈现给用户。
 
 调试流程时，运行 `louisgo log --tail 30` 或发送 `.louisgo/RUNLOG.md`。日志只记录命令级事件和状态摘要，不记录用户 prompt 正文。
+
+观测 token 时，运行 `louisgo stats` 查看本项目本地事件；运行 `louisgo stats import codex` 才会显式读取 `$CODEX_HOME` / `~/.codex` 的 session JSONL。导入只保存 token usage 数字、来源文件指纹和 section stats，不保存 prompt、聊天正文或源码。
 
 ## 恢复模型
 
@@ -57,6 +60,7 @@ prompt 组装顺序：
 - 没有 `HANDOFF.md` 时，`STATE.md` / `MEMORY.md` 仍能恢复基本语境。
 - `$finish` 能留下足够接手的信息，而不是只有一句“已完成”。
 - `RUNLOG.md` 能让另一个会话判断 LouisGo 是否真的恢复了上下文、运行了验证、生成了交接。
+- `stats` 能让用户看到 context 包 token、stable prefix、Codex cached tokens 和预计节省，而不是只凭体感判断 prompt cache 是否有效。
 - 外部项目可以在不理解 LouisGo 内部命令的情况下完成一次 init/context/verify/finish 实验。
 
 ## 多 Agent

@@ -37,6 +37,7 @@
   "packageManager": "pnpm@10.5.2",
   "dependencies": {
     "commander": "^14.0.1",
+    "gpt-tokenizer": "^3.4.0",
     "gray-matter": "^4.0.3",
     "zod": "^4.4.1"
   },

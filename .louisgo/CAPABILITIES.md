@@ -19,6 +19,12 @@ updated_at: "2026-05-04T06:21:00.000Z"
 - 组装顺序：MISSION/CAPABILITIES -> MEMORY -> HANDOFF -> CONFIRM_REQ/STATE。
 - 输出必须包含来源、预算报告和用户 prompt 优先契约。
 
+## Stats
+
+- 本地观测命令：`louisgo stats`
+- Codex usage 显式导入：`louisgo stats import codex --days 7`
+- 统计只保存 token 数字、section 元数据和来源文件指纹，不保存 prompt、聊天正文或源码。
+
 ## Verify
 
 - macOS / Linux 命令：`.louisgo/scripts/verify.sh`

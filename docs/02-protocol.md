@@ -16,6 +16,9 @@ LouisGo 协议目录位于仓库根目录：
 ├── BLOCKER.md
 ├── CONFIRM_REQ.md
 ├── RUNLOG.md
+├── stats/
+│   ├── events.jsonl
+│   └── imports.json
 ├── test-results.json
 ├── memory/
 ├── sessions/
@@ -103,8 +106,8 @@ updated_at: "2026-05-02T12:00:00.000Z"
 1. HANDOFF.md
 2. STATE.md
 3. MEMORY.md
-4. memory/*.md
-5. sessions/*.md
+4. memory/\*.md
+5. sessions/\*.md
 ```
 
 ### `MEMORY.md`
@@ -197,6 +200,22 @@ updated_at: "2026-05-02T12:00:00.000Z"
 - 需要诊断时运行 `louisgo log --tail 30`，或直接发送 `.louisgo/RUNLOG.md`。
 - 日志只保留最近事件，避免长期 token 膨胀。
 
+### `stats/`
+
+本地 token 和 context 观测目录，默认由 `.louisgo/.gitignore` 忽略。
+
+文件：
+
+- `events.jsonl`：LouisGo context 估算事件和显式导入的 Codex usage 事件。
+- `imports.json`：Codex JSONL 文件指纹，避免重复导入。
+
+规则：
+
+- `louisgo context` 只写 section 名称、来源路径、token 数和 cache-friendly 指标。
+- `louisgo stats import codex` 只提取 Codex JSONL 中的 `input_tokens`、`cached_input_tokens`、`output_tokens`、`reasoning_output_tokens`、`total_tokens` 等数字。
+- 不保存用户 prompt、聊天全文、模型回复正文、源码内容或 secrets。
+- 统计口径分为 `actual`、`estimated`、`simulated`：真实 Codex usage、本地 tokenizer 估算、以及基于 baseline 的预计节省。
+
 ### `test-results.json`
 
 验证事实来源。最少包含：
@@ -218,18 +237,19 @@ passed | failed | error | skipped
 
 CLI 额外根据 Git HEAD 和 diff hash 判断 `missing`、`stale`。
 
-diff hash 会忽略 LouisGo 生成型恢复和诊断文件：`test-results.json`、`RUNLOG.md`、`HANDOFF.md`、`HANDOFF_DRAFT.md`、`QUICK_SAVE.md`、`STATE.md`、`CONFIRM_REQ.md` 和 `sessions/`。这样 `$finish` 或日志追加不会让刚完成的验证立刻过期；源码、验证脚本和未排除的协议文件变化仍会触发 stale。
+diff hash 会忽略 LouisGo 生成型恢复和诊断文件：`test-results.json`、`RUNLOG.md`、`HANDOFF.md`、`HANDOFF_DRAFT.md`、`QUICK_SAVE.md`、`STATE.md`、`CONFIRM_REQ.md`、`stats/` 和 `sessions/`。这样 `$finish`、日志追加或本地观测事件不会让刚完成的验证立刻过期；源码、验证脚本和未排除的协议文件变化仍会触发 stale。
 
 ## 缓存层级
 
-| 层 | 文件 | 写入者 | 是否应频繁变化 | Git 同步 |
-| --- | --- | --- | --- | --- |
-| L0 平台入口 | `AGENTS.md` 和未来平台适配文件 | `louisgo init` / 用户 | 否 | 是 |
-| L1 项目契约 | `MISSION.md`、`CAPABILITIES.md` | 用户为主，AI 辅助 | 否 | 是 |
-| L2 稳定索引 | `MEMORY.md`、`CONTEXT.md`、`skills/*.md`、`memory/*.md` | AI / 用户 | 少量变化 | 是 |
-| L3 正式恢复 | `HANDOFF.md` | `$finish` / AI | 阶段性变化 | 是 |
-| L4 活跃状态 | `STATE.md`、`CONFIRM_REQ.md`、`sessions/*.md` | AI | 经常变化 | 是，必要时可按项目策略忽略 sessions 详情 |
-| L5 任务技能 | Codex skills、未来平台 skill/rule | `louisgo init` / 用户 | 按工作流变化 | 平台相关 |
+| 层           | 文件                                                    | 写入者                | 是否应频繁变化 | Git 同步                                 |
+| ------------ | ------------------------------------------------------- | --------------------- | -------------- | ---------------------------------------- |
+| L0 平台入口  | `AGENTS.md` 和未来平台适配文件                          | `louisgo init` / 用户 | 否             | 是                                       |
+| L1 项目契约  | `MISSION.md`、`CAPABILITIES.md`                         | 用户为主，AI 辅助     | 否             | 是                                       |
+| L2 稳定索引  | `MEMORY.md`、`CONTEXT.md`、`skills/*.md`、`memory/*.md` | AI / 用户             | 少量变化       | 是                                       |
+| L3 正式恢复  | `HANDOFF.md`                                            | `$finish` / AI        | 阶段性变化     | 是                                       |
+| L4 活跃状态  | `STATE.md`、`CONFIRM_REQ.md`、`sessions/*.md`           | AI                    | 经常变化       | 是，必要时可按项目策略忽略 sessions 详情 |
+| L4b 本地观测 | `stats/*.jsonl`、`stats/imports.json`                   | CLI                   | 经常变化       | 默认否                                   |
+| L5 任务技能  | Codex skills、未来平台 skill/rule                       | `louisgo init` / 用户 | 按工作流变化   | 平台相关                                 |
 
 平台 prompt 组装应尽量保持 L0-L2 为稳定前缀，把 L3-L4 放在后面。语义恢复仍按确认请求、正式交接、活跃状态的顺序判断。
 

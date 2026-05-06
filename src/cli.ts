@@ -14,6 +14,7 @@ import { registerInitCommand } from "./commands/init.js";
 import { registerLogCommand } from "./commands/log.js";
 import { registerPauseCommand } from "./commands/pause.js";
 import { registerStatusCommand } from "./commands/status.js";
+import { registerStatsCommand } from "./commands/stats.js";
 import { registerVerifyCommand } from "./commands/verify.js";
 import { readPackageVersion } from "./package-info.js";
 
@@ -41,6 +42,7 @@ export function createCli(options: CliOptions = {}): Command {
   registerInitCommand(program, options);
   registerPauseCommand(program, options);
   registerStatusCommand(program, options);
+  registerStatsCommand(program, options);
   registerConfirmCommand(program, options);
   registerContextCommand(program, options);
   registerVerifyCommand(program, options);
