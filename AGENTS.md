@@ -9,10 +9,11 @@ For ordinary coding requests, before changing files, inspect the available Louis
 2. If the context package or status reports `.louisgo/CONFIRM_REQ.md`, run `louisgo confirm` and present the choices before continuing.
 3. If `louisgo context` is unavailable, read `.louisgo/CONFIRM_REQ.md`, `.louisgo/HANDOFF.md`, `.louisgo/STATE.md`, and `.louisgo/MEMORY.md`.
 4. Relevant files under `.louisgo/memory/` or `.louisgo/sessions/` only when needed.
+5. If the user asks to debug the LouisGo workflow, run `louisgo log --tail 30` and summarize `.louisgo/RUNLOG.md`.
 
 When the user message starts with a LouisGo dollar directive, treat it as an explicit command:
 
-Command selection: use `louisgo <subcommand>` by default. When working inside the `louisgo` source repository and `./dist/cli.js` exists, use `node ./dist/cli.js <subcommand>` so self-bootstrap runs the current local build instead of a stale global install.
+Command selection: when working inside the `louisgo` source repository and `./dist/cli.js` exists, use `node ./dist/cli.js <subcommand>`; otherwise use `louisgo <subcommand>` when available; if `louisgo` is not on PATH, use `npx --yes louisgo@latest <subcommand>`.
 
 - `$init`: run `louisgo init`.
 - `$start`: run `louisgo context`.

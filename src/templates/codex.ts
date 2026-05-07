@@ -20,7 +20,11 @@ When the user's message starts with one of the LouisGo dollar directives below, 
 
 ## Command Selection
 
-Use \`louisgo <subcommand>\` by default. When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\` so self-bootstrap runs the current local build instead of a stale global install.
+Use the best available LouisGo command runner:
+
+1. When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\` so self-bootstrap runs the current local build.
+2. Otherwise use \`louisgo <subcommand>\` when the global command is available.
+3. If \`louisgo\` is not on PATH, use \`npx --yes louisgo@latest <subcommand>\`.
 
 ## Directive Mapping
 
@@ -39,7 +43,7 @@ Use \`louisgo <subcommand>\` by default. When working inside the \`louisgo\` sou
 ## Rules
 
 - Always run the mapped \`louisgo\` command before answering a directive.
-- Command selection may replace \`louisgo <subcommand>\` with \`node ./dist/cli.js <subcommand>\` only for the local \`louisgo\` source repository.
+- Command selection may replace \`louisgo <subcommand>\` with \`node ./dist/cli.js <subcommand>\` for the local \`louisgo\` source repository, or with \`npx --yes louisgo@latest <subcommand>\` when no global command is available.
 - If \`.louisgo/\` is missing or incomplete, report the issue and suggest \`louisgo init\`.
 - \`HANDOFF.md\` is the formal recovery snapshot. \`STATE.md\` and \`MEMORY.md\` are supporting daily memory.
 - Do not mark work complete from narrative alone; use verification results, user confirmation, or protocol files.
@@ -75,8 +79,9 @@ ${options.action}
 
 Command selection:
 
-- Use \`louisgo <subcommand>\` by default.
-- When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\` so self-bootstrap runs the current local build instead of a stale global install.
+- When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\`.
+- Otherwise use \`louisgo <subcommand>\` when the global command is available.
+- If \`louisgo\` is not on PATH, use \`npx --yes louisgo@latest <subcommand>\`.
 
 Rules:
 
@@ -119,7 +124,7 @@ For ordinary coding requests, before changing files, inspect the available Louis
 
 When the user message starts with a LouisGo dollar directive, treat it as an explicit command:
 
-Command selection: use \`louisgo <subcommand>\` by default. When working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\` so self-bootstrap runs the current local build instead of a stale global install.
+Command selection: when working inside the \`louisgo\` source repository and \`./dist/cli.js\` exists, use \`node ./dist/cli.js <subcommand>\`; otherwise use \`louisgo <subcommand>\` when available; if \`louisgo\` is not on PATH, use \`npx --yes louisgo@latest <subcommand>\`.
 
 - \`$init\`: run \`louisgo init\`.
 - \`$start\`: run \`louisgo context\`.

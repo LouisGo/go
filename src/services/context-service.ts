@@ -96,7 +96,10 @@ export async function generateContext(
 
   const budgetTokens = normalizeBudget(options.budgetTokens);
   const paths = createProtocolPaths(status.workspaceRoot);
-  const sections = await createSections(status.workspaceRoot);
+  const protocolSections = await createSections(status.workspaceRoot);
+  const sections = isColdStartContext(status, protocolSections)
+    ? [createColdStartSection()]
+    : protocolSections;
   const hasContext = sections.some((s) => s.source === protocolRelativePaths.context);
   const header = createHeader({
     capsule: options.capsule === true,
@@ -232,6 +235,58 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
   }
 
   return sections;
+}
+
+function isColdStartContext(
+  status: Awaited<ReturnType<typeof checkProtocolStatus>>,
+  sections: readonly ContextSection[],
+): boolean {
+  if (
+    status.hasConfirmReq ||
+    status.recoverySource !== "state" ||
+    status.currentTask !== null ||
+    status.verificationStatus !== "missing"
+  ) {
+    return false;
+  }
+
+  const sources = new Set(sections.map((section) => section.source));
+  if (
+    sources.has(protocolRelativePaths.handoff) ||
+    sources.has(protocolRelativePaths.confirmReq) ||
+    sources.has(protocolRelativePaths.context) ||
+    sources.has(protocolRelativePaths.memory)
+  ) {
+    return false;
+  }
+
+  const mission = sections.find((section) => section.source === protocolRelativePaths.mission);
+  const state = sections.find((section) => section.source === protocolRelativePaths.state);
+
+  return (
+    mission?.content.includes("Describe the project goal in 1-3 durable bullets.") === true &&
+    state?.content.includes("focus: fill this with the current concrete development goal") === true
+  );
+}
+
+function createColdStartSection(): ContextSection {
+  return {
+    title: "Cold Start: No Project Memory Yet",
+    source: "cold-start",
+    content: [
+      "# Cold Start",
+      "",
+      "LouisGo is initialized, but no durable project memory or handoff exists yet.",
+      "",
+      "- Treat the user's current prompt and repository source as the task source.",
+      "- Existing project instructions, local skills, docs, source code, Git state, and verification commands remain authoritative.",
+      "- Do not expand LouisGo template files into prompt context until the project fills MISSION, MEMORY, CONTEXT, HANDOFF, or CONFIRM_REQ with real content.",
+      "- After meaningful work, run verification when appropriate and use `$finish` to create the first useful handoff.",
+    ].join("\n"),
+    layer: "runtime",
+    stability: "stable",
+    required: true,
+  };
 }
 
 function createHeader(params: {

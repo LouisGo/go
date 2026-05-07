@@ -5,24 +5,26 @@
 LouisGo 面向 AI 编程开发者，主路径必须足够简单：
 
 ```text
-npx louisgo init -> 直接和 AI 开发 -> $start 按需恢复 -> $finish 阶段交接
+npm install -g louisgo -> louisgo init -> 直接和 AI 开发 -> $start 按需恢复 -> $finish 阶段交接
 ```
 
 用户不应该记一堆生命周期命令。高级命令存在，但主要由 AI、测试和调试流程调用。
 
 | 入口            | 触发时机                                    | 产品效果                                                          |
 | --------------- | ------------------------------------------- | ----------------------------------------------------------------- |
-| `louisgo init`  | 一个 Git 项目第一次启用 LouisGo             | 创建 `.louisgo/` 协议和平台入口，让 AI 以后自动恢复上下文。       |
+| `npm install -g louisgo` | 首次使用 LouisGo 前                         | 提供稳定全局命令，避免 Codex 新会话恢复时找不到 `louisgo`。       |
+| `louisgo init`  | 一个 Git 项目第一次启用 LouisGo             | 创建最小 `.louisgo/` 协议和平台入口，让 AI 以后自动恢复上下文。   |
 | 自然对话        | 80%-90% 日常开发                            | AI 在改文件前读取 `louisgo context`，然后按用户最新 prompt 执行。 |
 | `$start`        | 语境失真、长任务重启、用户要求重新开始      | 重新编译上下文包，报告恢复来源、验证状态和第一步。                |
 | `$finish`       | 阶段完成、换会话、换机器、准备提交          | 生成正式 `HANDOFF.md`，记录验证、diff、阻塞和下一步。             |
 | `louisgo stats` | 需要判断 token 消耗、缓存命中和上下文膨胀时 | 汇总本地 context stats 和显式导入的 Codex token usage。           |
+| `louisgo skill` | 需要 LouisGo 预设行为 skill 时              | 按需启用或停用预设 skill，并阻止覆盖项目已有同名 skill。          |
 
 ## AI 行为契约
 
 AI 在启用 LouisGo 的仓库中工作时，应遵守这条顺序：
 
-1. 先读 `louisgo context`，确认任务上下文、恢复来源、验证状态和工作区状态。
+1. 先读 `louisgo context`，确认任务上下文、恢复来源、验证状态和工作区状态；刚初始化且没有真实记忆时，context 会进入冷启动旁路，只保留最小恢复提示。
 2. 把用户本轮 prompt 作为真实任务来源，不让旧记忆覆盖新指令。
 3. 做代码前检查相关源码、Git diff 和验证结果。
 4. 只把跨会话有用的事实写入 `STATE.md`、`MEMORY.md` 或 topic memory。
@@ -56,6 +58,7 @@ prompt 组装顺序：
 
 - `init` 后新会话能自动知道应该读 `.louisgo/`。
 - `context` 输出短、带来源、带预算，不塞入无关聊天历史。
+- 刚初始化且没有真实记忆时，LouisGo 不把模板文件塞进 prompt。
 - AI 能知道当前任务、验证状态、恢复来源和工作区是否有 diff。
 - 没有 `HANDOFF.md` 时，`STATE.md` / `MEMORY.md` 仍能恢复基本语境。
 - `$finish` 能留下足够接手的信息，而不是只有一句“已完成”。

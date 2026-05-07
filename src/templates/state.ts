@@ -1,4 +1,5 @@
 import type { LouisGoMode, VerificationStatus } from "../protocol/schemas.js";
+import { missingTaskId } from "../protocol/schemas.js";
 
 export interface StateTemplateOptions {
   readonly updatedAt: string;
@@ -13,7 +14,7 @@ export interface StateTemplateOptions {
 export function createStateTemplate(options: StateTemplateOptions): string {
   const mode = options.mode ?? "assist";
   const phase = options.phase ?? "idle";
-  const currentTask = options.currentTask ?? "T001";
+  const currentTask = options.currentTask ?? missingTaskId;
   const verification = options.verification ?? "missing";
   const gitHead = options.gitHead ?? "NO_HEAD";
   const diffHash = options.diffHash ?? "NO_DIFF";

@@ -43,7 +43,8 @@ describe("context 命令", () => {
     expect(stderr.text).toBe("");
     expect(stdout.text).toContain("# LouisGo Context Package");
     expect(stdout.text).toContain("Goal: 外部项目实验");
-    expect(stdout.text).toContain("Source: `.louisgo/MISSION.md`");
+    expect(stdout.text).toContain("Cold Start");
+    expect(stdout.text).toContain("Source: `cold-start`");
 
     const events = await readStatsEvents({ cwd: repo.path });
     expect(events).toHaveLength(1);
@@ -53,9 +54,9 @@ describe("context 命令", () => {
       event: "louisgo.context",
       confidence: "estimated",
     });
-    expect(
-      events[0]?.context?.sections.some((section) => section.source === ".louisgo/MISSION.md"),
-    ).toBe(true);
+    expect(events[0]?.context?.sections.some((section) => section.source === "cold-start")).toBe(
+      true,
+    );
   });
 
   it("协议缺失时提示先 init", async () => {

@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -36,14 +36,14 @@ describe("finish service HANDOFF_DRAFT 兼容生成", () => {
 
     expect(document.frontMatter).toMatchObject({
       mode: "assist",
-      taskId: "T001",
+      taskId: "NO_TASK",
       verification: "passed",
       generatedAt: "2026-05-01T12:30:00.000Z",
     });
     expect(document.body).toContain("验证状态：passed");
     expect(document.body).toContain("## 当前工作区");
     expect(document.body).toContain("接手判断：验证通过且对应当前工作区");
-    expect(document.body).toContain("无 Blocker。");
+    expect(document.body).toContain("未找到 BLOCKER.md。");
     expect(document.body).not.toContain("\n# Blocker\n");
   });
 
@@ -123,6 +123,7 @@ describe("finish service HANDOFF_DRAFT 兼容生成", () => {
     await using repo = await createInitializedRepo();
     const paths = createProtocolPaths(repo.path);
 
+    await mkdir(paths.adrDraftDir, { recursive: true });
     await writeFile(
       join(paths.adrDraftDir, "001-api.md"),
       createAdrDraftTemplate({ createdAt: timestamp, title: "API" }),

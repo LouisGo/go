@@ -36,7 +36,7 @@ describe("pause 命令", () => {
     expect(exitCode).toBe(0);
     expect(stderr.text).toBe("");
     expect(stdout.text).toContain("LouisGo 暂停状态已创建");
-    expect(stdout.text).toContain("当前任务：T001");
+    expect(stdout.text).toContain("当前任务：NO_TASK");
     expect(stdout.text).toContain("下一步：恢复时运行 louisgo status 查看协议状态");
   });
 

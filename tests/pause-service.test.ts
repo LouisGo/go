@@ -34,11 +34,11 @@ describe("pause service", () => {
     expect(result.status).toBe(pauseResultStatuses.created);
     expect(result.frontMatter).toMatchObject({
       mode: "assist",
-      taskId: "T001",
+      taskId: "NO_TASK",
       savedAt: "2026-05-01T12:10:00.000Z",
     });
     expect(result.frontMatter.diffHash).toMatch(/^[a-f0-9]{64}$/);
-    expect(document.body).toContain("当前任务：T001");
+    expect(document.body).toContain("task_id 使用 NO_TASK 占位");
   });
 
   it("已存在 Quick Save 时更新暂停点，并保留 BLOCKER 和 HANDOFF", async () => {

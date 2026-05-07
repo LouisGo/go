@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, rm, unlink, utimes, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, unlink, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -39,10 +39,7 @@ describe("协议完整性检查", () => {
     });
     expect(status.workspace.clean).toBe(false);
     expect(status.workspace.changedFiles).toBeGreaterThan(0);
-    expect(status.currentTask).toMatchObject({
-      id: "T001",
-      completed: false,
-    });
+    expect(status.currentTask).toBeNull();
   });
 
   it("报告缺失文件", async () => {
@@ -138,6 +135,7 @@ schema: louisgo-mission-v1
     const initResult = await initLouisGo({ cwd: repo.path, now });
     const paths = createProtocolPaths(initResult.workspaceRoot);
 
+    await mkdir(paths.adrDraftDir, { recursive: true });
     await writeFile(
       join(paths.adrDraftDir, "001-api.md"),
       createAdrDraftTemplate({ createdAt: timestamp, title: "API" }),

@@ -28,6 +28,8 @@ updated_at: "${options.updatedAt}"
 - Start/recover: \`louisgo context\`
 - Observe token/context stats: \`louisgo stats\`
 - Import Codex usage explicitly: \`louisgo stats import codex --days 7\`
+- List optional preset skills: \`louisgo skill list\`
+- Enable preset skills on demand: \`louisgo skill enable grill\` or \`louisgo skill enable caveman\`
 - Pending decision UI: \`louisgo confirm\`
 - Finish: \`louisgo finish\`
 - Pending decision: \`.louisgo/CONFIRM_REQ.md\`
@@ -44,13 +46,8 @@ updated_at: "${options.updatedAt}"
 - ADR 可以只有一段话（背景 + 决策合并）。
 - "影响"和"备选方案"只在有实际内容时才写。
 
-## Active Skills
+## Optional Skills
 
-Behavioral skills live in \`.louisgo/skills/\` as on-demand reference files. They are NOT auto-injected into the context package — read them when the situation calls for it.
-
-- **grill**: Stress-test a plan or design by interviewing the user relentlessly about every branch of the decision tree. Use when the user says "grill me" or wants to validate a design before committing to implementation.
-- **caveman**: Ultra-compressed communication — drop filler, articles, and pleasantries while keeping full technical accuracy. Use when the user says "caveman mode" or wants fewer tokens.
-
-Users can add, edit, or remove skill files. Invoke a skill explicitly when its scenario matches the current task.
+LouisGo presets are not installed by default. Use \`louisgo skill list\` to inspect availability and \`louisgo skill enable <name>\` to add one only when useful. If the project already has a same-name skill under \`.codex/skills/\` or \`.louisgo/skills/\`, LouisGo reports the conflict and does not overwrite it.
 `;
 }

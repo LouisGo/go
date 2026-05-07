@@ -92,11 +92,13 @@ describe("协议模板", () => {
     expect(document.body).toContain(".louisgo/test-results.json");
     expect(document.body).toContain("louisgo stats");
     expect(document.body).toContain("louisgo stats import codex");
+    expect(document.body).toContain("louisgo skill list");
+    expect(document.body).toContain("louisgo skill enable grill");
     expect(document.body).toContain("## ADR Guidance");
     expect(document.body).toContain("是否难以逆转");
-    expect(document.body).toContain("## Active Skills");
-    expect(document.body).toContain("on-demand reference");
-    expect(document.body).toContain("NOT auto-injected");
+    expect(document.body).toContain("## Optional Skills");
+    expect(document.body).toContain("not installed by default");
+    expect(document.body).toContain("does not overwrite");
     expect(document.body).toContain("grill");
     expect(document.body).toContain("caveman");
     expect(document.body).not.toContain("diagnose");

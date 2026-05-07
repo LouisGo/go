@@ -29,6 +29,9 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("node ./dist/cli.js <subcommand>");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
+    ).resolves.toContain("npx --yes louisgo@latest <subcommand>");
+    await expect(
+      readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
     ).resolves.toContain("启动");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
@@ -82,6 +85,9 @@ describe("Codex 集成安装", () => {
     );
     await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "node ./dist/cli.js <subcommand>",
+    );
+    await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
+      "npx --yes louisgo@latest <subcommand>",
     );
   });
 

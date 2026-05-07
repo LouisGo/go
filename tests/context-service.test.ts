@@ -16,6 +16,36 @@ const now = () => new Date("2026-05-01T12:00:00.000Z");
 describe("context service", () => {
   it("generates context package with sources and budget report", async () => {
     await using repo = await createInitializedRepo();
+    const paths = createProtocolPaths(repo.path);
+    await writeFile(
+      paths.mission,
+      `---
+schema: louisgo-mission-v1
+default_mode: assist
+updated_at: "2026-05-01T12:00:00.000Z"
+---
+
+# Mission
+
+- Build a durable prompt cache for AI coding.
+`,
+      "utf8",
+    );
+    await writeFile(
+      paths.memory,
+      `---
+schema: louisgo-memory-v1
+updated_at: "2026-05-01T12:00:00.000Z"
+---
+
+# Memory
+
+## Stable Notes
+
+- Keep context short.
+`,
+      "utf8",
+    );
 
     const result = await generateContext({
       cwd: repo.path,
@@ -32,6 +62,17 @@ describe("context service", () => {
     expect(result.content).toContain("Goal: experiment prompt cache");
     expect(result.sources).toContain(".louisgo/MISSION.md");
     expect(result.estimatedTokens).toBeLessThanOrEqual(result.budgetTokens + 500);
+  });
+
+  it("bypasses template-heavy protocol files on a fresh initialization", async () => {
+    await using repo = await createInitializedRepo();
+
+    const result = await generateContext({ cwd: repo.path, budgetTokens: 2_000 });
+
+    expect(result.content).toContain("Cold Start");
+    expect(result.content).toContain("no durable project memory or handoff exists yet");
+    expect(result.content).not.toContain("Describe the project goal");
+    expect(result.sources).toEqual(["cold-start"]);
   });
 
   it("generates subagent context capsule", async () => {

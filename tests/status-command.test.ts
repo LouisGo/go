@@ -23,7 +23,7 @@ describe("status 命令", () => {
     const program = createCli({ cwd: repo.path, stdout });
     await program.parseAsync(["node", "louisgo", "status"]);
 
-    expect(stdout.text).toContain("[assist/idle] 协议完整，当前任务 T001");
+    expect(stdout.text).toContain("[assist/idle] 协议完整，当前任务 无");
     expect(stdout.text).toContain("验证状态 missing");
     expect(stdout.text).toContain("恢复来源 STATE");
     expect(stdout.text).toContain("工作区：");

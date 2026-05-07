@@ -20,6 +20,8 @@
 - Codex skill 描述规范化：英文两句话模式、中文标题移入 body。
 - 上下文头部领域术语提示：CONTEXT.md 存在时自动添加术语提示。
 - Codex-first stats：本地 context token 估算、Codex usage 显式导入、cached token ratio 和 simulated savings。
+- 轻量初始化：`init` 只写最小协议，未形成真实记忆时 `context` 使用 cold-start 旁路。
+- 按需预设 skill：`louisgo skill list/enable/disable` 管理 grill/caveman，并检测项目同名 skill 冲突。
 
 ## 下一阶段候选
 

@@ -12,11 +12,12 @@ init 一次启用 -> 普通会话自动 context -> start 按需深度恢复 -> v
 
 - 本仓库可以用自己的 `.louisgo/` 恢复上下文。
 - `louisgo context` 可以生成带来源、预算和优先级契约的上下文包。
+- 刚初始化且没有真实项目记忆时，`louisgo context` 会使用 cold-start 旁路，不展开模板文件。
 - `louisgo status` 可以报告协议、恢复来源、验证状态和工作区 diff。
 - `louisgo verify` 可以运行项目门禁并写入机器可读结果。
 - `louisgo finish` 可以生成正式 `HANDOFF.md`，供新会话恢复。
 - `louisgo log` 可以输出本地诊断日志，帮助回看流程是否真正起作用。
-- 外部 Git 项目可以通过 `npx louisgo init` 或本地 `dist/cli.js init` 开始实验。
+- 外部 Git 项目可以通过全局 `louisgo init`、`npx --yes louisgo@latest init` 或本地 `dist/cli.js init` 开始实验。
 
 ## 文档边界
 
@@ -30,6 +31,7 @@ init 一次启用 -> 普通会话自动 context -> start 按需深度恢复 -> v
 ## 设计原则
 
 - 日常入口保持少：`init`、自然对话、`$start`、`$finish`。
+- 初始产物保持薄；行为 skill 通过 `louisgo skill` 按需启用，不能覆盖项目已有同名 skill。
 - 用户本轮 prompt 永远优先；LouisGo 只提供上下文前缀。
 - Markdown + YAML Front Matter 是默认协议格式；JSON 只用于验证结果。
 - `HANDOFF.md` 是正式恢复，`STATE.md` / `MEMORY.md` 是日常辅助。

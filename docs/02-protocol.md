@@ -6,8 +6,8 @@ LouisGo 协议目录位于仓库根目录：
 .louisgo/
 ├── MISSION.md
 ├── CAPABILITIES.md
-├── CONTEXT.md
 ├── STATE.md
+├── CONTEXT.md
 ├── MEMORY.md
 ├── ROADMAP.md
 ├── HANDOFF.md
@@ -33,6 +33,8 @@ LouisGo 协议目录位于仓库根目录：
     ├── verify.sh
     └── verify.ps1
 ```
+
+`louisgo init` 只创建最小可用集：`MISSION.md`、`CAPABILITIES.md`、`STATE.md`、`.gitignore`、`scripts/verify.sh` 和 `scripts/verify.ps1`。其他文件和目录在对应命令或真实内容出现时按需创建，避免新项目刚启用时把模板 prompt 塞进上下文。
 
 `HANDOFF_DRAFT.md` 和 `QUICK_SAVE.md` 是兼容旧流程的临时文件，不是主恢复来源。
 
@@ -159,7 +161,7 @@ updated_at: "2026-05-02T12:00:00.000Z"
 
 ### `skills/`
 
-行为引导 skill 目录。`louisgo init` 预设 2 个 skill，用户可以自由增删改。Skill 文件作为按需参考，不会自动注入上下文包——AI 根据 CAPABILITIES.md 中的场景描述按需读取。
+行为引导 skill 目录。`louisgo init` 不默认写入行为 skill。用户需要时通过 `louisgo skill list` 查看预设，再用 `louisgo skill enable grill` 或 `louisgo skill enable caveman` 按需启用。
 
 预设 skill：
 
@@ -169,7 +171,8 @@ updated_at: "2026-05-02T12:00:00.000Z"
 规则：
 
 - Skill 内容全部英文（AI 读取）。
-- `louisgo init` 生成预设 skill，重复 init 不覆盖已有文件。
+- 启用 skill 前会检查 `.codex/skills/` 和 `.louisgo/skills/` 中的同名 skill；发现冲突时提示用户，不覆盖项目已有内容。
+- `louisgo skill disable <name>` 只删除 LouisGo 管理的预设文件，不删除用户自维护文件。
 - Skill 不参与上下文自动注入，AI 显式调用时才读取对应文件。
 
 ### `HANDOFF.md`
@@ -249,7 +252,7 @@ diff hash 会忽略 LouisGo 生成型恢复和诊断文件：`test-results.json`
 | L3 正式恢复  | `HANDOFF.md`                                            | `$finish` / AI        | 阶段性变化     | 是                                       |
 | L4 活跃状态  | `STATE.md`、`CONFIRM_REQ.md`、`sessions/*.md`           | AI                    | 经常变化       | 是，必要时可按项目策略忽略 sessions 详情 |
 | L4b 本地观测 | `stats/*.jsonl`、`stats/imports.json`                   | CLI                   | 经常变化       | 默认否                                   |
-| L5 任务技能  | Codex skills、未来平台 skill/rule                       | `louisgo init` / 用户 | 按工作流变化   | 平台相关                                 |
+| L5 任务技能  | Codex skills、未来平台 skill/rule、`.louisgo/skills/*`  | `louisgo skill` / 用户 | 按工作流变化   | 平台相关或按项目策略                     |
 
 平台 prompt 组装应尽量保持 L0-L2 为稳定前缀，把 L3-L4 放在后面。语义恢复仍按确认请求、正式交接、活跃状态的顺序判断。
 

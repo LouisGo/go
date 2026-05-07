@@ -26,24 +26,27 @@ describe("README 使用说明", () => {
       "finish",
       "handoff",
       "codex",
+      "skill",
     ]) {
       expect(commandNames).toContain(command);
     }
 
     expect(handoff?.commands.map((command) => command.name())).toContain("promote");
-    expect(readme).toContain("npx louisgo init");
+    expect(readme).toContain("npm install -g louisgo");
+    expect(readme).toContain("npx --yes louisgo@latest init");
     expect(readme).toContain("$start");
     expect(readme).toContain("$finish");
     expect(readme).toContain("HANDOFF.md -> STATE.md -> MEMORY.md");
     expect(readme).toContain("louisgo context");
     expect(readme).toContain("louisgo stats");
+    expect(readme).toContain("louisgo skill list");
     expect(readme).toContain("louisgo log");
-    expect(readme).toContain("louisgo handoff promote");
+    expect(readme).toContain("handoff promote");
     expect(
       program.commands
         .find((command) => command.name() === "codex")
         ?.commands.map((command) => command.name()),
     ).toContain("setup");
-    expect(readme).toContain("louisgo codex setup");
+    expect(readme).toContain("codex setup");
   });
 });

@@ -1,19 +1,16 @@
 import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
 
 import { safeWriteFile, type SafeWriteResult } from "../fs/safe-write.js";
 import { findGitRoot } from "../fs/workspace.js";
+import { missingTaskId } from "../protocol/schemas.js";
 import { createProtocolPaths } from "../protocol/paths.js";
-import { createBlockerTemplate } from "../templates/blocker.js";
 import { createCapabilitiesTemplate } from "../templates/capabilities.js";
-import { createMemoryTemplate } from "../templates/memory.js";
 import { createMissionTemplate } from "../templates/mission.js";
-import { createRoadmapTemplate } from "../templates/roadmap.js";
-import { createLouisGoGitignoreTemplate, createRunLogTemplate } from "../templates/run-log.js";
-import { createCavemanSkill, createGrillSkill } from "../templates/skills.js";
+import { createLouisGoGitignoreTemplate } from "../templates/run-log.js";
 import { createStateTemplate } from "../templates/state.js";
 import { createVerifyPs1Template } from "../templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../templates/verify-sh.js";
+import { getCurrentGitSnapshot } from "../verify/freshness.js";
 
 export interface InitServiceOptions {
   readonly cwd?: string;
@@ -42,16 +39,8 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
   const workspaceRoot = await findGitRoot(options.cwd);
   const paths = createProtocolPaths(workspaceRoot);
   const timestamp = (options.now?.() ?? new Date()).toISOString();
-  const directories = [
-    paths.louisgoDir,
-    paths.scriptsDir,
-    paths.adrDir,
-    paths.adrDraftDir,
-    paths.memoryDir,
-    paths.sessionsDir,
-    paths.statsDir,
-    paths.skillsDir,
-  ];
+  const snapshot = await getCurrentGitSnapshot({ cwd: workspaceRoot });
+  const directories = [paths.louisgoDir, paths.scriptsDir];
 
   for (const directory of directories) {
     await mkdir(directory, { recursive: true });
@@ -63,28 +52,17 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
       content: createMissionTemplate({ updatedAt: timestamp }),
     },
     {
-      filePath: paths.roadmap,
-      content: createRoadmapTemplate(),
-    },
-    {
       filePath: paths.state,
-      content: createStateTemplate({ updatedAt: timestamp }),
-    },
-    {
-      filePath: paths.memory,
-      content: createMemoryTemplate({ updatedAt: timestamp }),
-    },
-    {
-      filePath: paths.blocker,
-      content: createBlockerTemplate(),
+      content: createStateTemplate({
+        updatedAt: timestamp,
+        currentTask: missingTaskId,
+        gitHead: snapshot.gitHead,
+        diffHash: snapshot.diffHash,
+      }),
     },
     {
       filePath: paths.gitignore,
       content: createLouisGoGitignoreTemplate(),
-    },
-    {
-      filePath: paths.runLog,
-      content: createRunLogTemplate({ updatedAt: timestamp }),
     },
     {
       filePath: paths.capabilities,
@@ -98,14 +76,6 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     {
       filePath: paths.verifyPs1,
       content: createVerifyPs1Template(),
-    },
-    {
-      filePath: join(paths.skillsDir, "grill.md"),
-      content: createGrillSkill(),
-    },
-    {
-      filePath: join(paths.skillsDir, "caveman.md"),
-      content: createCavemanSkill(),
     },
   ]);
 

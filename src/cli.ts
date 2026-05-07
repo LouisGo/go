@@ -13,6 +13,7 @@ import { registerHandoffPromoteCommand } from "./commands/handoff-promote.js";
 import { registerInitCommand } from "./commands/init.js";
 import { registerLogCommand } from "./commands/log.js";
 import { registerPauseCommand } from "./commands/pause.js";
+import { registerSkillCommand } from "./commands/skill.js";
 import { registerStatusCommand } from "./commands/status.js";
 import { registerStatsCommand } from "./commands/stats.js";
 import { registerVerifyCommand } from "./commands/verify.js";
@@ -49,6 +50,7 @@ export function createCli(options: CliOptions = {}): Command {
   registerFinishCommand(program, options);
   registerHandoffPromoteCommand(program, options);
   registerCodexCommand(program, options);
+  registerSkillCommand(program, options);
   registerLogCommand(program, options);
 
   return program;

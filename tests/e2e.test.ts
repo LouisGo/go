@@ -22,19 +22,20 @@ describe("CLI 端到端工作流", () => {
 
     const init = await runCli(repo.path, ["init"]);
     expect(init.stdout).toContain("LouisGo 初始化完成");
-    expect(init.stdout).toContain("创建文件：12");
+    expect(init.stdout).toContain("创建文件：6");
     expect(init.stdout).toContain("Codex 集成：完成");
     expect(init.stdout).toContain("下一步：新会话会自动读取 LouisGo 上下文");
 
     const initialStatus = await runCli(repo.path, ["status"]);
-    expect(initialStatus.stdout).toContain("[assist/idle] 协议完整，当前任务 T001");
+    expect(initialStatus.stdout).toContain("[assist/idle] 协议完整，当前任务 无");
     expect(initialStatus.stdout).toContain("验证状态 missing");
     expect(initialStatus.stdout).toContain("恢复来源 STATE");
 
     const context = await runCli(repo.path, ["context", "--goal", "E2E 外部项目实验"]);
     expect(context.stdout).toContain("# LouisGo Context Package");
     expect(context.stdout).toContain("Goal: E2E 外部项目实验");
-    expect(context.stdout).toContain("Source: `.louisgo/MISSION.md`");
+    expect(context.stdout).toContain("Cold Start");
+    expect(context.stdout).not.toContain("Source: `.louisgo/MISSION.md`");
 
     const verify = await runCli(repo.path, ["verify"], { allowedExitCodes: [1] });
     expect(verify.stdout).toContain("验证脚本：.louisgo/scripts/verify.sh");

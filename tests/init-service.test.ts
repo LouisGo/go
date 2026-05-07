@@ -9,10 +9,8 @@ import { describe, expect, it } from "vitest";
 import { workspaceErrorCodes } from "../src/fs/workspace.js";
 import { readFrontMatter } from "../src/protocol/frontmatter.js";
 import { createProtocolPaths } from "../src/protocol/paths.js";
-import { parseRoadmap } from "../src/protocol/roadmap.js";
 import {
   capabilitiesFrontMatterSchema,
-  memoryFrontMatterSchema,
   missionFrontMatterSchema,
   stateFrontMatterSchema,
 } from "../src/protocol/schemas.js";
@@ -31,23 +29,17 @@ describe("init 服务", () => {
 
     await expect(access(paths.louisgoDir)).resolves.toBeUndefined();
     await expect(access(paths.scriptsDir)).resolves.toBeUndefined();
-    await expect(access(paths.adrDraftDir)).resolves.toBeUndefined();
-    await expect(access(paths.memoryDir)).resolves.toBeUndefined();
-    await expect(access(paths.sessionsDir)).resolves.toBeUndefined();
-    await expect(access(paths.statsDir)).resolves.toBeUndefined();
-    await expect(access(paths.skillsDir)).resolves.toBeUndefined();
     await expect(access(paths.mission)).resolves.toBeUndefined();
-    await expect(access(paths.roadmap)).resolves.toBeUndefined();
     await expect(access(paths.state)).resolves.toBeUndefined();
-    await expect(access(paths.memory)).resolves.toBeUndefined();
-    await expect(access(paths.blocker)).resolves.toBeUndefined();
     await expect(access(paths.gitignore)).resolves.toBeUndefined();
-    await expect(access(paths.runLog)).resolves.toBeUndefined();
     await expect(access(paths.capabilities)).resolves.toBeUndefined();
     await expect(access(paths.verifySh)).resolves.toBeUndefined();
     await expect(access(paths.verifyPs1)).resolves.toBeUndefined();
-    await expect(access(join(paths.skillsDir, "grill.md"))).resolves.toBeUndefined();
-    await expect(access(join(paths.skillsDir, "caveman.md"))).resolves.toBeUndefined();
+    await expect(access(paths.roadmap)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(paths.memory)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(paths.blocker)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(paths.runLog)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(paths.skillsDir)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(join(paths.skillsDir, "diagnose.md"))).rejects.toMatchObject({
       code: "ENOENT",
     });
@@ -58,17 +50,12 @@ describe("init 服务", () => {
     const mission = await readFrontMatter(paths.mission, missionFrontMatterSchema);
     const capabilities = await readFrontMatter(paths.capabilities, capabilitiesFrontMatterSchema);
     const state = await readFrontMatter(paths.state, stateFrontMatterSchema);
-    const memory = await readFrontMatter(paths.memory, memoryFrontMatterSchema);
-    const roadmap = parseRoadmap(await readFile(paths.roadmap, "utf8"));
-    const runLog = await readFile(paths.runLog, "utf8");
     const verifyShStat = await stat(paths.verifySh);
 
     expect(mission.frontMatter.defaultMode).toBe("assist");
     expect(capabilities.body).toContain(".louisgo/scripts/verify.sh");
-    expect(state.frontMatter.currentTask).toBe("T001");
-    expect(memory.body).toContain("HANDOFF.md");
-    expect(roadmap.firstIncompleteTask?.id).toBe("T001");
-    expect(runLog).toContain("schema: louisgo-runlog-v1");
+    expect(capabilities.body).toContain("louisgo skill enable grill");
+    expect(state.frontMatter.currentTask).toBe("NO_TASK");
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("RUNLOG.md");
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("stats/");
     expect(verifyShStat.mode & 0o111).toBeGreaterThan(0);
