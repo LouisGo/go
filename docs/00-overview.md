@@ -32,7 +32,7 @@ This loop has been self-validated in this repository:
 ## Design Principles
 
 - Keep daily entry points small: `init`, natural conversation, `$start`, and `$finish`.
-- Keep initial output thin; behavior skills are enabled on demand with `louisgo skill` and never overwrite same-name project skills.
+- Keep initial output thin; behavior skills are enabled on demand with `louisgo skill`, discovered through a manifest, lazy-loaded by Codex, and never overwrite same-name project skills.
 - The current user prompt always wins; LouisGo only provides a context prefix.
 - Markdown plus YAML front matter is the default protocol format; JSON is reserved for verification results.
 - `HANDOFF.md` is formal recovery; `STATE.md` and `MEMORY.md` support daily recovery.

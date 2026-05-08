@@ -13,8 +13,8 @@ updated_at: "${options.updatedAt}"
 ## Daily Loop
 
 - Setup once: \`louisgo init\`
-- Restore when needed: \`$start\` or \`louisgo context --goal "<task>"\`
-- Work normally: AI reads this prompt cache before changing files.
+- Restore at task boundaries: \`$start\` or \`louisgo context --goal "<task>"\`
+- Reuse the last context while the task and workspace state stay stable.
 - Finish a phase: \`$finish\` or \`louisgo finish\`
 
 ## Verify
@@ -30,6 +30,9 @@ updated_at: "${options.updatedAt}"
 - Import Codex usage explicitly: \`louisgo stats import codex --days 7\`
 - List optional preset skills: \`louisgo skill list\`
 - Enable preset skills on demand: \`louisgo skill enable grill\` or \`louisgo skill enable caveman\`
+- Local skill discovery uses \`.louisgo/skills/manifest.json\`; if it is missing, LouisGo falls back to scanning \`.louisgo/skills/*.md\` and \`.louisgo/skills/*/SKILL.md\`.
+- Skill bodies are lazy-loaded only when the user explicitly triggers a matching skill by name, alias, or description.
+- Claude support is reserved for a future manifest/agent adapter.
 - Pending decision UI: \`louisgo confirm\`
 - Finish: \`louisgo finish\`
 - Clear project-local LouisGo data with an interactive risk prompt: \`louisgo clear\`
@@ -49,6 +52,6 @@ updated_at: "${options.updatedAt}"
 
 ## Optional Skills
 
-LouisGo presets are not installed by default. Use \`louisgo skill list\` to inspect availability and \`louisgo skill enable <name>\` to add one only when useful. If the project already has a same-name skill under \`.codex/skills/\` or \`.louisgo/skills/\`, LouisGo reports the conflict and does not overwrite it.
+LouisGo presets are not installed by default. Use \`louisgo skill list\` to inspect availability and \`louisgo skill enable <name>\` to add one only when useful. Enabling a skill writes the skill file plus \`.louisgo/skills/manifest.json\` so Codex can discover metadata first and read the full skill only when triggered. If the project already has a same-name skill under \`.codex/skills/\` or \`.louisgo/skills/\`, LouisGo reports the conflict and does not overwrite it.
 `;
 }

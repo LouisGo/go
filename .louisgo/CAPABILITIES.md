@@ -1,47 +1,43 @@
 ---
 schema: louisgo-capabilities-v1
-updated_at: "2026-05-04T06:21:00.000Z"
+updated_at: "2026-05-08T13:55:47.718Z"
 ---
 
 # Capabilities
 
-## Daily Commands
+## Daily Loop
 
-- `$init`: initialize the `.louisgo/` protocol and install the required AI integration for the current platform.
-- Natural conversation: AI runs `louisgo context` before editing; ordinary new sessions do not require repeated `$start`.
-- `$start`: manual deep recovery; run `louisgo context` and report recovery source, verification state, and first action.
-- `$finish`: finish the phase and generate formal `.louisgo/HANDOFF.md`.
-
-## Context
-
-- Main recovery command: `louisgo context --goal "<current goal>" --budget <tokens>`
-- Subagent capsule: `louisgo context --capsule --goal "<subtask>" --budget <tokens>`
-- Assembly order: MISSION/CAPABILITIES -> MEMORY -> HANDOFF -> CONFIRM_REQ/STATE.
-- Output must include sources, budget report, and the user-prompt priority contract.
-
-## Stats
-
-- Local observation command: `louisgo stats`
-- Explicit Codex usage import: `louisgo stats import codex --days 7`
-- Stats store only token numbers, section metadata, and source file fingerprints. They do not store prompts, chat text, or source code.
+- Setup once: `louisgo init`
+- Restore at task boundaries: `$start` or `louisgo context --goal "<task>"`
+- Reuse the last context while the task and workspace state stay stable.
+- Finish a phase: `$finish` or `louisgo finish`
 
 ## Verify
 
-- macOS / Linux command: `.louisgo/scripts/verify.sh`
-- Windows command: `.louisgo/scripts/verify.ps1`
+- Run verification: `louisgo verify`
+- Default init does not copy verify scripts into the project.
 - Result: `.louisgo/test-results.json`
-- Current project verification includes `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm pack:check`.
-- `louisgo status` reports whether the Git workspace still has pending changes, so a passed verification result is not confused with a clean result boundary.
 
-## Signals
+## Context
 
-- Pending confirmation: `.louisgo/CONFIRM_REQ.md`
-- Friendly confirmation entry: `louisgo confirm`, `louisgo confirm --choice <A|B|C|D>`, or `louisgo confirm --interactive`
-- Diagnostic log: `.louisgo/RUNLOG.md` or `louisgo log --tail 30`
-- Formal handoff: `.louisgo/HANDOFF.md`
-- Rolling state: `.louisgo/STATE.md`
-- Stable memory index: `.louisgo/MEMORY.md`
-- Optional domain glossary: `.louisgo/CONTEXT.md`
+- Start/recover: `louisgo context`
+- Observe token/context stats: `louisgo stats`
+- Import Codex usage explicitly: `louisgo stats import codex --days 7`
+- List optional preset skills: `louisgo skill list`
+- Enable preset skills on demand: `louisgo skill enable grill` or `louisgo skill enable caveman`
+- Local skill discovery uses `.louisgo/skills/manifest.json`; if it is missing, LouisGo falls back to scanning `.louisgo/skills/*.md` and `.louisgo/skills/*/SKILL.md`.
+- Skill bodies are lazy-loaded only when the user explicitly triggers a matching skill by name, alias, or description.
+- Claude support is reserved for a future manifest/agent adapter.
+- Pending decision UI: `louisgo confirm`
+- Finish: `louisgo finish`
+- Clear project-local LouisGo data with an interactive risk prompt: `louisgo clear`
+- Pending decision: `.louisgo/CONFIRM_REQ.md`
+
+## AI Contract
+
+- User prompt is the task source; LouisGo files only provide context.
+- Source, Git status, and verification results override memory.
+- Write only durable facts to `STATE.md` or `MEMORY.md`; avoid chat logs.
 
 ## ADR Guidance
 
@@ -49,11 +45,6 @@ updated_at: "2026-05-04T06:21:00.000Z"
 - An ADR can be a single paragraph when background and decision fit together.
 - Include impact and alternatives only when they add useful information.
 
-## Active Skills
+## Optional Skills
 
-Behavioral skills live in `.louisgo/skills/` as on-demand reference files. They are NOT auto-injected into the context package; read them only when the situation calls for it.
-
-- **grill**: Stress-test a plan or design by interviewing the user relentlessly about every branch of the decision tree. Use when the user says "grill me" or wants to validate a design before committing to implementation.
-- **caveman**: Ultra-compressed communication that drops filler, articles, and pleasantries while keeping full technical accuracy. Use when the user says "caveman mode" or wants fewer tokens.
-
-Users can add, edit, or remove skill files. Invoke a skill explicitly when its scenario matches the current task.
+LouisGo presets are not installed by default. Use `louisgo skill list` to inspect availability and `louisgo skill enable <name>` to add one only when useful. Enabling a skill writes the skill file plus `.louisgo/skills/manifest.json` so Codex can discover metadata first and read the full skill only when triggered. If the project already has a same-name skill under `.codex/skills/` or `.louisgo/skills/`, LouisGo reports the conflict and does not overwrite it.

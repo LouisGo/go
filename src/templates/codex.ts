@@ -8,13 +8,24 @@ description: "Restores project context from .louisgo/ protocol files and maps Lo
 
 When a repository contains \`.louisgo/\`, treat LouisGo files as the project memory and recovery protocol.
 
-For ordinary coding requests in an enabled repo, read the available recovery context before changing files:
+For ordinary coding work in an enabled repo, refresh recovery context at task boundaries:
 
-1. Run \`louisgo context\` to get the compiled prompt context package.
-2. If the context package or status reports \`.louisgo/CONFIRM_REQ.md\`, run \`louisgo confirm\` and present the choices before continuing.
-3. If \`louisgo context\` is unavailable, fall back to reading \`.louisgo/CONFIRM_REQ.md\`, \`.louisgo/HANDOFF.md\`, \`.louisgo/STATE.md\`, and \`.louisgo/MEMORY.md\`.
-4. Topic files under \`.louisgo/memory/\` only when relevant.
-5. If the user asks to debug whether LouisGo helped, run \`louisgo log --tail 30\` and summarize \`.louisgo/RUNLOG.md\`.
+1. Run \`louisgo context\` on the first repository task in a new session, or before the first file edit after the branch, goal, or \`.louisgo/\` state changes.
+2. If you already ran \`louisgo context\` for the same task and workspace state, keep using that context; use \`louisgo status\` for a lightweight freshness check.
+3. If the context package or status reports \`.louisgo/CONFIRM_REQ.md\`, run \`louisgo confirm\` and present the choices before continuing.
+4. If \`louisgo context\` is unavailable, fall back to reading \`.louisgo/CONFIRM_REQ.md\`, \`.louisgo/HANDOFF.md\`, \`.louisgo/STATE.md\`, and \`.louisgo/MEMORY.md\`.
+5. Topic files under \`.louisgo/memory/\` only when relevant.
+6. If the user asks to debug whether LouisGo helped, run \`louisgo log --tail 30\` and summarize \`.louisgo/RUNLOG.md\`.
+
+## Local Skills
+
+LouisGo local skills use a manifest-plus-lazy-load pattern:
+
+- Discovery index: \`.louisgo/skills/manifest.json\`.
+- Fallback discovery when the manifest is absent: scan \`.louisgo/skills/*.md\` and \`.louisgo/skills/*/SKILL.md\` front matter.
+- Treat each skill's \`name\`, \`description\`, and aliases as trigger metadata.
+- Do not read full skill files during ordinary recovery. When the user invokes a matching skill by name, alias, or trigger phrase, read only that skill file and apply it.
+- Codex is the active adapter. Claude support is reserved for a future generated \`CLAUDE.md\` or plugin manifest adapter.
 
 When the user's message starts with one of the LouisGo dollar directives below, treat it as an explicit workflow command, not ordinary prose.
 
@@ -115,8 +126,11 @@ export function createCodexAgentsBlock(): string {
 When this repository contains \`.louisgo/\`, use LouisGo as a project-local recovery protocol.
 
 - Existing project instructions in this file remain authoritative.
-- Before changing files, run \`louisgo context\`.
+- On the first repository task in a new session, or before the first file edit after the branch, goal, or \`.louisgo/\` state changes, run \`louisgo context\`.
+- If \`louisgo context\` already ran for the same task and workspace state, keep using that context; use \`louisgo status\` for a lightweight freshness check.
 - If context or status reports \`.louisgo/CONFIRM_REQ.md\`, run \`louisgo confirm\` and present the choices before continuing.
+- Local skill discovery uses \`.louisgo/skills/manifest.json\`. If it is absent, scan \`.louisgo/skills/*.md\` and \`.louisgo/skills/*/SKILL.md\` front matter. Do not read full skill files by default; when the user invokes a matching skill by name, alias, or trigger phrase, read only that skill file and apply it.
+- Codex is the active local-skill adapter; Claude support is reserved for a future \`CLAUDE.md\` or plugin manifest adapter.
 - For explicit dollar directives, route through the global \`louisgo\` CLI:
   - \`$start\` / \`$context\`: \`louisgo context\`
   - \`$status\`: \`louisgo status\`

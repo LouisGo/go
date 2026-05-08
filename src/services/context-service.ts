@@ -14,6 +14,7 @@ import {
   type ProtocolIssue,
   type StatusServiceOptions,
 } from "./status-service.js";
+import { buildLocalSkillIndex, renderLocalSkillIndex } from "./skill-service.js";
 
 export const contextServiceErrorCodes = {
   protocolIncomplete: "PROTOCOL_INCOMPLETE",
@@ -97,10 +98,14 @@ export async function generateContext(
   const budgetTokens = normalizeBudget(options.budgetTokens);
   const paths = createProtocolPaths(status.workspaceRoot);
   const protocolSections = await createSections(status.workspaceRoot);
+  const skillSections = protocolSections.filter(
+    (section) => section.source === protocolRelativePaths.skillsManifest,
+  );
   const sections = isColdStartContext(status, protocolSections)
-    ? [createColdStartSection()]
+    ? [createColdStartSection(), ...skillSections]
     : protocolSections;
   const hasContext = sections.some((s) => s.source === protocolRelativePaths.context);
+  const hasLocalSkills = sections.some((s) => s.source === protocolRelativePaths.skillsManifest);
   const header = createHeader({
     capsule: options.capsule === true,
     mode: status.mode,
@@ -112,6 +117,7 @@ export async function generateContext(
     workspaceSummary: formatWorkspaceSummary(status.workspace),
     budgetTokens,
     hasContext,
+    hasLocalSkills,
     ...(options.goal === undefined ? {} : { goal: options.goal }),
   });
   const compiled = compileSections({
@@ -152,6 +158,7 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
   const state = await readIfExists(paths.state);
   const memory = await readIfExists(paths.memory);
   const context = await readIfExists(paths.context);
+  const localSkillIndex = await buildLocalSkillIndex(workspaceRoot);
 
   sections.push(
     {
@@ -188,6 +195,17 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
       title: "L2 Domain Glossary: CONTEXT.md",
       source: protocolRelativePaths.context,
       content: context,
+      layer: "L2",
+      stability: "stable",
+      required: false,
+    });
+  }
+
+  if (localSkillIndex !== null) {
+    sections.push({
+      title: "L2 Local Skill Index: skills/manifest.json",
+      source: protocolRelativePaths.skillsManifest,
+      content: renderLocalSkillIndex(localSkillIndex),
       layer: "L2",
       stability: "stable",
       required: false,
@@ -301,6 +319,7 @@ function createHeader(params: {
   readonly workspaceSummary: string;
   readonly budgetTokens: number;
   readonly hasContext?: boolean;
+  readonly hasLocalSkills?: boolean;
 }): string {
   const title = params.capsule ? "LouisGo Subagent Context Capsule" : "LouisGo Context Package";
   const goal = params.goal?.trim();
@@ -360,6 +379,11 @@ function createHeader(params: {
     ...(params.hasContext === true
       ? [
           "- Domain terms are defined in CONTEXT.md \u2014 use the project's own vocabulary, do not introduce synonyms.",
+        ]
+      : []),
+    ...(params.hasLocalSkills === true
+      ? [
+          "- Local skills are indexed in `.louisgo/skills/manifest.json`; read the matched skill file only when the user invokes it.",
         ]
       : []),
     "",

@@ -1,0 +1,41 @@
+{
+  "schema": "louisgo-local-skill-index-v1",
+  "platforms": {
+    "codex": {
+      "status": "active",
+      "loadMode": "lazy",
+      "entryPoint": "AGENTS.md"
+    },
+    "claude": {
+      "status": "reserved",
+      "loadMode": "future",
+      "entryPoint": "CLAUDE.md"
+    }
+  },
+  "skills": [
+    {
+      "id": "caveman",
+      "name": "caveman",
+      "description": "Ultra-compressed communication mode. Cuts token usage ~75% by dropping filler, articles, and pleasantries while keeping full technical accuracy. Use when user says \"caveman mode\", \"talk like caveman\", \"use caveman\", \"less tokens\", \"be brief\", or invokes /caveman.",
+      "aliases": [
+        "caveman",
+        "cavemen"
+      ],
+      "relativePath": ".louisgo/skills/caveman.md",
+      "managed": true,
+      "format": "markdown"
+    },
+    {
+      "id": "grill",
+      "name": "grill-me",
+      "description": "Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when user wants to stress-test a plan, get grilled on their design, or mentions \"grill me\".",
+      "aliases": [
+        "grill",
+        "grill-me"
+      ],
+      "relativePath": ".louisgo/skills/grill.md",
+      "managed": true,
+      "format": "markdown"
+    }
+  ]
+}

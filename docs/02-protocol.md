@@ -23,6 +23,7 @@ The LouisGo protocol directory lives at the repository root:
 ├── memory/
 ├── sessions/
 ├── skills/
+│   └── manifest.json
 ├── ADR/
 │   └── draft/
 └── scripts/
@@ -169,9 +170,13 @@ Preset skills:
 Rules:
 
 - Skill content is English because AI reads it.
+- Enabling or disabling a LouisGo-managed skill refreshes `.louisgo/skills/manifest.json`.
+- The manifest is the discovery index: Codex reads metadata first, then lazy-loads only the matched skill file when the user invokes a skill by name, alias, or trigger phrase.
+- If the manifest is absent, Codex falls back to scanning `.louisgo/skills/*.md` and `.louisgo/skills/*/SKILL.md` front matter.
+- The manifest has a reserved Claude slot so a future `CLAUDE.md` or plugin manifest adapter can use the same skill metadata.
 - Before enabling a skill, LouisGo checks `.codex/skills/` and `.louisgo/skills/` for same-name skills. If it finds a conflict, it reports it and does not overwrite project content.
 - `louisgo skill disable <name>` only removes LouisGo-managed preset files. It does not delete user-maintained files.
-- Skills are not auto-injected into context. AI reads a skill only when explicitly invoked.
+- Skill bodies are not auto-injected into context. `louisgo context` includes at most the local skill index.
 
 ### `HANDOFF.md`
 
@@ -246,7 +251,7 @@ The diff hash ignores generated LouisGo recovery and diagnostic files: `test-res
 | --- | --- | --- | --- | --- |
 | L0 Platform entry | Project agent instruction files and future platform adapters | `louisgo init` / user | Low | Yes |
 | L1 Project contract | `MISSION.md`, `CAPABILITIES.md` | Mostly user, AI-assisted | Low | Yes |
-| L2 Stable index | `MEMORY.md`, `CONTEXT.md`, `skills/*.md`, `memory/*.md` | AI / user | Low | Yes |
+| L2 Stable index | `MEMORY.md`, `CONTEXT.md`, `skills/manifest.json`, `skills/*.md`, `memory/*.md` | AI / user | Low | Yes |
 | L3 Formal recovery | `HANDOFF.md` | `$finish` / AI | Phase-based | Yes |
 | L4 Active state | `STATE.md`, `CONFIRM_REQ.md`, `sessions/*.md` | AI | Frequent | Yes, with project-specific session policy if needed |
 | L4b Local observation | `stats/*.jsonl`, `stats/imports.json` | CLI | Frequent | No by default |

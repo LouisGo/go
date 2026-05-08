@@ -1,33 +1,26 @@
 ---
 schema: louisgo-mission-v1
 default_mode: assist
-updated_at: "2026-05-03T13:23:31.000Z"
+updated_at: "2026-05-08T13:55:47.718Z"
 ---
 
 # Mission
 
 ## Goal
 
-- LouisGo is a Git-synced prompt cache and context compiler for AI coding recovery, verification, and handoff.
-- Daily entry points stay minimal: `$init` creates project protocol and AI integration, `$start` restores context, and `$finish` creates a formal handoff.
-- Even without a handoff, a new session should recover required context through `louisgo context` from project contract, stable memory, and active state.
+- Describe the project goal in 1-3 durable bullets.
+- LouisGo keeps AI coding context in Git so new sessions can recover without chat history.
 
 ## Constraints
 
-- Use Node.js >= 20, TypeScript, commander, zod, gray-matter, tsup, and vitest.
-- Package name is `louisgo`; CLI entry is `dist/cli.js`.
-- Protocol files use Markdown plus YAML front matter; default context must be short, readable, diffable, and committable.
-- Do not introduce background services, vector databases, or heavyweight external memory unless the user explicitly confirms a direction change.
-- The current user prompt always wins; LouisGo only provides a sourced, budgeted, trimmable context prefix.
-- Source code, Git state, and verification results override memory files. Memory can help, but cannot replace fact checks.
+- Record stable stack, naming, compatibility, release, and security constraints here.
+- User prompts override cached context; source, Git, and verification facts override memory.
 
 ## Confirm First
 
-- npm publishing, licensing, package naming, public protocol breaking changes, and broad refactors.
-- External model calls, cloud sync, databases, vector retrieval, or resident background services.
-- Two or more viable directions, or any conflict between user instructions and this file.
+- Publishing, licensing, package naming, public protocol breakage, and broad refactors.
+- Two or more viable directions, or instructions that conflict with this file.
 
 ## Decision Records
 
 - For public APIs, persisted formats, critical dependencies, or cross-module boundary changes, draft an ADR under `.louisgo/ADR/draft/` first.
-- ADR drafts become formal ADRs only after user confirmation.

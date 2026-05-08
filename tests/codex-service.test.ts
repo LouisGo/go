@@ -75,6 +75,9 @@ describe("Codex 集成安装", () => {
       readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
     ).resolves.toContain("Restores project context from .louisgo/");
     await expect(
+      readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
+    ).resolves.toContain(".louisgo/skills/manifest.json");
+    await expect(
       readFile(join(codex.path, "skills", "louisgo", "agents", "openai.yaml"), "utf8"),
     ).resolves.toContain("read .louisgo memory");
     await expect(readFile(join(codex.path, "AGENTS.md"), "utf8")).resolves.toContain(
@@ -85,6 +88,9 @@ describe("Codex 集成安装", () => {
     );
     await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "Existing project instructions",
+    );
+    await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
+      ".louisgo/skills/manifest.json",
     );
     await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "npx --yes louisgo@latest <subcommand>",

@@ -107,6 +107,7 @@ async function runSkillAction(
 function writeListResult(stdout: Writable, result: ListSkillsResult): void {
   const theme = createOutputTheme(stdout);
   stdout.write(`${headline(theme, "✨", "LouisGo preset skills", result.workspaceRoot)}\n`);
+  stdout.write(`  manifest: ${theme.path(result.manifestPath)}\n`);
 
   for (const skill of result.skills) {
     const state = skill.enabled ? "enabled" : skill.conflicts.length > 0 ? "blocked" : "available";
@@ -128,12 +129,14 @@ function writeEnableResult(stdout: Writable, result: EnableSkillResult): void {
   if (result.status === skillEnableStatuses.enabled) {
     stdout.write(`${headline(theme, "✓", "LouisGo skill enabled")}\n`);
     stdout.write(`  ${theme.bold(result.id)} → ${theme.path(result.relativePath)}\n`);
+    stdout.write(`  manifest → ${theme.path(result.manifestPath)}\n`);
     return;
   }
 
   if (result.status === skillEnableStatuses.unchanged) {
     stdout.write(`${headline(theme, "•", "LouisGo skill already enabled")}\n`);
     stdout.write(`  ${theme.bold(result.id)} → ${theme.path(result.relativePath)}\n`);
+    stdout.write(`  manifest → ${theme.path(result.manifestPath)}\n`);
     return;
   }
 
@@ -151,6 +154,7 @@ function writeDisableResult(stdout: Writable, result: DisableSkillResult): void 
   if (result.status === skillDisableStatuses.disabled) {
     stdout.write(`${headline(theme, "✓", "LouisGo skill disabled")}\n`);
     stdout.write(`  ${theme.bold(result.id)} → ${theme.path(result.relativePath)}\n`);
+    stdout.write(`  manifest → ${theme.path(result.manifestPath)}\n`);
     return;
   }
 

@@ -46,6 +46,10 @@ export const protocolStatsFileNames = {
   imports: "imports.json",
 } as const;
 
+export const protocolSkillFileNames = {
+  manifest: "manifest.json",
+} as const;
+
 export const protocolScriptNames = {
   verifySh: "verify.sh",
   verifyPs1: "verify.ps1",
@@ -76,6 +80,10 @@ export const protocolRelativePaths = {
   statsImports: protocolRelativePath(protocolDirectoryNames.stats, protocolStatsFileNames.imports),
   scriptsDir: protocolRelativePath(protocolDirectoryNames.scripts),
   skillsDir: protocolRelativePath(protocolDirectoryNames.skills),
+  skillsManifest: protocolRelativePath(
+    protocolDirectoryNames.skills,
+    protocolSkillFileNames.manifest,
+  ),
   verifySh: protocolRelativePath(protocolDirectoryNames.scripts, protocolScriptNames.verifySh),
   verifyPs1: protocolRelativePath(protocolDirectoryNames.scripts, protocolScriptNames.verifyPs1),
 } as const;
@@ -106,6 +114,7 @@ export interface ProtocolPaths {
   readonly statsImports: string;
   readonly scriptsDir: string;
   readonly skillsDir: string;
+  readonly skillsManifest: string;
   readonly verifySh: string;
   readonly verifyPs1: string;
 }
@@ -151,6 +160,11 @@ export function createProtocolPaths(workspaceRoot: string): ProtocolPaths {
     ),
     scriptsDir: absoluteProtocolPath(root, protocolDirectoryNames.scripts),
     skillsDir: absoluteProtocolPath(root, protocolDirectoryNames.skills),
+    skillsManifest: absoluteProtocolPath(
+      root,
+      protocolDirectoryNames.skills,
+      protocolSkillFileNames.manifest,
+    ),
     verifySh: absoluteProtocolPath(
       root,
       protocolDirectoryNames.scripts,

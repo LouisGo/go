@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { createProtocolPaths } from "../src/protocol/paths.js";
 import { generateContext } from "../src/services/context-service.js";
 import { initLouisGo } from "../src/services/init-service.js";
+import { enableSkill } from "../src/services/skill-service.js";
 
 const execFileAsync = promisify(execFile);
 const now = () => new Date("2026-05-01T12:00:00.000Z");
@@ -221,11 +222,22 @@ updated_at: "2026-05-01T12:00:00.000Z"
     expect(result.content).not.toContain("Domain terms are defined in CONTEXT.md");
   });
 
-  it("skills are not auto-injected into context package", async () => {
+  it("includes local skill index without auto-injecting skill bodies", async () => {
     await using repo = await createInitializedRepo();
+    await enableSkill("caveman", { cwd: repo.path });
+    await enableSkill("grill", { cwd: repo.path });
 
     const result = await generateContext({ cwd: repo.path, budgetTokens: 8_000 });
 
+    expect(result.content).toContain("L2 Local Skill Index: skills/manifest.json");
+    expect(result.content).toContain("Source: `.louisgo/skills/manifest.json`");
+    expect(result.content).toContain("**caveman** (caveman)");
+    expect(result.content).toContain("**grill** (grill-me)");
+    expect(result.content).toContain(".louisgo/skills/caveman.md");
+    expect(result.content).toContain("Read only the matched skill file");
+    expect(result.content).not.toContain("Respond terse like smart caveman");
+    expect(result.content).not.toContain("Ask the questions one at a time.");
+    expect(result.sources).toContain(".louisgo/skills/manifest.json");
     expect(result.sources).not.toContain(".louisgo/skills/caveman.md");
     expect(result.sources).not.toContain(".louisgo/skills/diagnose.md");
     expect(result.sources).not.toContain(".louisgo/skills/grill.md");

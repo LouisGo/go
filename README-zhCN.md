@@ -17,7 +17,7 @@ npm install -g louisgo -> louisgo init -> 自然对话开发 -> $start 按需深
 | 安装命令      | `npm install -g louisgo`   | 让 Codex 新会话可以稳定调用 `louisgo context`、`status`、`finish`。      |
 | 启用项目      | `louisgo init`             | 创建最小 `.louisgo/` 协议、Codex skills 和项目 agent 指令入口。          |
 | 日常开发      | 直接向 AI 提需求           | AI 根据项目 agent 指令先运行 `louisgo context`，再读必要源码并执行任务。 |
-| 按需技能      | `louisgo skill enable ...` | 仅在需要时启用预设 skill，若项目已有同名 skill 则阻止覆盖。              |
+| 按需技能      | `louisgo skill enable ...` | 仅在需要时启用预设 skill，写入本地 manifest，并在同名冲突时阻止覆盖。    |
 | 语境失真      | 输入 `$start`              | 重新编译上下文包，优先恢复 `HANDOFF.md -> STATE.md -> MEMORY.md`。       |
 | 阶段收尾      | 输入 `$finish`             | 记录验证状态、Git diff、阻塞和下一步，生成正式 `.louisgo/HANDOFF.md`。   |
 | 项目清理      | `louisgo clear ...`        | 明确确认后删除当前项目 `.louisgo/`，并移除项目 agent 指令管理块。        |
@@ -108,7 +108,7 @@ louisgo skill enable grill
 louisgo skill enable caveman
 ```
 
-预设 skill 不会在 `init` 时默认写入项目。启用时会检查 `.codex/skills/` 和 `.louisgo/skills/` 的同名 skill，发现冲突会提示用户，不覆盖项目已有内容。
+预设 skill 不会在 `init` 时默认写入项目。启用时会检查 `.codex/skills/` 和 `.louisgo/skills/` 的同名 skill，发现冲突会提示用户，不覆盖项目已有内容。成功启用后会写入 `.louisgo/skills/manifest.json`，让 Codex 先读元数据索引，再按需读取匹配的 skill 文件。
 
 如果要从当前项目移除 LouisGo 本地协议和缓存，先预览：
 
@@ -163,7 +163,7 @@ node "/Users/louistation/Documents/New project/dist/cli.js" finish
 | `.louisgo/RUNLOG.md`       | 本地诊断日志，默认被 `.louisgo/.gitignore` 忽略，适合调试时发送。     |
 | `.louisgo/stats/`          | 本地 stats 事件和 Codex 导入索引，默认被 `.louisgo/.gitignore` 忽略。 |
 | `.louisgo/ROADMAP.md`      | 需要跨会话追踪稳定任务时按需创建。                                    |
-| `.louisgo/skills/`         | 按需启用的 LouisGo 预设 skill。                                       |
+| `.louisgo/skills/`         | 按需启用的 LouisGo 预设 skill 和本地 skill manifest。                |
 
 ## 开发命令
 

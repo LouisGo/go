@@ -4,7 +4,7 @@
 
 - Node.js + TypeScript CLI, package name `louisgo`, public version `0.1.0`.
 - `.louisgo/` protocol initialization: mission, capabilities, state, memory, roadmap, and verification support.
-- Codex integration: skills, project agent managed block, and ordinary-session automatic `louisgo context` reading.
+- Codex integration: skills, project agent managed block, task-boundary `louisgo context` refresh, and lazy local skill loading from `.louisgo/skills/manifest.json`.
 - `louisgo context`: layered prompt cache compilation with sources, budget, and user-prompt priority contract.
 - `louisgo status`: protocol completeness, current task, verification state, recovery source, and workspace diff reporting.
 - `louisgo verify`: repository verification entry, `test-results.json` writing, and freshness checking.
@@ -21,7 +21,7 @@
 - Domain glossary hint in context headers when `CONTEXT.md` exists.
 - Codex-first stats: local context token estimates, explicit Codex usage import, cached token ratio, and simulated savings.
 - Lightweight init: `init` writes only the minimal protocol, and context uses cold-start bypass before real memory exists.
-- On-demand preset skills: `louisgo skill list/enable/disable` manages grill and caveman while detecting same-name project skill conflicts.
+- On-demand preset skills: `louisgo skill list/enable/disable` manages grill and caveman, refreshes a local manifest, reserves a Claude adapter slot, and detects same-name project skill conflicts.
 - Project cleanup: `louisgo clear --dry-run` previews targets, and `louisgo clear` uses a direction-key confirmation prompt before deleting project `.louisgo/` and the managed project-agent block.
 
 ## Next Candidates

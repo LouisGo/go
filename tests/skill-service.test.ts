@@ -38,6 +38,31 @@ describe("skill service", () => {
     await expect(readFile(join(paths.skillsDir, "grill.md"), "utf8")).resolves.toContain(
       "louisgo-managed-skill:grill",
     );
+    const manifest = JSON.parse(await readFile(paths.skillsManifest, "utf8")) as {
+      schema: string;
+      platforms: { claude: { status: string }; codex: { status: string } };
+      skills: Array<{
+        id: string;
+        name: string;
+        relativePath: string;
+        aliases: string[];
+      }>;
+    };
+    expect(manifest).toMatchObject({
+      schema: "louisgo-local-skill-index-v1",
+      platforms: {
+        codex: { status: "active" },
+        claude: { status: "reserved" },
+      },
+      skills: [
+        {
+          id: "grill",
+          name: "grill-me",
+          relativePath: ".louisgo/skills/grill.md",
+        },
+      ],
+    });
+    expect(manifest.skills[0]?.aliases).toContain("grill-me");
 
     const enabledAgain = await enableSkill("grill", { cwd: repo.path });
     expect(enabledAgain.status).toBe(skillEnableStatuses.unchanged);
@@ -45,6 +70,9 @@ describe("skill service", () => {
     const disabled = await disableSkill("grill", { cwd: repo.path });
     expect(disabled.status).toBe(skillDisableStatuses.disabled);
     await expect(access(join(paths.skillsDir, "grill.md"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+    await expect(access(paths.skillsManifest)).rejects.toMatchObject({
       code: "ENOENT",
     });
   });

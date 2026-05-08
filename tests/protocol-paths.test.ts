@@ -51,6 +51,7 @@ describe("协议路径", () => {
       statsImports: join(expectedRoot, ".louisgo", "stats", "imports.json"),
       scriptsDir: join(expectedRoot, ".louisgo", "scripts"),
       skillsDir: join(expectedRoot, ".louisgo", "skills"),
+      skillsManifest: join(expectedRoot, ".louisgo", "skills", "manifest.json"),
       verifySh: join(expectedRoot, ".louisgo", "scripts", "verify.sh"),
       verifyPs1: join(expectedRoot, ".louisgo", "scripts", "verify.ps1"),
     });
@@ -63,6 +64,7 @@ describe("协议路径", () => {
     expect(protocolRelativePaths.state).toBe(".louisgo/STATE.md");
     expect(protocolRelativePaths.memoryDir).toBe(".louisgo/memory");
     expect(protocolRelativePaths.skillsDir).toBe(".louisgo/skills");
+    expect(protocolRelativePaths.skillsManifest).toBe(".louisgo/skills/manifest.json");
     expect(protocolRelativePaths.runLog).toBe(".louisgo/RUNLOG.md");
     expect(protocolRelativePaths.context).toBe(".louisgo/CONTEXT.md");
     expect(protocolRelativePaths.statsEvents).toBe(".louisgo/stats/events.jsonl");

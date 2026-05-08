@@ -17,7 +17,7 @@ npm install -g louisgo -> louisgo init -> natural AI coding -> $start for deep r
 | Install command    | `npm install -g louisgo`   | Gives new Codex sessions a stable `louisgo context`, `status`, and `finish` entry. |
 | Enable project     | `louisgo init`             | Creates the minimal `.louisgo/` protocol, Codex skills, and project agent entry.   |
 | Daily work         | Ask the AI normally        | AI reads `louisgo context` through project agent instructions before editing.      |
-| Optional skills    | `louisgo skill enable ...` | Enables preset skills only when needed and blocks same-name project conflicts.     |
+| Optional skills    | `louisgo skill enable ...` | Enables preset skills only when needed, writes a local manifest, and blocks same-name project conflicts. |
 | Context drift      | Enter `$start`             | Rebuilds the context package, preferring `HANDOFF.md -> STATE.md -> MEMORY.md`.    |
 | Phase handoff      | Enter `$finish`            | Records verification, Git diff, blockers, next steps, and `.louisgo/HANDOFF.md`.   |
 | Project cleanup    | `louisgo clear ...`        | Removes `.louisgo/` after explicit confirmation and removes the managed agent block. |
@@ -108,7 +108,7 @@ louisgo skill enable grill
 louisgo skill enable caveman
 ```
 
-Preset skills are not written during `init`. When enabling one, LouisGo checks `.codex/skills/` and `.louisgo/skills/` for same-name skills. If it finds a conflict, it reports it and does not overwrite project content.
+Preset skills are not written during `init`. When enabling one, LouisGo checks `.codex/skills/` and `.louisgo/skills/` for same-name skills. If it finds a conflict, it reports it and does not overwrite project content. Successful enablement also writes `.louisgo/skills/manifest.json`, which Codex uses as the metadata index before lazily reading the matched skill file.
 
 Remove LouisGo project-local protocol and caches:
 
@@ -163,7 +163,7 @@ The experiment is not meant to make every project's tests pass automatically. It
 | `.louisgo/RUNLOG.md`         | Local diagnostic log, ignored by `.louisgo/.gitignore` by default.                     |
 | `.louisgo/stats/`            | Local stats events and Codex import index, ignored by `.louisgo/.gitignore` by default. |
 | `.louisgo/ROADMAP.md`        | Created on demand when stable cross-session task tracking is useful.                   |
-| `.louisgo/skills/`           | Optional LouisGo preset skills enabled on demand.                                      |
+| `.louisgo/skills/`           | Optional LouisGo preset skills and local skill manifest enabled on demand.            |
 
 ## Development Commands
 
