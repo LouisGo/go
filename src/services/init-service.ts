@@ -8,8 +8,6 @@ import { createCapabilitiesTemplate } from "../templates/capabilities.js";
 import { createMissionTemplate } from "../templates/mission.js";
 import { createLouisGoGitignoreTemplate } from "../templates/run-log.js";
 import { createStateTemplate } from "../templates/state.js";
-import { createVerifyPs1Template } from "../templates/verify-ps1.js";
-import { createVerifyShTemplate } from "../templates/verify-sh.js";
 import { getCurrentGitSnapshot } from "../verify/freshness.js";
 
 export interface InitServiceOptions {
@@ -40,7 +38,7 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
   const paths = createProtocolPaths(workspaceRoot);
   const timestamp = (options.now?.() ?? new Date()).toISOString();
   const snapshot = await getCurrentGitSnapshot({ cwd: workspaceRoot });
-  const directories = [paths.louisgoDir, paths.scriptsDir];
+  const directories = [paths.louisgoDir];
 
   for (const directory of directories) {
     await mkdir(directory, { recursive: true });
@@ -67,15 +65,6 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     {
       filePath: paths.capabilities,
       content: createCapabilitiesTemplate({ updatedAt: timestamp }),
-    },
-    {
-      filePath: paths.verifySh,
-      content: createVerifyShTemplate(),
-      mode: 0o755,
-    },
-    {
-      filePath: paths.verifyPs1,
-      content: createVerifyPs1Template(),
     },
   ]);
 

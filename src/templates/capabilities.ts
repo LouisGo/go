@@ -19,8 +19,8 @@ updated_at: "${options.updatedAt}"
 
 ## Verify
 
-- macOS / Linux: \`.louisgo/scripts/verify.sh\`
-- Windows: \`.louisgo/scripts/verify.ps1\`
+- Run verification: \`louisgo verify\`
+- Default init does not copy verify scripts into the project.
 - Result: \`.louisgo/test-results.json\`
 
 ## Context

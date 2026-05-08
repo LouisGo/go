@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { access, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -28,13 +28,13 @@ describe("init 服务", () => {
     const paths = createProtocolPaths(result.workspaceRoot);
 
     await expect(access(paths.louisgoDir)).resolves.toBeUndefined();
-    await expect(access(paths.scriptsDir)).resolves.toBeUndefined();
+    await expect(access(paths.scriptsDir)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(paths.mission)).resolves.toBeUndefined();
     await expect(access(paths.state)).resolves.toBeUndefined();
     await expect(access(paths.gitignore)).resolves.toBeUndefined();
     await expect(access(paths.capabilities)).resolves.toBeUndefined();
-    await expect(access(paths.verifySh)).resolves.toBeUndefined();
-    await expect(access(paths.verifyPs1)).resolves.toBeUndefined();
+    await expect(access(paths.verifySh)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(access(paths.verifyPs1)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(paths.roadmap)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(paths.memory)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(paths.blocker)).rejects.toMatchObject({ code: "ENOENT" });
@@ -50,16 +50,13 @@ describe("init 服务", () => {
     const mission = await readFrontMatter(paths.mission, missionFrontMatterSchema);
     const capabilities = await readFrontMatter(paths.capabilities, capabilitiesFrontMatterSchema);
     const state = await readFrontMatter(paths.state, stateFrontMatterSchema);
-    const verifyShStat = await stat(paths.verifySh);
-
     expect(mission.frontMatter.defaultMode).toBe("assist");
-    expect(capabilities.body).toContain(".louisgo/scripts/verify.sh");
+    expect(capabilities.body).toContain("louisgo verify");
     expect(capabilities.body).toContain("louisgo skill enable grill");
     expect(capabilities.body).toContain("louisgo clear");
     expect(state.frontMatter.currentTask).toBe("NO_TASK");
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("RUNLOG.md");
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("stats/");
-    expect(verifyShStat.mode & 0o111).toBeGreaterThan(0);
     expect(result.files.every((file) => file.status === "created")).toBe(true);
     expect(result.nextSteps).toContain("需要深度重建时输入 $start");
   });

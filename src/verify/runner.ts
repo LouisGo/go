@@ -3,13 +3,18 @@ import { stat } from "node:fs/promises";
 import { promisify } from "node:util";
 
 import { findGitRoot } from "../fs/workspace.js";
+import { writeTestResults } from "../protocol/test-results.js";
 import {
   createProtocolPaths,
   protocolRelativePaths,
   type ProtocolPaths,
 } from "../protocol/paths.js";
 import { TestResultsError, testResultsErrorCodes } from "../protocol/test-results.js";
-import { checkVerificationFreshness, type VerificationFreshness } from "./freshness.js";
+import {
+  checkVerificationFreshness,
+  getCurrentGitSnapshot,
+  type VerificationFreshness,
+} from "./freshness.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -24,9 +29,10 @@ export type VerifyRunnerErrorCode =
   (typeof verifyRunnerErrorCodes)[keyof typeof verifyRunnerErrorCodes];
 
 export type VerificationScriptKind = "sh" | "ps1";
+export type VerificationEntryKind = VerificationScriptKind | "global";
 
 export interface VerificationScriptSelection {
-  readonly kind: VerificationScriptKind;
+  readonly kind: VerificationEntryKind;
   readonly filePath: string;
   readonly relativePath: string;
   readonly command: string;
@@ -98,7 +104,10 @@ export async function runVerificationScript(
   const paths = createProtocolPaths(workspaceRoot);
   const script = selectVerificationScript(paths, options.platform ?? process.platform);
 
-  await assertScriptFile(script);
+  if (!(await hasScriptFile(script))) {
+    return await runGlobalSkippedVerification(paths);
+  }
+
   const execution = await executeScript(script, workspaceRoot, options.env);
   const freshness = await readPostRunFreshness(paths, execution, script);
 
@@ -109,6 +118,41 @@ export async function runVerificationScript(
     stdout: execution.stdout,
     stderr: execution.stderr,
     freshness,
+  };
+}
+
+async function runGlobalSkippedVerification(paths: ProtocolPaths): Promise<RunVerificationResult> {
+  const startedAt = new Date().toISOString();
+  const snapshot = await getCurrentGitSnapshot({ cwd: paths.workspaceRoot });
+  const completedAt = new Date().toISOString();
+
+  await writeTestResults(paths.testResults, {
+    command: "louisgo verify",
+    exitCode: 0,
+    status: "skipped",
+    gitHead: snapshot.gitHead,
+    diffHash: snapshot.diffHash,
+    startedAt,
+    completedAt,
+    summary: "未配置项目验证命令，已跳过",
+  });
+
+  return {
+    workspaceRoot: paths.workspaceRoot,
+    script: {
+      kind: "global",
+      filePath: "",
+      relativePath: "louisgo verify",
+      command: "louisgo",
+      args: ["verify"],
+    },
+    exitCode: 0,
+    stdout: "",
+    stderr: "",
+    freshness: await checkVerificationFreshness({
+      cwd: paths.workspaceRoot,
+      testResultsPath: paths.testResults,
+    }),
   };
 }
 
@@ -141,15 +185,23 @@ interface ScriptExecutionResult {
   readonly stderr: string;
 }
 
-async function assertScriptFile(script: VerificationScriptSelection): Promise<void> {
+async function hasScriptFile(script: VerificationScriptSelection): Promise<boolean> {
   try {
     const scriptStat = await stat(script.filePath);
 
     if (scriptStat.isFile()) {
-      return;
+      return true;
     }
   } catch {
-    // 统一在下方转换为 runner 错误。
+    return false;
+  }
+
+  return false;
+}
+
+async function assertScriptFile(script: VerificationScriptSelection): Promise<void> {
+  if (await hasScriptFile(script)) {
+    return;
   }
 
   throw new VerifyRunnerError({

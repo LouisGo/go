@@ -13,7 +13,7 @@ npm install -g louisgo -> louisgo init -> 自然对话开发 -> $start 按需深
 | 阶段          | 用户做什么                 | AI / CLI 做什么                                                        |
 | ------------- | -------------------------- | ---------------------------------------------------------------------- |
 | 安装命令      | `npm install -g louisgo`   | 让 Codex 新会话可以稳定调用 `louisgo context`、`status`、`finish`。    |
-| 启用项目      | `louisgo init`             | 创建最小 `.louisgo/` 协议、验证脚本、Codex skills 和 `AGENTS.md` 入口。 |
+| 启用项目      | `louisgo init`             | 创建最小 `.louisgo/` 协议、Codex skills 和 `AGENTS.md` 入口。           |
 | 日常开发      | 直接向 AI 提需求           | AI 根据 `AGENTS.md` 先运行 `louisgo context`，再读必要源码并执行任务。 |
 | 按需技能      | `louisgo skill enable ...` | 仅在需要时启用预设 skill，若项目已有同名 skill 则阻止覆盖。           |
 | 语境失真      | 输入 `$start`              | 重新编译上下文包，优先恢复 `HANDOFF.md -> STATE.md -> MEMORY.md`。     |
@@ -162,8 +162,6 @@ node "/Users/louistation/Documents/New project/dist/cli.js" finish
 | `.louisgo/stats/`             | 本地 stats 事件和 Codex 导入索引，默认被 `.louisgo/.gitignore` 忽略。 |
 | `.louisgo/ROADMAP.md`         | 需要跨会话追踪稳定任务时按需创建。                                    |
 | `.louisgo/skills/`            | 按需启用的 LouisGo 预设 skill。                                       |
-| `.louisgo/scripts/verify.sh`  | macOS / Linux 验证入口。                                              |
-| `.louisgo/scripts/verify.ps1` | Windows 验证入口。                                                    |
 
 ## 开发命令
 

@@ -210,9 +210,9 @@ function formatVerificationNextAction(status: VerificationStatus): string {
     case "failed":
       return "先修复失败项，再运行 `louisgo verify`，不要把 failed 当作已完成状态。";
     case "error":
-      return "先修复验证脚本、依赖或执行环境，再重新运行 `louisgo verify`。";
+      return "先修复验证入口、依赖或执行环境，再重新运行 `louisgo verify`。";
     case "skipped":
-      return "按项目情况补齐 `.louisgo/scripts/verify.sh` 或 `.ps1` 后重新验证。";
+      return "按项目情况配置真实验证命令，或显式维护项目验证脚本后重新验证。";
     case "missing":
       return "运行 `louisgo verify` 生成当前工作区的验证结果。";
     case "stale":

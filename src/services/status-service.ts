@@ -112,12 +112,9 @@ export async function checkProtocolStatus(
 async function checkRequiredPaths(paths: ProtocolPaths, issues: ProtocolIssue[]): Promise<void> {
   const requiredPaths: readonly RequiredPath[] = [
     { filePath: paths.louisgoDir, kind: "directory" },
-    { filePath: paths.scriptsDir, kind: "directory" },
     { filePath: paths.mission, kind: "file" },
     { filePath: paths.state, kind: "file" },
     { filePath: paths.capabilities, kind: "file" },
-    { filePath: paths.verifySh, kind: "file" },
-    { filePath: paths.verifyPs1, kind: "file" },
   ];
 
   for (const path of requiredPaths) {

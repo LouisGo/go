@@ -87,8 +87,8 @@ describe("协议模板", () => {
       schema: "louisgo-capabilities-v1",
       updatedAt: timestamp,
     });
-    expect(document.body).toContain(".louisgo/scripts/verify.sh");
-    expect(document.body).toContain(".louisgo/scripts/verify.ps1");
+    expect(document.body).toContain("louisgo verify");
+    expect(document.body).toContain("Default init does not copy verify scripts");
     expect(document.body).toContain(".louisgo/test-results.json");
     expect(document.body).toContain("louisgo stats");
     expect(document.body).toContain("louisgo stats import codex");

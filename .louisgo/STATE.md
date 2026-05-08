@@ -1,26 +1,26 @@
 ---
 schema: louisgo-state-v1
 mode: assist
-current_task: T017
+current_task: T018
 handoff: .louisgo/HANDOFF.md
 verification: passed
-git_head: a6f73d86c64f0348d07fa252104265c894e8f975
-diff_hash: b68f144539351d6acdc18f5d94be49178ec3538c7f02c9c5aa59d776e06fcdf1
-updated_at: "2026-05-08T03:12:00.000Z"
+git_head: 857f98807c71d5ba1cbbdf3bc066ef65701e6719
+diff_hash: 005773eeb9d1c32095a7500f338d721c51cdd3da002e00915165af334cd6907c
+updated_at: "2026-05-08T06:39:00.000Z"
 ---
 
 # State
 
 ## Now
 
-- task: T017 项目级 LouisGo clear 清理命令
+- task: T018 init 不再默认生成项目 scripts，verify 改为全局执行入口
 - verification: passed and fresh
 - recovery: prefer `.louisgo/HANDOFF.md` when present; otherwise use this file and `.louisgo/MEMORY.md`
-- focus: `louisgo clear` now uses an `@inquirer/prompts` select list like create-vite, deletes project `.louisgo/`, removes the project `AGENTS.md` managed block, and leaves global Codex config untouched
+- focus: `louisgo init` only writes protocol files; `louisgo verify` uses global runner when project scripts are absent and writes skipped test results
 
 ## Next
 
-- first action: commit the select-list clear changes; do not push until the user explicitly asks
+- first action: commit the no-default-scripts verify change; do not push until the user explicitly asks
 - after meaningful work: use `$finish` for formal handoff
 
 ## Evidence
@@ -37,3 +37,6 @@ updated_at: "2026-05-08T03:12:00.000Z"
 - verification | `node ./dist/cli.js verify` | passed and fresh at 2026-05-08T03:10:28Z after replacing A/B input with select prompt
 - smoke | temp Git repo with `printf '\n' | clear` and `printf '\033[B\n' | clear` | default selection cancels; down-arrow selection confirms and removes `.louisgo/`
 - global install | `npm install -g .` | global `louisgo clear` now uses the select-list prompt
+- verification | `node ./dist/cli.js verify` | passed and fresh at 2026-05-08T06:37:43Z after moving default verify execution into the global CLI
+- smoke | temp Git repo with `init --no-codex`, no `.louisgo/scripts/`, `status`, and `verify` | init creates 4 files; status is complete; verify entry is `louisgo verify` with skipped status
+- global install | `npm install -g .` | global `louisgo verify` contains the no-project-scripts behavior

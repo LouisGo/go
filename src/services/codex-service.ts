@@ -128,7 +128,7 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     directive: "$verify",
     title: "LouisGo Verify",
     chineseTitle: "验证",
-    shortDescription: "LouisGo 验证：运行仓库验证脚本并报告新鲜度",
+    shortDescription: "LouisGo 验证：运行仓库验证并报告新鲜度",
     description:
       "Runs LouisGo verification for the current repository. Use when the user enters $verify in Codex.",
     action:

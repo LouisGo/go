@@ -75,13 +75,18 @@ describe("验证脚本运行器", () => {
     });
   });
 
-  it("可以运行 init 生成的默认 verify.sh 并得到新鲜结果", async () => {
+  it("没有项目脚本时使用全局 verify 写入 skipped 结果", async () => {
     await using repo = await createGitRepo();
 
     await initLouisGo({ cwd: repo.path, now });
 
     const result = await runVerificationScript({ cwd: repo.path, platform: "darwin" });
 
+    expect(result.script).toMatchObject({
+      kind: "global",
+      relativePath: "louisgo verify",
+      command: "louisgo",
+    });
     expect(result.exitCode).toBe(0);
     expect(result.freshness).toMatchObject({
       status: "skipped",
@@ -89,13 +94,13 @@ describe("验证脚本运行器", () => {
     });
   });
 
-  it("脚本缺失时报错", async () => {
+  it("未初始化项目脚本时也使用全局 verify 写入 skipped 结果", async () => {
     await using repo = await createGitRepo();
 
-    await expect(runVerificationScript({ cwd: repo.path, platform: "darwin" })).rejects.toSatisfy(
-      (error: unknown) =>
-        error instanceof VerifyRunnerError && error.code === verifyRunnerErrorCodes.scriptMissing,
-    );
+    const result = await runVerificationScript({ cwd: repo.path, platform: "darwin" });
+
+    expect(result.script.kind).toBe("global");
+    expect(result.freshness.status).toBe("skipped");
   });
 
   it("脚本未生成结果时报错", async () => {

@@ -69,7 +69,7 @@ describe("verify 命令", () => {
     await program.parseAsync(["node", "louisgo", "verify"]);
 
     expect(exitCode).toBe(7);
-    expect(stdout.text).toContain("脚本退出码：7");
+    expect(stdout.text).toContain("入口退出码：7");
     expect(stdout.text).toContain("验证状态：failed");
     expect(stdout.text).toContain("新鲜度：fresh");
   });
@@ -101,7 +101,7 @@ describe("verify 命令", () => {
     expect(stdout.text).toContain("过期原因：diff_hash 不匹配");
   });
 
-  it("验证脚本缺失时输出错误并返回非零退出码", async () => {
+  it("没有项目脚本时由全局 verify 写入 skipped 结果", async () => {
     await using repo = await createGitRepo();
     let exitCode = -1;
     const stdout = new MemoryWritable();
@@ -119,8 +119,10 @@ describe("verify 命令", () => {
     await program.parseAsync(["node", "louisgo", "verify"]);
 
     expect(exitCode).toBe(1);
-    expect(stdout.text).toBe("");
-    expect(stderr.text).toContain("验证失败：验证脚本缺失");
+    expect(stderr.text).toBe("");
+    expect(stdout.text).toContain("验证入口：louisgo verify");
+    expect(stdout.text).toContain("验证状态：skipped");
+    expect(stdout.text).toContain("新鲜度：fresh");
   });
 });
 

@@ -23,7 +23,7 @@ export function registerVerifyCommand(
 ): void {
   program
     .command("verify")
-    .description("运行 LouisGo 项目验证脚本")
+    .description("运行 LouisGo 项目验证")
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
       const stderr = options.stderr ?? process.stderr;
@@ -62,8 +62,8 @@ export function registerVerifyCommand(
 
 function formatVerifyReport(result: VerifyServiceResult): string {
   const lines = [
-    `验证脚本：${result.script.relativePath}`,
-    `脚本退出码：${result.scriptExitCode}`,
+    `验证入口：${result.script.relativePath}`,
+    `入口退出码：${result.scriptExitCode}`,
     `验证状态：${result.verificationStatus}`,
     `新鲜度：${formatFreshness(result.freshness)}`,
     `摘要：${result.summary}`,
@@ -89,7 +89,7 @@ function formatVerifyError(error: VerifyRunnerError): string {
 function formatVerifyRunnerError(error: VerifyRunnerError): string {
   switch (error.code) {
     case verifyRunnerErrorCodes.scriptMissing:
-      return "验证脚本缺失，请先运行 louisgo init 或补齐 .louisgo/scripts/verify.sh / verify.ps1";
+      return "验证脚本缺失";
     case verifyRunnerErrorCodes.resultMissing:
       return "验证脚本未生成 .louisgo/test-results.json";
     case verifyRunnerErrorCodes.resultInvalid:

@@ -30,11 +30,12 @@ LouisGo 协议目录位于仓库根目录：
 ├── ADR/
 │   └── draft/
 └── scripts/
-    ├── verify.sh
-    └── verify.ps1
+    └── verify.sh
 ```
 
-`louisgo init` 只创建最小可用集：`MISSION.md`、`CAPABILITIES.md`、`STATE.md`、`.gitignore`、`scripts/verify.sh` 和 `scripts/verify.ps1`。其他文件和目录在对应命令或真实内容出现时按需创建，避免新项目刚启用时把模板 prompt 塞进上下文。
+`louisgo init` 只创建最小可用集：`MISSION.md`、`CAPABILITIES.md`、`STATE.md` 和 `.gitignore`。其他文件和目录在对应命令或真实内容出现时按需创建，避免新项目刚启用时把模板 prompt 塞进上下文。
+
+`louisgo verify` 默认由全局 CLI 执行并写入 `.louisgo/test-results.json`。如果项目没有配置真实验证命令，也没有显式维护的 `.louisgo/scripts/verify.*`，验证结果为 `skipped`。项目内验证脚本只作为兼容或高级 opt-in，不再由 `init` 默认生成。
 
 `HANDOFF_DRAFT.md` 和 `QUICK_SAVE.md` 是兼容旧流程的临时文件，不是主恢复来源。
 
@@ -86,7 +87,7 @@ updated_at: "2026-05-02T12:00:00.000Z"
 
 ### `CAPABILITIES.md`
 
-当前仓库的验证入口和行为约定。默认记录 `verify.sh`、`verify.ps1` 和平台集成状态。
+当前仓库的验证入口和行为约定。默认记录全局 `louisgo verify` 行为和平台集成状态。
 
 ### `STATE.md`
 

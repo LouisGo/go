@@ -22,7 +22,7 @@ describe("CLI 端到端工作流", () => {
 
     const init = await runCli(repo.path, ["init"]);
     expect(init.stdout).toContain("LouisGo 初始化完成");
-    expect(init.stdout).toContain("创建文件：6");
+    expect(init.stdout).toContain("创建文件：4");
     expect(init.stdout).toContain("Codex 集成：完成");
     expect(init.stdout).toContain("下一步：新会话会自动读取 LouisGo 上下文");
 
@@ -38,7 +38,7 @@ describe("CLI 端到端工作流", () => {
     expect(context.stdout).not.toContain("Source: `.louisgo/MISSION.md`");
 
     const verify = await runCli(repo.path, ["verify"], { allowedExitCodes: [1] });
-    expect(verify.stdout).toContain("验证脚本：.louisgo/scripts/verify.sh");
+    expect(verify.stdout).toContain("验证入口：louisgo verify");
     expect(verify.stdout).toContain("验证状态：skipped");
     expect(verify.stdout).toContain("新鲜度：fresh");
     expect(verify.stdout).toContain("结果：验证未通过或结果不可作为当前代码事实");
