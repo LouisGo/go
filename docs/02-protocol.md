@@ -38,7 +38,7 @@ LouisGo 协议目录位于仓库根目录：
 
 `HANDOFF_DRAFT.md` 和 `QUICK_SAVE.md` 是兼容旧流程的临时文件，不是主恢复来源。
 
-`louisgo clear` 会先展示风险和待清理目标，经终端交互确认后删除当前 Git 项目的整个 `.louisgo/` 目录，并移除项目根 `AGENTS.md` 中 LouisGo 管理的 Codex 指令块。执行前可以用 `louisgo clear --dry-run` 预览目标。该命令不删除业务源码，也不清理全局 Codex 配置或全局 skills。
+`louisgo clear` 会先展示风险和待清理目标，经终端方向键选择列表确认后删除当前 Git 项目的整个 `.louisgo/` 目录，并移除项目根 `AGENTS.md` 中 LouisGo 管理的 Codex 指令块。执行前可以用 `louisgo clear --dry-run` 预览目标。该命令不删除业务源码，也不清理全局 Codex 配置或全局 skills。
 
 ## 协议定位
 

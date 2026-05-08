@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { access, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Readable, Writable } from "node:stream";
+import { PassThrough, Writable } from "node:stream";
 import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
@@ -16,21 +16,25 @@ describe("clear 命令", () => {
     await using repo = await createGitRepo();
     const stdout = new MemoryWritable();
     let exitCode: number | undefined;
-    const program = createCli({
+    const initProgram = createCli({
       cwd: repo.path,
-      stdin: Readable.from(["A\n"]),
+      stdout,
+    });
+    await initProgram.parseAsync(["node", "louisgo", "init", "--no-codex"]);
+    const clearProgram = createCli({
+      cwd: repo.path,
+      stdin: createPromptInput("\n"),
       stdout,
       setExitCode(value) {
         exitCode = value;
       },
     });
-
-    await program.parseAsync(["node", "louisgo", "init", "--no-codex"]);
-    await program.parseAsync(["node", "louisgo", "clear"]);
+    await clearProgram.parseAsync(["node", "louisgo", "clear"]);
 
     expect(stdout.text).toContain("危险操作");
     expect(stdout.text).toContain("会删除 .louisgo/");
-    expect(stdout.text).toContain("请输入 A/B");
+    expect(stdout.text).toContain("请选择清理操作");
+    expect(stdout.text).toContain("取消，不删除任何文件");
     expect(stdout.text).toContain("已取消，未删除任何文件。");
     expect(exitCode).toBe(1);
     await expect(access(join(repo.path, ".louisgo"))).resolves.toBeUndefined();
@@ -53,14 +57,17 @@ describe("clear 命令", () => {
   it("确认后清理当前项目 LouisGo 数据", async () => {
     await using repo = await createGitRepo();
     const stdout = new MemoryWritable();
-    const program = createCli({
+    const initProgram = createCli({
       cwd: repo.path,
-      stdin: Readable.from(["B\n"]),
       stdout,
     });
-
-    await program.parseAsync(["node", "louisgo", "init", "--no-codex"]);
-    await program.parseAsync(["node", "louisgo", "clear"]);
+    await initProgram.parseAsync(["node", "louisgo", "init", "--no-codex"]);
+    const clearProgram = createCli({
+      cwd: repo.path,
+      stdin: createPromptInput("\x1B[B\n"),
+      stdout,
+    });
+    await clearProgram.parseAsync(["node", "louisgo", "clear"]);
 
     expect(stdout.text).toContain("我理解风险，清理当前项目 LouisGo 数据");
     expect(stdout.text).toContain("LouisGo 项目数据已清理");
@@ -73,6 +80,9 @@ describe("clear 命令", () => {
 
 class MemoryWritable extends Writable {
   text = "";
+  columns = 80;
+  rows = 24;
+  isTTY = true;
 
   override _write(
     chunk: string | Buffer,
@@ -82,6 +92,22 @@ class MemoryWritable extends Writable {
     this.text += chunk.toString();
     callback();
   }
+}
+
+type PromptInput = PassThrough & {
+  isTTY: boolean;
+  setRawMode: () => PromptInput;
+};
+
+function createPromptInput(keys: string): PromptInput {
+  const input = new PassThrough() as PromptInput;
+  input.isTTY = true;
+  input.setRawMode = () => input;
+  setTimeout(() => {
+    input.write(keys);
+  }, 100);
+
+  return input;
 }
 
 interface TempRepo extends AsyncDisposable {

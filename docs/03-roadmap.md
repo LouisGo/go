@@ -22,7 +22,7 @@
 - Codex-first stats：本地 context token 估算、Codex usage 显式导入、cached token ratio 和 simulated savings。
 - 轻量初始化：`init` 只写最小协议，未形成真实记忆时 `context` 使用 cold-start 旁路。
 - 按需预设 skill：`louisgo skill list/enable/disable` 管理 grill/caveman，并检测项目同名 skill 冲突。
-- 项目清理：`louisgo clear --dry-run` 预览目标，`louisgo clear` 通过终端交互确认后删除当前项目 `.louisgo/` 和项目 `AGENTS.md` 管理块。
+- 项目清理：`louisgo clear --dry-run` 预览目标，`louisgo clear` 通过终端方向键选择列表确认后删除当前项目 `.louisgo/` 和项目 `AGENTS.md` 管理块。
 
 ## 下一阶段候选
 

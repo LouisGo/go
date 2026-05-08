@@ -1,6 +1,6 @@
+import { select } from "@inquirer/prompts";
 import type { Command } from "commander";
-import { createInterface } from "node:readline/promises";
-import type { Readable, Writable } from "node:stream";
+import { Writable, type Readable } from "node:stream";
 
 import {
   clearLouisGo,
@@ -90,16 +90,59 @@ function writeClearResult(stdout: Writable, result: ClearLouisGoResult): void {
 }
 
 async function askClearConfirmation(stdin: Readable, stdout: Writable): Promise<boolean> {
-  stdout.write("\n请选择：\n");
-  stdout.write("- A. 取消，不删除任何文件\n");
-  stdout.write("- B. 我理解风险，清理当前项目 LouisGo 数据\n");
+  const answer = await select(
+    {
+      message: "请选择清理操作",
+      choices: [
+        {
+          name: "取消，不删除任何文件",
+          value: "cancel",
+        },
+        {
+          name: "我理解风险，清理当前项目 LouisGo 数据",
+          value: "clear",
+          description: "删除 .louisgo/ 并移除 AGENTS.md 中 LouisGo 管理块",
+        },
+      ],
+      default: "cancel",
+      loop: false,
+    },
+    {
+      input: stdin,
+      output: createPromptOutput(stdout),
+      clearPromptOnDone: false,
+    },
+  );
 
-  const readline = createInterface({ input: stdin, output: stdout });
+  return answer === "clear";
+}
 
-  try {
-    const answer = await readline.question("请输入 A/B：");
-    return answer.trim().toUpperCase() === "B";
-  } finally {
-    readline.close();
+class PromptOutput extends Writable {
+  readonly columns: number;
+  readonly rows: number;
+  readonly isTTY: boolean;
+
+  constructor(private readonly target: Writable) {
+    super();
+    const output = target as Writable & {
+      readonly columns?: number;
+      readonly rows?: number;
+      readonly isTTY?: boolean;
+    };
+    this.columns = output.columns ?? 80;
+    this.rows = output.rows ?? 24;
+    this.isTTY = output.isTTY ?? true;
   }
+
+  override _write(
+    chunk: string | Buffer,
+    encoding: BufferEncoding,
+    callback: (error?: Error | null) => void,
+  ): void {
+    this.target.write(chunk, encoding, callback);
+  }
+}
+
+function createPromptOutput(stdout: Writable): Writable {
+  return new PromptOutput(stdout);
 }

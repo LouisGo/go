@@ -4,9 +4,9 @@ mode: assist
 current_task: T017
 handoff: .louisgo/HANDOFF.md
 verification: passed
-git_head: fc416f4af0d85afad8cbf13aaf9a7701d48cdd2d
-diff_hash: 2f665d5ef68f1d3395be3543edf52d5e128f8d58441fcaea5f30d57765aee2fd
-updated_at: "2026-05-08T02:49:00.000Z"
+git_head: a6f73d86c64f0348d07fa252104265c894e8f975
+diff_hash: b68f144539351d6acdc18f5d94be49178ec3538c7f02c9c5aa59d776e06fcdf1
+updated_at: "2026-05-08T03:12:00.000Z"
 ---
 
 # State
@@ -16,11 +16,11 @@ updated_at: "2026-05-08T02:49:00.000Z"
 - task: T017 项目级 LouisGo clear 清理命令
 - verification: passed and fresh
 - recovery: prefer `.louisgo/HANDOFF.md` when present; otherwise use this file and `.louisgo/MEMORY.md`
-- focus: `louisgo clear` now uses an interactive terminal confirmation, deletes project `.louisgo/`, removes the project `AGENTS.md` managed block, and leaves global Codex config untouched
+- focus: `louisgo clear` now uses an `@inquirer/prompts` select list like create-vite, deletes project `.louisgo/`, removes the project `AGENTS.md` managed block, and leaves global Codex config untouched
 
 ## Next
 
-- first action: commit the interactive clear changes, then push if remote permissions allow
+- first action: commit the select-list clear changes; do not push until the user explicitly asks
 - after meaningful work: use `$finish` for formal handoff
 
 ## Evidence
@@ -33,3 +33,7 @@ updated_at: "2026-05-08T02:49:00.000Z"
 - verification | `node ./dist/cli.js verify` | passed and fresh at 2026-05-08T02:48:12Z after changing `clear` to interactive confirmation
 - smoke | temp Git repo with `init --no-codex`, `printf 'A\n' | clear`, and `printf 'B\n' | clear` | cancel preserves `.louisgo/`; confirm removes it
 - global install | `npm install -g .` then `louisgo clear --help` | global command exposes `clear` with only `--dry-run`, no destructive confirm flag
+- dependency | `pnpm add @inquirer/prompts` | provides create-vite style direction-key select prompts
+- verification | `node ./dist/cli.js verify` | passed and fresh at 2026-05-08T03:10:28Z after replacing A/B input with select prompt
+- smoke | temp Git repo with `printf '\n' | clear` and `printf '\033[B\n' | clear` | default selection cancels; down-arrow selection confirms and removes `.louisgo/`
+- global install | `npm install -g .` | global `louisgo clear` now uses the select-list prompt
