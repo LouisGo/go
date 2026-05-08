@@ -8,6 +8,7 @@ import {
   summarizeStats,
   type StatsSummaryOptions,
 } from "../stats/summary-service.js";
+import { createOutputTheme, field, headline, statusToken } from "../output/theme.js";
 
 export interface RegisterStatsCommandOptions extends StatsSummaryOptions {
   readonly codexHome?: string;
@@ -34,7 +35,7 @@ export function registerStatsCommand(
 ): void {
   const statsCommand = program
     .command("stats")
-    .description("Print LouisGo token and context observability stats")
+    .description("📊 Print LouisGo token and context observability stats")
     .option("--days <days>", "Only include the most recent N days", parseDays)
     .option("--json", "Output JSON")
     .option("--source <source>", "Only include context or codex events", parseSource)
@@ -50,7 +51,7 @@ export function registerStatsCommand(
       if (commandOptions.json === true) {
         stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
       } else {
-        stdout.write(formatStatsSummary(summary));
+        stdout.write(formatStatsSummary(summary, stdout));
       }
     });
 
@@ -79,7 +80,7 @@ export function registerStatsCommand(
         ...(options.now === undefined ? {} : { now: options.now }),
       });
 
-      stdout.write(formatCodexImportResult(result));
+      stdout.write(formatCodexImportResult(result, stdout));
     });
 }
 
@@ -90,16 +91,22 @@ function resolveCodexHome(
   return commandOptions.codexHome ?? options.codexHome ?? process.env.CODEX_HOME;
 }
 
-function formatCodexImportResult(result: Awaited<ReturnType<typeof importCodexStats>>): string {
+function formatCodexImportResult(
+  result: Awaited<ReturnType<typeof importCodexStats>>,
+  stdout?: Writable,
+): string {
+  const theme = createOutputTheme(stdout);
   return [
-    result.dryRun ? "Codex stats dry run" : "Codex stats import complete",
-    `Codex home: ${result.codexHome}`,
-    `Scanned files: ${result.scannedFiles}`,
-    `Skipped files: ${result.skippedFiles}`,
-    `Matched usage events: ${result.matchedEvents}`,
-    `Imported events: ${result.importedEvents}`,
-    `Duplicate events: ${result.duplicateEvents}`,
-    `Workspace: ${result.workspaceRoot}`,
+    result.dryRun
+      ? headline(theme, "🧭", "Codex stats dry run")
+      : headline(theme, "📊", "Codex stats import complete"),
+    field(theme, "Codex home", result.codexHome),
+    field(theme, "Scanned files", String(result.scannedFiles)),
+    field(theme, "Skipped files", statusToken(theme, String(result.skippedFiles))),
+    field(theme, "Matched usage events", String(result.matchedEvents)),
+    field(theme, "Imported events", statusToken(theme, String(result.importedEvents))),
+    field(theme, "Duplicate events", statusToken(theme, String(result.duplicateEvents))),
+    field(theme, "Workspace", result.workspaceRoot),
     "",
   ].join("\n");
 }

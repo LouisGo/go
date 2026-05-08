@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import type { Writable } from "node:stream";
 
 import { readRunLog, type ReadRunLogOptions } from "../services/run-log-service.js";
+import { createOutputTheme, headline, tip } from "../output/theme.js";
 
 export interface RegisterLogCommandOptions extends ReadRunLogOptions {
   readonly stdout?: Writable;
@@ -17,7 +18,7 @@ export function registerLogCommand(
 ): void {
   program
     .command("log")
-    .description("Print the LouisGo diagnostic log")
+    .description("🪵 Print the LouisGo diagnostic log")
     .option("--tail <events>", "Only print the most recent N events", parseTail)
     .action(async (commandOptions: LogCommandOptions) => {
       const result = await readRunLog({
@@ -27,8 +28,10 @@ export function registerLogCommand(
       const stdout = options.stdout ?? process.stdout;
 
       if (result === null) {
+        const theme = createOutputTheme(stdout);
+        stdout.write(`${headline(theme, "🪵", "No diagnostic log yet")}\n`);
         stdout.write(
-          "There is no LouisGo diagnostic log yet. Run louisgo init to create .louisgo/RUNLOG.md.\n",
+          `${tip(theme, `Run ${theme.command("louisgo init")} to create ${theme.path(".louisgo/RUNLOG.md")}.`)}\n`,
         );
         return;
       }

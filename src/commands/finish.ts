@@ -11,6 +11,7 @@ import {
   type FinishServiceResult,
 } from "../services/finish-service.js";
 import { appendRunLogEvent } from "../services/run-log-service.js";
+import { createOutputTheme, field, headline, statusToken, tip } from "../output/theme.js";
 
 export interface RegisterFinishCommandOptions extends FinishServiceOptions {
   readonly stdout?: Writable;
@@ -24,7 +25,7 @@ export function registerFinishCommand(
 ): void {
   program
     .command("finish")
-    .description("Generate a LouisGo handoff")
+    .description("🏁 Generate a LouisGo handoff")
     .allowExcessArguments(false)
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
@@ -37,7 +38,7 @@ export function registerFinishCommand(
 
       try {
         const result = await finishLouisGo(options);
-        stdout.write(formatFinishReport(result));
+        stdout.write(formatFinishReport(result, stdout));
         await appendRunLogEvent({
           cwd: result.workspaceRoot,
           command: "finish",
@@ -53,11 +54,14 @@ export function registerFinishCommand(
           throw error;
         }
 
-        stderr.write("Finish failed: LouisGo protocol is incomplete. Run louisgo init first.\n");
+        const theme = createOutputTheme(stderr);
+        stderr.write(
+          `${headline(theme, "✕", "Finish failed")}: LouisGo protocol is incomplete. Run ${theme.command("louisgo init")} first.\n`,
+        );
         if (error.issues.length > 0) {
-          stderr.write("Issues to fix:\n");
+          stderr.write(`${theme.danger("Issues to fix")}:\n`);
           for (const issue of error.issues) {
-            stderr.write(`- ${issue.relativePath}: ${issue.message}\n`);
+            stderr.write(`  ✕ ${theme.path(issue.relativePath)}: ${issue.message}\n`);
           }
         }
         await appendRunLogEvent({
@@ -71,25 +75,33 @@ export function registerFinishCommand(
     });
 }
 
-function formatFinishReport(result: FinishServiceResult): string {
+function formatFinishReport(result: FinishServiceResult, stdout?: Writable): string {
+  const theme = createOutputTheme(stdout);
   return (
     [
-      `LouisGo handoff updated: ${result.filePath}`,
-      `Current task: ${result.frontMatter.taskId}`,
-      `Verification status: ${result.verification}`,
-      `Confirm Request: ${formatCleanup(result.confirmReqCleanup)}`,
-      `Quick Save: ${formatCleanup(result.quickSaveCleanup)}`,
-      `STATE.md: updated (${result.statePath})`,
-      "Next: new sessions should prefer HANDOFF.md. Run louisgo verify again after further changes.",
+      headline(theme, "🏁", "LouisGo handoff updated", result.filePath),
+      field(theme, "Current task", result.frontMatter.taskId),
+      field(theme, "Verification status", statusToken(theme, result.verification)),
+      field(theme, "Confirm Request", formatCleanup(result.confirmReqCleanup, theme)),
+      field(theme, "Quick Save", formatCleanup(result.quickSaveCleanup, theme)),
+      field(
+        theme,
+        "STATE.md",
+        `${statusToken(theme, "updated")} (${theme.path(result.statePath)})`,
+      ),
+      tip(
+        theme,
+        `New sessions should prefer HANDOFF.md. Run ${theme.command("louisgo verify")} again after further changes.`,
+      ),
     ].join("\n") + "\n"
   );
 }
 
-function formatCleanup(status: FinishCleanupStatus): string {
+function formatCleanup(status: FinishCleanupStatus, theme = createOutputTheme()): string {
   switch (status) {
     case finishCleanupStatuses.cleaned:
-      return "promoted and cleaned";
+      return statusToken(theme, "promoted and cleaned");
     case finishCleanupStatuses.absent:
-      return "absent";
+      return statusToken(theme, "absent");
   }
 }

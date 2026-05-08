@@ -24,7 +24,7 @@ describe("CLI 端到端工作流", () => {
     expect(init.stdout).toContain("LouisGo initialized");
     expect(init.stdout).toContain("Files created: 4");
     expect(init.stdout).toContain("Codex integration: completed");
-    expect(init.stdout).toContain("Next: New sessions will read LouisGo context automatically");
+    expect(init.stdout).toContain("→ New sessions will read LouisGo context automatically");
 
     const initialStatus = await runCli(repo.path, ["status"]);
     expect(initialStatus.stdout).toContain("[assist/idle] complete, current task none");

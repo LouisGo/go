@@ -13,6 +13,7 @@ import {
   type ListSkillsResult,
 } from "../services/skill-service.js";
 import { appendRunLogEvent } from "../services/run-log-service.js";
+import { createOutputTheme, headline, statusToken, tip } from "../output/theme.js";
 
 export interface RegisterSkillCommandOptions {
   readonly cwd?: string;
@@ -25,11 +26,11 @@ export function registerSkillCommand(
   program: Command,
   options: RegisterSkillCommandOptions = {},
 ): void {
-  const skill = program.command("skill").description("Manage optional LouisGo preset skills");
+  const skill = program.command("skill").description("✨ Manage optional LouisGo preset skills");
 
   skill
     .command("list")
-    .description("List available LouisGo preset skills and conflict status")
+    .description("List preset skills and show whether they can be enabled")
     .action(async () => {
       await runSkillAction(options, "skill list", async () => {
         const result = await listSkills({
@@ -42,7 +43,7 @@ export function registerSkillCommand(
   skill
     .command("enable")
     .argument("<name>", "Preset skill name: grill or caveman")
-    .description("Enable a LouisGo preset skill")
+    .description("Enable a LouisGo preset skill for this project")
     .action(async (name: string) => {
       await runSkillAction(options, `skill enable ${name}`, async () => {
         const result = await enableSkill(name, {
@@ -91,7 +92,8 @@ async function runSkillAction(
       throw error;
     }
 
-    stderr.write(`${error.message}\n`);
+    const theme = createOutputTheme(stderr);
+    stderr.write(`${headline(theme, "✕", "Skill command failed")}: ${error.message}\n`);
     await appendRunLogEvent({
       ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
       command,
@@ -103,49 +105,63 @@ async function runSkillAction(
 }
 
 function writeListResult(stdout: Writable, result: ListSkillsResult): void {
-  stdout.write(`LouisGo preset skills: ${result.workspaceRoot}\n`);
+  const theme = createOutputTheme(stdout);
+  stdout.write(`${headline(theme, "✨", "LouisGo preset skills", result.workspaceRoot)}\n`);
 
   for (const skill of result.skills) {
     const state = skill.enabled ? "enabled" : skill.conflicts.length > 0 ? "blocked" : "available";
-    stdout.write(`- ${skill.id} [${state}] ${skill.description}\n`);
+    const icon = state === "enabled" ? "✓" : state === "blocked" ? "⛔" : "○";
+    stdout.write(
+      `  ${icon} ${theme.bold(skill.id)} [${statusToken(theme, state)}] ${skill.description}\n`,
+    );
     if (skill.enabled) {
-      stdout.write(`  path: ${skill.relativePath}\n`);
+      stdout.write(`    path: ${theme.path(skill.relativePath)}\n`);
     }
     if (skill.conflicts.length > 0) {
-      stdout.write(`  conflicts: ${skill.conflicts.join(", ")}\n`);
+      stdout.write(`    conflicts: ${theme.warning(skill.conflicts.join(", "))}\n`);
     }
   }
 }
 
 function writeEnableResult(stdout: Writable, result: EnableSkillResult): void {
+  const theme = createOutputTheme(stdout);
   if (result.status === skillEnableStatuses.enabled) {
-    stdout.write(`LouisGo skill enabled: ${result.id} -> ${result.relativePath}\n`);
+    stdout.write(`${headline(theme, "✓", "LouisGo skill enabled")}\n`);
+    stdout.write(`  ${theme.bold(result.id)} → ${theme.path(result.relativePath)}\n`);
     return;
   }
 
   if (result.status === skillEnableStatuses.unchanged) {
-    stdout.write(`LouisGo skill already exists: ${result.id} -> ${result.relativePath}\n`);
+    stdout.write(`${headline(theme, "•", "LouisGo skill already enabled")}\n`);
+    stdout.write(`  ${theme.bold(result.id)} → ${theme.path(result.relativePath)}\n`);
     return;
   }
 
-  stdout.write(`LouisGo skill was not enabled: ${result.id}\n`);
-  stdout.write(`Same-name skill found: ${result.conflicts.join(", ")}\n`);
-  stdout.write("Resolve the project skill conflict first. LouisGo will not overwrite it.\n");
+  stdout.write(`${headline(theme, "⛔", "LouisGo skill was not enabled")}\n`);
+  stdout.write(
+    `  ${theme.bold(result.id)} conflicts with ${theme.warning(result.conflicts.join(", "))}\n`,
+  );
+  stdout.write(
+    `${tip(theme, "Resolve the project skill conflict first. LouisGo will not overwrite it.")}\n`,
+  );
 }
 
 function writeDisableResult(stdout: Writable, result: DisableSkillResult): void {
+  const theme = createOutputTheme(stdout);
   if (result.status === skillDisableStatuses.disabled) {
-    stdout.write(`LouisGo skill disabled: ${result.id} -> ${result.relativePath}\n`);
+    stdout.write(`${headline(theme, "✓", "LouisGo skill disabled")}\n`);
+    stdout.write(`  ${theme.bold(result.id)} → ${theme.path(result.relativePath)}\n`);
     return;
   }
 
   if (result.status === skillDisableStatuses.absent) {
-    stdout.write(`LouisGo skill is not enabled: ${result.id}\n`);
+    stdout.write(`${headline(theme, "•", "LouisGo skill is not enabled")}\n`);
+    stdout.write(`  ${theme.bold(result.id)}\n`);
     return;
   }
 
-  stdout.write(`LouisGo skill was not disabled: ${result.id}\n`);
+  stdout.write(`${headline(theme, "⛔", "LouisGo skill was not disabled")}\n`);
   stdout.write(
-    `${result.relativePath} is not a LouisGo-managed preset file. Handle it manually.\n`,
+    `${tip(theme, `${theme.path(result.relativePath)} is not a LouisGo-managed preset file. Handle it manually.`)}\n`,
   );
 }

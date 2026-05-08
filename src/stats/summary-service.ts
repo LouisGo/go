@@ -1,4 +1,7 @@
+import type { Writable } from "node:stream";
+
 import { findGitRoot } from "../fs/workspace.js";
+import { createOutputTheme, field, headline } from "../output/theme.js";
 import {
   statsSourceSchema,
   type ContextSectionStats,
@@ -97,27 +100,38 @@ export async function summarizeStats(options: StatsSummaryOptions = {}): Promise
   };
 }
 
-export function formatStatsSummary(summary: StatsSummary): string {
+export function formatStatsSummary(summary: StatsSummary, stdout?: Writable): string {
+  const theme = createOutputTheme(stdout);
   const lines: string[] = [];
   const window = summary.days === null ? "all time" : `last ${summary.days} days`;
   const source = summary.source === null ? "all sources" : summary.source;
 
-  lines.push(`LouisGo Stats - ${window} / ${source}`);
+  lines.push(headline(theme, "📊", "LouisGo Stats", `${window} / ${source}`));
   lines.push("");
-  lines.push(`Events: ${summary.eventCount}`);
+  lines.push(field(theme, "Events", String(summary.eventCount)));
   lines.push("");
-  lines.push("Actual Codex usage");
+  lines.push(theme.bold("Actual Codex usage"));
   lines.push(formatUsage(summary.actualUsage));
-  lines.push(`Cached input ratio: ${formatRatio(summary.cachedInputRatio)}`);
+  lines.push(field(theme, "Cached input ratio", formatRatio(summary.cachedInputRatio)));
   lines.push("");
-  lines.push("Estimated LouisGo context");
+  lines.push(theme.bold("Estimated LouisGo context"));
   lines.push(formatUsage(summary.estimatedUsage));
-  lines.push(`Simulated avoided context: ${summary.simulatedSavings.avoidedContextTokens} tokens`);
   lines.push(
-    `Cache-eligible stable prefix: ${summary.cacheStability.latestCacheEligiblePrefixTokens} / ${summary.cacheStability.latestCompiledContextTokens} tokens`,
+    field(
+      theme,
+      "Simulated avoided context",
+      `${summary.simulatedSavings.avoidedContextTokens} tokens`,
+    ),
+  );
+  lines.push(
+    field(
+      theme,
+      "Cache-eligible stable prefix",
+      `${summary.cacheStability.latestCacheEligiblePrefixTokens} / ${summary.cacheStability.latestCompiledContextTokens} tokens`,
+    ),
   );
   lines.push("");
-  lines.push("Top context weight");
+  lines.push(theme.bold("Top context weight"));
 
   if (summary.sectionWeights.length === 0) {
     lines.push("- no context section stats yet");
@@ -128,7 +142,7 @@ export function formatStatsSummary(summary: StatsSummary): string {
   }
 
   lines.push("");
-  lines.push("Hints");
+  lines.push(theme.bold("Hints"));
 
   if (summary.cacheStability.hints.length === 0) {
     lines.push("- no obvious stats issue detected");
@@ -139,7 +153,7 @@ export function formatStatsSummary(summary: StatsSummary): string {
   }
 
   lines.push("");
-  lines.push(`Workspace: ${summary.workspaceRoot}`);
+  lines.push(field(theme, "Workspace", summary.workspaceRoot));
 
   return `${lines.join("\n")}\n`;
 }

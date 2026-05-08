@@ -10,6 +10,7 @@ import {
 import { appendRunLogEvent } from "../services/run-log-service.js";
 import { VerifyRunnerError, verifyRunnerErrorCodes } from "../verify/runner.js";
 import type { StaleReason } from "../verify/freshness.js";
+import { createOutputTheme, field, headline, statusToken, tip } from "../output/theme.js";
 
 export interface RegisterVerifyCommandOptions extends VerifyServiceOptions {
   readonly stdout?: Writable;
@@ -23,7 +24,7 @@ export function registerVerifyCommand(
 ): void {
   program
     .command("verify")
-    .description("Run LouisGo project verification")
+    .description("🧪 Run project verification and freshness checks")
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
       const stderr = options.stderr ?? process.stderr;
@@ -35,7 +36,7 @@ export function registerVerifyCommand(
 
       try {
         const result = await verifyLouisGo(options);
-        stdout.write(formatVerifyReport(result));
+        stdout.write(formatVerifyReport(result, stdout));
         await appendRunLogEvent({
           cwd: result.workspaceRoot,
           command: "verify",
@@ -48,7 +49,7 @@ export function registerVerifyCommand(
           throw error;
         }
 
-        stderr.write(formatVerifyError(error));
+        stderr.write(formatVerifyError(error, stderr));
         await appendRunLogEvent({
           ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
           command: "verify",
@@ -60,30 +61,40 @@ export function registerVerifyCommand(
     });
 }
 
-function formatVerifyReport(result: VerifyServiceResult): string {
+function formatVerifyReport(result: VerifyServiceResult, stdout?: Writable): string {
+  const theme = createOutputTheme(stdout);
+  const success = result.processExitCode === 0;
   const lines = [
-    `Verification entry: ${result.script.relativePath}`,
-    `Entry exit code: ${result.scriptExitCode}`,
-    `Verification status: ${result.verificationStatus}`,
-    `Freshness: ${formatFreshness(result.freshness)}`,
-    `Summary: ${result.summary}`,
+    headline(
+      theme,
+      success ? "✅" : "⚠️",
+      success ? "Verification passed" : "Verification needs attention",
+    ),
+    field(theme, "Verification entry", theme.path(result.script.relativePath)),
+    field(theme, "Entry exit code", statusToken(theme, String(result.scriptExitCode))),
+    field(theme, "Verification status", statusToken(theme, result.verificationStatus)),
+    field(theme, "Freshness", statusToken(theme, formatFreshness(result.freshness))),
+    field(theme, "Summary", result.summary),
   ];
 
   if (result.staleReason !== null) {
-    lines.push(`Stale reason: ${formatStaleReason(result.staleReason)}`);
+    lines.push(field(theme, "Stale reason", formatStaleReason(result.staleReason)));
   }
 
   if (result.processExitCode === 0) {
-    lines.push("Result: verification passed and is fresh");
+    lines.push(tip(theme, "Result: verification passed and is fresh."));
   } else {
-    lines.push("Result: verification did not pass or cannot represent the current code state");
+    lines.push(
+      tip(theme, "Result: verification did not pass or cannot represent the current code state."),
+    );
   }
 
   return `${lines.join("\n")}\n`;
 }
 
-function formatVerifyError(error: VerifyRunnerError): string {
-  return `Verification failed: ${formatVerifyRunnerError(error)}\n`;
+function formatVerifyError(error: VerifyRunnerError, stderr?: Writable): string {
+  const theme = createOutputTheme(stderr);
+  return `${headline(theme, "✕", "Verification failed")}: ${formatVerifyRunnerError(error)}\n`;
 }
 
 function formatVerifyRunnerError(error: VerifyRunnerError): string {

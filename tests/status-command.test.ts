@@ -45,7 +45,7 @@ describe("status 命令", () => {
     expect(stdout.text).toContain("[unknown/idle] incomplete");
     expect(stdout.text).toContain("Workspace:");
     expect(stdout.text).toContain(".louisgo/MISSION.md: Protocol path is missing");
-    expect(stdout.text).toContain("Next: run louisgo init to create missing files");
+    expect(stdout.text).toContain("Run louisgo init to create missing files");
   });
 });
 

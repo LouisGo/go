@@ -8,6 +8,7 @@ import {
   type PauseServiceOptions,
   type PauseServiceResult,
 } from "../services/pause-service.js";
+import { createOutputTheme, field, headline, tip } from "../output/theme.js";
 
 export interface RegisterPauseCommandOptions extends PauseServiceOptions {
   readonly stdout?: Writable;
@@ -21,7 +22,7 @@ export function registerPauseCommand(
 ): void {
   program
     .command("pause")
-    .description("Write a LouisGo quick-save checkpoint")
+    .description("⏸️ Write a LouisGo quick-save checkpoint")
     .allowExcessArguments(false)
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
@@ -34,7 +35,7 @@ export function registerPauseCommand(
 
       try {
         const result = await pauseLouisGo(options);
-        stdout.write(formatPauseReport(result));
+        stdout.write(formatPauseReport(result, stdout));
         setExitCode(0);
       } catch (error) {
         if (
@@ -44,11 +45,14 @@ export function registerPauseCommand(
           throw error;
         }
 
-        stderr.write("Pause failed: LouisGo protocol is incomplete. Run louisgo init first.\n");
+        const theme = createOutputTheme(stderr);
+        stderr.write(
+          `${headline(theme, "✕", "Pause failed")}: LouisGo protocol is incomplete. Run ${theme.command("louisgo init")} first.\n`,
+        );
         if (error.issues.length > 0) {
-          stderr.write("Issues to fix:\n");
+          stderr.write(`${theme.danger("Issues to fix")}:\n`);
           for (const issue of error.issues) {
-            stderr.write(`- ${issue.relativePath}: ${issue.message}\n`);
+            stderr.write(`  ✕ ${theme.path(issue.relativePath)}: ${issue.message}\n`);
           }
         }
         setExitCode(1);
@@ -56,16 +60,20 @@ export function registerPauseCommand(
     });
 }
 
-function formatPauseReport(result: PauseServiceResult): string {
+function formatPauseReport(result: PauseServiceResult, stdout?: Writable): string {
+  const theme = createOutputTheme(stdout);
   const action = result.status === "created" ? "created" : "updated";
 
   return (
     [
-      `LouisGo quick save ${action}: ${result.filePath}`,
-      `Current task: ${result.frontMatter.taskId}`,
-      `Git HEAD: ${result.frontMatter.gitHead}`,
-      `diff_hash: ${result.frontMatter.diffHash}`,
-      "Next: run louisgo status to inspect protocol state before resuming.",
+      headline(theme, "⏸️", `LouisGo quick save ${action}`, result.filePath),
+      field(theme, "Current task", result.frontMatter.taskId),
+      field(theme, "Git HEAD", result.frontMatter.gitHead),
+      field(theme, "diff_hash", result.frontMatter.diffHash),
+      tip(
+        theme,
+        `Run ${theme.command("louisgo status")} to inspect protocol state before resuming.`,
+      ),
     ].join("\n") + "\n"
   );
 }

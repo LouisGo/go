@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Readable, Writable } from "node:stream";
+import { PassThrough, Writable } from "node:stream";
 import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
@@ -23,7 +23,7 @@ describe("confirm 命令", () => {
     const program = createCli({ cwd: repo.path, stdout });
     await program.parseAsync(["node", "louisgo", "confirm"]);
 
-    expect(stdout.text).toContain("There is no open confirmation request");
+    expect(stdout.text).toContain("No open confirmation request");
   });
 
   it("友好展示确认请求选项", async () => {
@@ -39,11 +39,11 @@ describe("confirm 命令", () => {
 
     expect(stdout.text).toContain("Confirmation request: T002");
     expect(stdout.text).toContain("Source: .louisgo/CONFIRM_REQ.md");
-    expect(stdout.text).toContain("Background:");
+    expect(stdout.text).toContain("Background");
     expect(stdout.text).toContain("需要选择发布方式");
     expect(stdout.text).toContain("- A. 公开发布");
     expect(stdout.text).toContain("- B. 暂不发布");
-    expect(stdout.text).toContain("Next: run louisgo confirm --choice A");
+    expect(stdout.text).toContain("Run louisgo confirm --choice A");
   });
 
   it("支持用 --choice 选择选项并输出结构化下一步", async () => {
@@ -59,7 +59,7 @@ describe("confirm 命令", () => {
 
     expect(stdout.text).toContain("Selected: B. 暂不发布");
     expect(stdout.text).toContain("Task: T002");
-    expect(stdout.text).toContain("the AI should continue from this selection");
+    expect(stdout.text).toContain("AI should continue from this selection");
   });
 
   it("支持交互式选择选项", async () => {
@@ -72,14 +72,14 @@ describe("confirm 命令", () => {
 
     const program = createCli({
       cwd: repo.path,
-      stdin: Readable.from(["B\n"]),
+      stdin: createPromptInput("\x1B[B\n"),
       stdout,
     });
     await program.parseAsync(["node", "louisgo", "confirm", "--interactive"]);
 
-    expect(stdout.text).toContain("Select A/B");
+    expect(stdout.text).toContain("Choose how LouisGo should continue");
     expect(stdout.text).toContain("Selected: B. 暂不发布");
-    expect(stdout.text).toContain("the AI should continue from this selection");
+    expect(stdout.text).toContain("AI should continue from this selection");
   });
 
   it("支持交互式输入补充说明", async () => {
@@ -92,13 +92,13 @@ describe("confirm 命令", () => {
 
     const program = createCli({
       cwd: repo.path,
-      stdin: Readable.from(["改用 Apache-2.0\n"]),
+      stdin: createPromptInput("\x1B[B\x1B[B\n", "改用 Apache-2.0\n"),
       stdout,
     });
     await program.parseAsync(["node", "louisgo", "confirm", "-i"]);
 
     expect(stdout.text).toContain("Additional input: 改用 Apache-2.0");
-    expect(stdout.text).toContain("the AI should continue from this input");
+    expect(stdout.text).toContain("AI should continue from this input");
   });
 });
 
@@ -130,6 +130,9 @@ created_at: "2026-05-01T12:00:00.000Z"
 
 class MemoryWritable extends Writable {
   text = "";
+  columns = 80;
+  rows = 24;
+  isTTY = false;
 
   override _write(
     chunk: string | Buffer,
@@ -139,6 +142,27 @@ class MemoryWritable extends Writable {
     this.text += chunk.toString();
     callback();
   }
+}
+
+type PromptInput = PassThrough & {
+  isTTY: boolean;
+  setRawMode: () => PromptInput;
+};
+
+function createPromptInput(...chunks: string[]): PromptInput {
+  const input = new PassThrough() as PromptInput;
+  input.isTTY = true;
+  input.setRawMode = () => input;
+  chunks.forEach((chunk, index) => {
+    setTimeout(
+      () => {
+        input.write(chunk);
+      },
+      100 + index * 250,
+    );
+  });
+
+  return input;
 }
 
 interface TempRepo extends AsyncDisposable {

@@ -29,7 +29,7 @@ describe("init 命令", () => {
     expect(stdout.text).toContain("Files created: 4");
     expect(stdout.text).toContain("Files skipped: 0");
     expect(stdout.text).toContain("Codex integration: skipped");
-    expect(stdout.text).toContain("Next: New sessions will read LouisGo context automatically");
+    expect(stdout.text).toContain("→ New sessions will read LouisGo context automatically");
   });
 
   it("默认安装 Codex 集成", async () => {

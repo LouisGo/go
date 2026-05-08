@@ -40,7 +40,7 @@ describe("handoff promote 命令", () => {
     expect(stdout.text).toContain("Current task: T021");
     expect(stdout.text).toContain("Verification status: failed");
     expect(stdout.text).toContain("Write status: created");
-    expect(stdout.text).toContain("Next: run louisgo status to inspect recovery state.");
+    expect(stdout.text).toContain("→ Run louisgo status to inspect recovery state.");
   });
 
   it("草稿缺失时提示先 finish", async () => {

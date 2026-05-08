@@ -18,6 +18,7 @@ import { registerSkillCommand } from "./commands/skill.js";
 import { registerStatusCommand } from "./commands/status.js";
 import { registerStatsCommand } from "./commands/stats.js";
 import { registerVerifyCommand } from "./commands/verify.js";
+import { createOutputTheme } from "./output/theme.js";
 import { readPackageVersion } from "./package-info.js";
 
 export interface CliOptions {
@@ -40,6 +41,17 @@ export function createCli(options: CliOptions = {}): Command {
     .description("Lightweight AI coding context harness")
     .version(readPackageVersion())
     .showHelpAfterError();
+
+  const theme = createOutputTheme(options.stdout ?? process.stdout, options.env);
+  program.configureHelp({
+    styleTitle: (value) => theme.bold(theme.accent(value)),
+    styleUsage: (value) => theme.command(value),
+    styleCommandText: (value) => theme.command(value),
+    styleSubcommandText: (value) => theme.command(value),
+    styleOptionText: (value) => theme.info(value),
+    styleArgumentText: (value) => theme.info(value),
+    styleDescriptionText: (value) => value,
+  });
 
   registerInitCommand(program, options);
   registerPauseCommand(program, options);

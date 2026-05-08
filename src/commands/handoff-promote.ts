@@ -8,6 +8,7 @@ import {
   type HandoffServiceOptions,
   type PromoteHandoffResult,
 } from "../services/handoff-service.js";
+import { createOutputTheme, field, headline, statusToken, tip } from "../output/theme.js";
 
 export interface RegisterHandoffPromoteCommandOptions extends HandoffServiceOptions {
   readonly stdout?: Writable;
@@ -19,7 +20,7 @@ export function registerHandoffPromoteCommand(
   program: Command,
   options: RegisterHandoffPromoteCommandOptions = {},
 ): void {
-  const handoff = program.command("handoff").description("Manage LouisGo formal handoffs");
+  const handoff = program.command("handoff").description("📦 Manage LouisGo formal handoffs");
 
   handoff
     .command("promote")
@@ -36,28 +37,36 @@ export function registerHandoffPromoteCommand(
 
       try {
         const result = await promoteHandoff(options);
-        stdout.write(formatPromoteReport(result));
+        stdout.write(formatPromoteReport(result, stdout));
         setExitCode(0);
       } catch (error) {
         if (!(error instanceof HandoffServiceError)) {
           throw error;
         }
 
-        stderr.write(`Handoff promotion failed: ${formatHandoffError(error)}\n`);
+        const theme = createOutputTheme(stderr);
+        stderr.write(
+          `${headline(theme, "✕", "Handoff promotion failed")}: ${formatHandoffError(error)}\n`,
+        );
         setExitCode(1);
       }
     });
 }
 
-function formatPromoteReport(result: PromoteHandoffResult): string {
+function formatPromoteReport(result: PromoteHandoffResult, stdout?: Writable): string {
+  const theme = createOutputTheme(stdout);
   return (
     [
-      `LouisGo formal handoff generated: ${result.filePath}`,
-      `Source draft: ${result.draftPath}`,
-      `Current task: ${result.frontMatter.taskId}`,
-      `Verification status: ${result.frontMatter.verification}`,
-      `Write status: ${result.status === "created" ? "created" : "updated"}`,
-      "Next: run louisgo status to inspect recovery state.",
+      headline(theme, "📦", "LouisGo formal handoff generated", result.filePath),
+      field(theme, "Source draft", theme.path(result.draftPath)),
+      field(theme, "Current task", result.frontMatter.taskId),
+      field(theme, "Verification status", statusToken(theme, result.frontMatter.verification)),
+      field(
+        theme,
+        "Write status",
+        statusToken(theme, result.status === "created" ? "created" : "updated"),
+      ),
+      tip(theme, `Run ${theme.command("louisgo status")} to inspect recovery state.`),
     ].join("\n") + "\n"
   );
 }

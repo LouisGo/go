@@ -22,7 +22,8 @@ describe("skill 命令", () => {
     await program.parseAsync(["node", "louisgo", "skill", "enable", "grill"]);
 
     expect(stdout.text).toContain("grill [available]");
-    expect(stdout.text).toContain("LouisGo skill enabled: grill");
+    expect(stdout.text).toContain("LouisGo skill enabled");
+    expect(stdout.text).toContain("grill → .louisgo/skills/grill.md");
   });
 });
 

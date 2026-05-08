@@ -7,6 +7,14 @@ import {
   type CodexSetupResult,
 } from "../services/codex-service.js";
 import { appendRunLogEvent } from "../services/run-log-service.js";
+import {
+  createOutputTheme,
+  field,
+  headline,
+  statusIcon,
+  statusToken,
+  tip,
+} from "../output/theme.js";
 
 export interface RegisterCodexCommandOptions extends CodexSetupOptions {
   readonly stdout?: Writable;
@@ -18,7 +26,7 @@ export function registerCodexCommand(
 ): void {
   const codex = program
     .command("codex")
-    .description("Install the LouisGo Codex workflow integration");
+    .description("🧭 Install the LouisGo Codex workflow integration");
 
   codex
     .command("setup")
@@ -36,13 +44,18 @@ export function registerCodexCommand(
 }
 
 function writeCodexSetupResult(stdout: Writable, result: CodexSetupResult): void {
-  stdout.write(`LouisGo Codex integration completed: ${result.workspaceRoot}\n`);
-  stdout.write(`Codex home: ${result.codexHome}\n`);
-  stdout.write("Written files:\n");
+  const theme = createOutputTheme(stdout);
+  stdout.write(
+    `${headline(theme, "🧭", "LouisGo Codex integration completed", result.workspaceRoot)}\n`,
+  );
+  stdout.write(`${field(theme, "Codex home", theme.path(result.codexHome))}\n`);
+  stdout.write(`${theme.bold("Written files")}\n`);
 
   for (const file of result.files) {
-    stdout.write(`- ${file.status} ${file.filePath}\n`);
+    stdout.write(
+      `  ${statusIcon(file.status)} ${statusToken(theme, file.status)} ${theme.path(file.filePath)}\n`,
+    );
   }
 
-  stdout.write(`Next: ${result.nextSteps.join("; ")}\n`);
+  stdout.write(`${tip(theme, result.nextSteps.join("; "))}\n`);
 }

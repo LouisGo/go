@@ -8,6 +8,7 @@ import {
 } from "../services/init-service.js";
 import { appendRunLogEvent } from "../services/run-log-service.js";
 import { setupCodex, type CodexSetupResult } from "../services/codex-service.js";
+import { createOutputTheme, field, headline, statusToken, tip } from "../output/theme.js";
 
 export interface RegisterInitCommandOptions extends InitServiceOptions {
   readonly codexHome?: string;
@@ -21,7 +22,7 @@ export function registerInitCommand(
 ): void {
   program
     .command("init")
-    .description("Initialize the .louisgo protocol directory")
+    .description("🌱 Set up LouisGo memory files and Codex routing")
     .option("--no-codex", "Skip Codex integration setup")
     .action(async (commandOptions: { readonly codex?: boolean }) => {
       const result = await initLouisGo(options);
@@ -51,16 +52,19 @@ function writeInitResult(
 ): void {
   const createdCount = result.files.filter((file) => file.status === "created").length;
   const skippedCount = result.files.filter((file) => file.status === "skipped").length;
+  const theme = createOutputTheme(stdout);
 
-  stdout.write(`LouisGo initialized: ${result.workspaceRoot}\n`);
-  stdout.write(`Files created: ${createdCount}\n`);
-  stdout.write(`Files skipped: ${skippedCount}\n`);
+  stdout.write(`${headline(theme, "🌱", "LouisGo initialized", result.workspaceRoot)}\n`);
+  stdout.write(`${field(theme, "Files created", statusToken(theme, String(createdCount)))}\n`);
+  stdout.write(`${field(theme, "Files skipped", statusToken(theme, String(skippedCount)))}\n`);
   if (codex === null) {
-    stdout.write("Codex integration: skipped\n");
+    stdout.write(`${field(theme, "Codex integration", statusToken(theme, "skipped"))}\n`);
   } else {
-    stdout.write(`Codex integration: completed (${codex.codexHome})\n`);
+    stdout.write(
+      `${field(theme, "Codex integration", `${statusToken(theme, "completed")} (${theme.path(codex.codexHome)})`)}\n`,
+    );
   }
-  stdout.write(`Next: ${result.nextSteps.join("; ")}\n`);
+  stdout.write(`${tip(theme, result.nextSteps.join("; "))}\n`);
 }
 
 function countFiles(result: InitServiceResult, status: "created" | "skipped"): number {

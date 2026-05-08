@@ -1,5 +1,5 @@
+import { input, select } from "@inquirer/prompts";
 import type { Command } from "commander";
-import { createInterface } from "node:readline/promises";
 import type { Readable, Writable } from "node:stream";
 
 import {
@@ -12,6 +12,8 @@ import {
   type ConfirmServiceOptions,
 } from "../services/confirm-service.js";
 import { appendRunLogEvent } from "../services/run-log-service.js";
+import { createPromptOutput } from "../output/prompt.js";
+import { createOutputTheme, field, headline, tip } from "../output/theme.js";
 
 export interface RegisterConfirmCommandOptions extends ConfirmServiceOptions {
   readonly stdin?: Readable;
@@ -49,7 +51,7 @@ export function registerConfirmCommand(
             ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
             choice: commandOptions.choice,
           });
-          stdout.write(formatConfirmSelection(selection));
+          stdout.write(formatConfirmSelection(selection, stdout));
           await appendRunLogEvent({
             cwd: selection.workspaceRoot,
             command: "confirm",
@@ -81,7 +83,7 @@ export function registerConfirmCommand(
         }
 
         const request = await readConfirmRequest(options);
-        stdout.write(formatConfirmRequest(request));
+        stdout.write(formatConfirmRequest(request, stdout));
         await appendRunLogEvent({
           ...(request === null
             ? options.cwd === undefined
@@ -97,7 +99,10 @@ export function registerConfirmCommand(
           throw error;
         }
 
-        stderr.write(`${formatConfirmError(error)}\n`);
+        const theme = createOutputTheme(stderr);
+        stderr.write(
+          `${headline(theme, "✕", "Confirmation failed")}: ${formatConfirmError(error)}\n`,
+        );
         await appendRunLogEvent({
           ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
           command: "confirm",
@@ -115,94 +120,122 @@ async function formatInteractiveConfirm(
   request: ConfirmRequestView | null,
 ): Promise<string> {
   if (request === null) {
-    return "There is no open confirmation request.\n";
+    const theme = createOutputTheme(stdout);
+    return `${headline(theme, "✓", "No open confirmation request")}\n`;
   }
 
-  stdout.write(`${formatConfirmRequest(request)}\n`);
+  stdout.write(`${formatConfirmRequest(request, stdout)}\n`);
 
-  const answer = await askQuestion(
-    stdin,
-    stdout,
-    `Select ${formatChoiceKeys(request)}, or enter additional instructions:`,
+  const answer = await select(
+    {
+      message: "🧭 Choose how LouisGo should continue",
+      choices: [
+        ...request.choices.map((choice) => ({
+          name: `${choice.key}. ${choice.text}`,
+          value: choice.key,
+        })),
+        {
+          name: "Write a custom instruction",
+          value: "__custom__",
+          description: "Use this when none of the listed options captures your intent",
+        },
+      ],
+      loop: false,
+    },
+    {
+      input: stdin,
+      output: createPromptOutput(stdout),
+      clearPromptOnDone: false,
+    },
   );
-  const input = answer.trim();
 
-  if (input.length === 0) {
+  const selectedChoice = request.choices.find((choice) => choice.key === answer);
+
+  if (selectedChoice !== undefined) {
+    return `${formatConfirmSelection({ ...request, selectedChoice }, stdout)}\n`;
+  }
+
+  const customInput = await input(
+    {
+      message: "✍️ Add your instruction",
+      validate(value) {
+        return value.trim().length > 0 ? true : "Please enter a short instruction.";
+      },
+    },
+    {
+      input: stdin,
+      output: createPromptOutput(stdout),
+      clearPromptOnDone: false,
+    },
+  );
+
+  if (customInput.trim().length === 0) {
     throw new ConfirmServiceError({
       code: confirmServiceErrorCodes.choiceInvalid,
       message: "No option or additional input was provided",
     });
   }
 
-  const selectedChoice = request.choices.find((choice) => choice.key === input.toUpperCase());
-
-  if (selectedChoice !== undefined) {
-    return `${formatConfirmSelection({ ...request, selectedChoice })}\n`;
-  }
-
-  return `${formatCustomInput(request, input)}\n`;
+  return `${formatCustomInput(request, customInput.trim(), stdout)}\n`;
 }
 
-async function askQuestion(input: Readable, output: Writable, prompt: string): Promise<string> {
-  const readline = createInterface({ input, output });
-
-  try {
-    return await readline.question(`${prompt} `);
-  } finally {
-    readline.close();
-  }
-}
-
-function formatConfirmRequest(request: ConfirmRequestView | null): string {
+function formatConfirmRequest(request: ConfirmRequestView | null, stdout?: Writable): string {
+  const theme = createOutputTheme(stdout);
   if (request === null) {
-    return "There is no open confirmation request.\n";
+    return `${headline(theme, "✓", "No open confirmation request")}\n`;
   }
 
   return [
-    `Confirmation request: ${request.frontMatter.taskId}`,
-    `Source: ${request.relativePath}`,
+    headline(theme, "🧭", "Confirmation request", request.frontMatter.taskId),
+    field(theme, "Source", request.relativePath),
     "",
-    "Background:",
+    theme.bold("Background"),
     formatBlock(request.background),
     "",
-    "Options:",
+    theme.bold("Options"),
     ...request.choices.map((choice) => `- ${choice.key}. ${choice.text}`),
     "",
-    "Recommendation:",
+    theme.bold("Recommendation"),
     formatBlock(request.recommendation),
     "",
-    `Next: run louisgo confirm --choice ${request.choices[0]?.key ?? "A"}, or reply with an option letter.`,
+    tip(
+      theme,
+      `Run ${theme.command(`louisgo confirm --choice ${request.choices[0]?.key ?? "A"}`)}, or use ${theme.command("louisgo confirm --interactive")}.`,
+    ),
   ].join("\n");
 }
 
-function formatConfirmSelection(selection: ConfirmChoiceSelection): string {
+function formatConfirmSelection(selection: ConfirmChoiceSelection, stdout?: Writable): string {
+  const theme = createOutputTheme(stdout);
   return [
-    `Selected: ${selection.selectedChoice.key}. ${selection.selectedChoice.text}`,
-    `Task: ${selection.frontMatter.taskId}`,
-    `Source: ${selection.relativePath}`,
+    headline(
+      theme,
+      "✓",
+      "Selected",
+      `${selection.selectedChoice.key}. ${selection.selectedChoice.text}`,
+    ),
+    field(theme, "Task", selection.frontMatter.taskId),
+    field(theme, "Source", selection.relativePath),
     "",
-    "Next: the AI should continue from this selection and clear the request or generate a new handoff after handling it.",
+    tip(
+      theme,
+      "AI should continue from this selection, then clear the request or generate a new handoff.",
+    ),
   ].join("\n");
 }
 
-function formatCustomInput(request: ConfirmRequestView, input: string): string {
+function formatCustomInput(request: ConfirmRequestView, input: string, stdout?: Writable): string {
+  const theme = createOutputTheme(stdout);
   return [
-    `Additional input: ${input}`,
-    `Task: ${request.frontMatter.taskId}`,
-    `Source: ${request.relativePath}`,
+    headline(theme, "✍️", "Additional input", input),
+    field(theme, "Task", request.frontMatter.taskId),
+    field(theme, "Source", request.relativePath),
     "",
-    "Next: the AI should continue from this input and clear the request or generate a new handoff after handling it.",
+    tip(
+      theme,
+      "AI should continue from this input, then clear the request or generate a new handoff.",
+    ),
   ].join("\n");
-}
-
-function formatChoiceKeys(request: ConfirmRequestView): string {
-  const keys = request.choices.map((choice) => choice.key);
-
-  if (keys.length === 0) {
-    return "an option letter";
-  }
-
-  return keys.join("/");
 }
 
 function formatConfirmError(error: ConfirmServiceError): string {

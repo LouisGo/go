@@ -38,7 +38,7 @@ describe("pause 命令", () => {
     expect(stdout.text).toContain("LouisGo quick save created");
     expect(stdout.text).toContain("Current task: NO_TASK");
     expect(stdout.text).toContain(
-      "Next: run louisgo status to inspect protocol state before resuming.",
+      "→ Run louisgo status to inspect protocol state before resuming.",
     );
   });
 
@@ -61,9 +61,9 @@ describe("pause 命令", () => {
 
     expect(exitCode).toBe(1);
     expect(stdout.text).toBe("");
-    expect(stderr.text).toContain(
-      "Pause failed: LouisGo protocol is incomplete. Run louisgo init first.",
-    );
+    expect(stderr.text).toContain("Pause failed");
+    expect(stderr.text).toContain("LouisGo protocol is incomplete");
+    expect(stderr.text).toContain("Run louisgo init first.");
   });
 });
 

@@ -10,6 +10,7 @@ import {
 import { appendRunLogEvent } from "../services/run-log-service.js";
 import { createContextStatsEvent } from "../stats/events.js";
 import { appendStatsEvents } from "../stats/store.js";
+import { createOutputTheme, headline } from "../output/theme.js";
 
 export interface RegisterContextCommandOptions extends ContextServiceOptions {
   readonly now?: () => Date;
@@ -24,7 +25,7 @@ export function registerContextCommand(
 ): void {
   program
     .command("context")
-    .description("Generate a LouisGo prompt context package")
+    .description("📚 Generate a LouisGo prompt context package")
     .option("--budget <tokens>", "Context budget in estimated tokens", parseBudget)
     .option("--goal <text>", "Current goal for the context package or subagent capsule")
     .option("--capsule", "Generate a subagent context capsule with title and constraints")
@@ -71,13 +72,14 @@ export function registerContextCommand(
           throw error;
         }
 
+        const theme = createOutputTheme(stderr);
         stderr.write(
-          "Context generation failed: LouisGo protocol is incomplete. Run louisgo init first.\n",
+          `${headline(theme, "✕", "Context generation failed")}: LouisGo protocol is incomplete. Run ${theme.command("louisgo init")} first.\n`,
         );
         if (error.issues.length > 0) {
-          stderr.write("Issues to fix:\n");
+          stderr.write(`${theme.danger("Issues to fix")}:\n`);
           for (const issue of error.issues) {
-            stderr.write(`- ${issue.relativePath}: ${issue.message}\n`);
+            stderr.write(`  ✕ ${theme.path(issue.relativePath)}: ${issue.message}\n`);
           }
         }
         await appendRunLogEvent({

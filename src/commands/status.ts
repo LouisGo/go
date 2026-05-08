@@ -15,10 +15,11 @@ export function registerStatusCommand(
 ): void {
   program
     .command("status")
-    .description("Show LouisGo protocol status")
+    .description("✅ Show LouisGo protocol, recovery, and workspace status")
     .action(async () => {
       const status = await checkProtocolStatus(options);
-      (options.stdout ?? process.stdout).write(formatStatusReport(status));
+      const stdout = options.stdout ?? process.stdout;
+      stdout.write(formatStatusReport(status, stdout));
       await appendRunLogEvent({
         cwd: status.workspaceRoot,
         command: "status",

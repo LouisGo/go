@@ -32,10 +32,12 @@ describe("clear 命令", () => {
     await clearProgram.parseAsync(["node", "louisgo", "clear"]);
 
     expect(stdout.text).toContain("Dangerous operation");
-    expect(stdout.text).toContain("Deletes .louisgo/");
-    expect(stdout.text).toContain("Select cleanup action");
-    expect(stdout.text).toContain("Cancel and keep all files");
-    expect(stdout.text).toContain("Canceled. No files were deleted.");
+    expect(stdout.text).toContain("Deletes");
+    expect(stdout.text).toContain(".louisgo/");
+    expect(stdout.text).toContain("Choose cleanup action");
+    expect(stdout.text).toContain("Keep everything");
+    expect(stdout.text).toContain("Canceled");
+    expect(stdout.text).toContain("No files were deleted");
     expect(exitCode).toBe(1);
     await expect(access(join(repo.path, ".louisgo"))).resolves.toBeUndefined();
   });
@@ -49,8 +51,9 @@ describe("clear 命令", () => {
     await program.parseAsync(["node", "louisgo", "clear", "--dry-run"]);
 
     expect(stdout.text).toContain("Cleanup preview");
-    expect(stdout.text).toContain("planned .louisgo");
-    expect(stdout.text).toContain("No deletion was performed");
+    expect(stdout.text).toContain("planned");
+    expect(stdout.text).toContain(".louisgo");
+    expect(stdout.text).toContain("Preview only");
     await expect(access(join(repo.path, ".louisgo"))).resolves.toBeUndefined();
   });
 
@@ -69,9 +72,10 @@ describe("clear 命令", () => {
     });
     await clearProgram.parseAsync(["node", "louisgo", "clear"]);
 
-    expect(stdout.text).toContain("I understand the risk. Remove LouisGo project data.");
+    expect(stdout.text).toContain("Clear this project's LouisGo data");
     expect(stdout.text).toContain("LouisGo project data removed");
-    expect(stdout.text).toContain("deleted .louisgo");
+    expect(stdout.text).toContain("deleted");
+    expect(stdout.text).toContain(".louisgo");
     await expect(access(join(repo.path, ".louisgo"))).rejects.toMatchObject({
       code: "ENOENT",
     });
@@ -108,7 +112,7 @@ class MemoryWritable extends Writable {
   text = "";
   columns = 80;
   rows = 24;
-  isTTY = true;
+  isTTY = false;
 
   override _write(
     chunk: string | Buffer,
