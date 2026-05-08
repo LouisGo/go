@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -84,7 +84,7 @@ describe("Codex 集成安装", () => {
       "louisgo context",
     );
     await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
-      "node ./dist/cli.js <subcommand>",
+      "Existing project instructions",
     );
     await expect(readFile(join(repo.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "npx --yes louisgo@latest <subcommand>",
@@ -117,8 +117,34 @@ describe("Codex 集成安装", () => {
     ).toBe(true);
     expect(agents).toContain("保留内容。");
     expect(agents).toContain("$finish");
-    expect(agents).toContain("$handoff-promote");
+    expect(agents).toContain("Existing project instructions");
     expect(agents).not.toContain("旧内容");
+  });
+
+  it("项目已有 Agent.md 时复用既有文件而不是新建 AGENTS.md", async () => {
+    await using repo = await createGitRepo();
+    await using codex = await createTempDir();
+    const agentPath = join(repo.path, "Agent.md");
+
+    await writeFile(
+      agentPath,
+      `# Existing Agent
+
+项目原有规则。
+`,
+      "utf8",
+    );
+
+    const result = await setupCodex({ cwd: repo.path, codexHome: codex.path });
+    const agent = await readFile(agentPath, "utf8");
+
+    expect(
+      result.files.some((file) => file.filePath.endsWith("Agent.md") && file.status === "updated"),
+    ).toBe(true);
+    await expect(readdir(repo.path)).resolves.not.toContain("AGENTS.md");
+    expect(agent).toContain("项目原有规则。");
+    expect(agent).toContain("louisgo-codex:start");
+    expect(agent).toContain("Existing project instructions");
   });
 });
 

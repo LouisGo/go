@@ -69,7 +69,7 @@ export function registerClearCommand(
 function writeRiskWarning(stdout: Writable): void {
   stdout.write("危险操作：即将清理当前 Git 项目的 LouisGo 数据。\n");
   stdout.write("- 会删除 .louisgo/，包括项目记忆、交接、验证结果、诊断日志、stats 和本地缓存。\n");
-  stdout.write("- 会移除 AGENTS.md 中 LouisGo 管理的 Codex 指令块。\n");
+  stdout.write("- 会移除项目 agent 指令文件中 LouisGo 管理的 Codex 指令块。\n");
   stdout.write("- 不会删除业务源码，也不会清理全局 Codex 配置或全局 skills。\n");
 }
 
@@ -101,7 +101,7 @@ async function askClearConfirmation(stdin: Readable, stdout: Writable): Promise<
         {
           name: "我理解风险，清理当前项目 LouisGo 数据",
           value: "clear",
-          description: "删除 .louisgo/ 并移除 AGENTS.md 中 LouisGo 管理块",
+          description: "删除 .louisgo/ 并移除项目 agent 指令文件中的 LouisGo 管理块",
         },
       ],
       default: "cancel",

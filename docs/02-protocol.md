@@ -39,7 +39,7 @@ LouisGo 协议目录位于仓库根目录：
 
 `HANDOFF_DRAFT.md` 和 `QUICK_SAVE.md` 是兼容旧流程的临时文件，不是主恢复来源。
 
-`louisgo clear` 会先展示风险和待清理目标，经终端方向键选择列表确认后删除当前 Git 项目的整个 `.louisgo/` 目录，并移除项目根 `AGENTS.md` 中 LouisGo 管理的 Codex 指令块。执行前可以用 `louisgo clear --dry-run` 预览目标。该命令不删除业务源码，也不清理全局 Codex 配置或全局 skills。
+`louisgo clear` 会先展示风险和待清理目标，经终端方向键选择列表确认后删除当前 Git 项目的整个 `.louisgo/` 目录，并移除项目 agent 指令文件中 LouisGo 管理的 Codex 指令块。执行前可以用 `louisgo clear --dry-run` 预览目标。该命令不删除业务源码，也不清理全局 Codex 配置或全局 skills。
 
 ## 协议定位
 
@@ -247,14 +247,14 @@ diff hash 会忽略 LouisGo 生成型恢复和诊断文件：`test-results.json`
 
 ## 缓存层级
 
-| 层           | 文件                                                    | 写入者                | 是否应频繁变化 | Git 同步                                 |
-| ------------ | ------------------------------------------------------- | --------------------- | -------------- | ---------------------------------------- |
-| L0 平台入口  | `AGENTS.md` 和未来平台适配文件                          | `louisgo init` / 用户 | 否             | 是                                       |
-| L1 项目契约  | `MISSION.md`、`CAPABILITIES.md`                         | 用户为主，AI 辅助     | 否             | 是                                       |
-| L2 稳定索引  | `MEMORY.md`、`CONTEXT.md`、`skills/*.md`、`memory/*.md` | AI / 用户             | 少量变化       | 是                                       |
-| L3 正式恢复  | `HANDOFF.md`                                            | `$finish` / AI        | 阶段性变化     | 是                                       |
-| L4 活跃状态  | `STATE.md`、`CONFIRM_REQ.md`、`sessions/*.md`           | AI                    | 经常变化       | 是，必要时可按项目策略忽略 sessions 详情 |
-| L4b 本地观测 | `stats/*.jsonl`、`stats/imports.json`                   | CLI                   | 经常变化       | 默认否                                   |
+| 层           | 文件                                                    | 写入者                 | 是否应频繁变化 | Git 同步                                 |
+| ------------ | ------------------------------------------------------- | ---------------------- | -------------- | ---------------------------------------- |
+| L0 平台入口  | 项目 agent 指令文件和未来平台适配文件                   | `louisgo init` / 用户  | 否             | 是                                       |
+| L1 项目契约  | `MISSION.md`、`CAPABILITIES.md`                         | 用户为主，AI 辅助      | 否             | 是                                       |
+| L2 稳定索引  | `MEMORY.md`、`CONTEXT.md`、`skills/*.md`、`memory/*.md` | AI / 用户              | 少量变化       | 是                                       |
+| L3 正式恢复  | `HANDOFF.md`                                            | `$finish` / AI         | 阶段性变化     | 是                                       |
+| L4 活跃状态  | `STATE.md`、`CONFIRM_REQ.md`、`sessions/*.md`           | AI                     | 经常变化       | 是，必要时可按项目策略忽略 sessions 详情 |
+| L4b 本地观测 | `stats/*.jsonl`、`stats/imports.json`                   | CLI                    | 经常变化       | 默认否                                   |
 | L5 任务技能  | Codex skills、未来平台 skill/rule、`.louisgo/skills/*`  | `louisgo skill` / 用户 | 按工作流变化   | 平台相关或按项目策略                     |
 
 平台 prompt 组装应尽量保持 L0-L2 为稳定前缀，把 L3-L4 放在后面。语义恢复仍按确认请求、正式交接、活跃状态的顺序判断。

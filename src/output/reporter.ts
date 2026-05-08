@@ -61,7 +61,7 @@ function formatWorkspaceNextStep(status: ProtocolStatus): string {
   }
 
   if (status.verificationStatus === "missing" || status.verificationStatus === "skipped") {
-    return "下一步：如果只是初始化 LouisGo，提交 .louisgo/ 和 AGENTS.md；进入真实开发前配置项目验证命令。";
+    return "下一步：如果只是初始化 LouisGo，提交 .louisgo/ 和项目 agent 指令文件；进入真实开发前配置项目验证命令。";
   }
 
   return "下一步：完成当前改动后运行 louisgo verify，再用 $finish 固化交接。";

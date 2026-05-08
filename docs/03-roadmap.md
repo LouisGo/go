@@ -4,7 +4,7 @@
 
 - Node.js + TypeScript CLI，包名 `louisgo`，公开版本 `0.1.0`。
 - `.louisgo/` 协议初始化：mission、capabilities、state、memory、roadmap、verify scripts。
-- Codex 集成：skills、`AGENTS.md` 指令块、普通会话自动读取 `louisgo context`。
+- Codex 集成：skills、项目 agent 指令托管块、普通会话自动读取 `louisgo context`。
 - `louisgo context`：按层编译 prompt cache，输出来源、预算和用户 prompt 优先契约。
 - `louisgo status`：报告协议完整性、当前任务、验证状态、恢复来源和工作区 diff。
 - `louisgo verify`：运行项目验证入口，写入 `test-results.json` 并检查新鲜度。
@@ -22,7 +22,7 @@
 - Codex-first stats：本地 context token 估算、Codex usage 显式导入、cached token ratio 和 simulated savings。
 - 轻量初始化：`init` 只写最小协议，未形成真实记忆时 `context` 使用 cold-start 旁路。
 - 按需预设 skill：`louisgo skill list/enable/disable` 管理 grill/caveman，并检测项目同名 skill 冲突。
-- 项目清理：`louisgo clear --dry-run` 预览目标，`louisgo clear` 通过终端方向键选择列表确认后删除当前项目 `.louisgo/` 和项目 `AGENTS.md` 管理块。
+- 项目清理：`louisgo clear --dry-run` 预览目标，`louisgo clear` 通过终端方向键选择列表确认后删除当前项目 `.louisgo/` 和项目 agent 指令管理块。
 
 ## 下一阶段候选
 

@@ -1,4 +1,4 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
@@ -15,6 +15,7 @@ import type { CodexDirectiveSkillTemplateOptions } from "../templates/codex.js";
 
 const managedBlockStart = "<!-- louisgo-codex:start -->";
 const managedBlockEnd = "<!-- louisgo-codex:end -->";
+const projectAgentFileCandidates = ["AGENTS.md", "AGENT.md", "Agent.md", "agents.md", "agent.md"];
 
 export const codexSetupStatuses = {
   created: "created",
@@ -67,7 +68,7 @@ export async function setupCodex(options: CodexSetupOptions = {}): Promise<Codex
       createCodexSkillOpenAiYaml(),
     ),
     upsertAgentsFile(join(codexHome, "AGENTS.md"), createCodexAgentsBlock()),
-    upsertAgentsFile(join(workspaceRoot, "AGENTS.md"), createCodexAgentsBlock()),
+    upsertProjectAgentsFile(workspaceRoot, createCodexAgentsBlock()),
   ]);
 
   return {
@@ -219,6 +220,27 @@ async function upsertAgentsFile(filePath: string, body: string): Promise<CodexSe
     filePath: resolvedPath,
     status: current === null ? codexSetupStatuses.created : codexSetupStatuses.updated,
   };
+}
+
+async function upsertProjectAgentsFile(
+  workspaceRoot: string,
+  body: string,
+): Promise<CodexSetupFileResult> {
+  const filePath = await resolveProjectAgentsFile(workspaceRoot);
+
+  return await upsertAgentsFile(filePath, body);
+}
+
+async function resolveProjectAgentsFile(workspaceRoot: string): Promise<string> {
+  const entries = await readdir(workspaceRoot);
+
+  for (const fileName of projectAgentFileCandidates) {
+    if (entries.includes(fileName)) {
+      return join(workspaceRoot, fileName);
+    }
+  }
+
+  return join(workspaceRoot, "AGENTS.md");
 }
 
 function upsertManagedBlock(source: string, body: string): string {

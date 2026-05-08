@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -101,6 +101,28 @@ describe("clear service", () => {
       }),
     );
     await expect(access(agentsPath)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("项目复用 Agent.md 时清理该文件中的 LouisGo 管理块", async () => {
+    await using repo = await createInitializedRepo();
+    await using codex = await createTempDir();
+    const agentPath = join(repo.path, "Agent.md");
+
+    await writeFile(agentPath, "# Existing Agent\n\n项目原有规则。\n", "utf8");
+    await setupCodex({ cwd: repo.path, codexHome: codex.path });
+
+    const result = await clearLouisGo({
+      cwd: repo.path,
+    });
+
+    expect(result.targets).toContainEqual(
+      expect.objectContaining({
+        relativePath: "Agent.md",
+        status: clearTargetStatuses.updated,
+      }),
+    );
+    await expect(readdir(repo.path)).resolves.not.toContain("AGENTS.md");
+    await expect(readFile(agentPath, "utf8")).resolves.toBe("# Existing Agent\n\n项目原有规则。\n");
   });
 });
 
