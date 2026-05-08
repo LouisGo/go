@@ -1,6 +1,6 @@
 ---
 schema: louisgo-memory-v1
-updated_at: "2026-05-06T16:20:00.000Z"
+updated_at: "2026-05-08T19:03:00.000Z"
 ---
 
 # Memory
@@ -23,6 +23,7 @@ updated_at: "2026-05-06T16:20:00.000Z"
 - `RUNLOG.md` is a local diagnostic log: it records LouisGo command events and state summaries, is ignored by `.louisgo/.gitignore` by default, and can be sent to AI for debugging.
 - T008 passed repository tests and a temporary external Git project smoke test: `louisgo log --tail 10` prints init/context/verify/finish events.
 - T016 introduced Codex-first stats: `louisgo context` writes local token/section events, `louisgo stats import codex` explicitly imports Codex JSONL usage, and `.louisgo/stats/` is ignored by default without storing prompts, replies, or source code.
+- Git operations for this repository must use the GitHub `LouisGo` account. The local `origin` remote is intentionally set to `git@github-louisgo:LouisGo/go.git`, where `github-louisgo` maps to `github.com` with `~/.ssh/id_ed25519_typey`; do not switch it back to the default `git@github.com` host, which authenticates as another account.
 
 ## Topic Files
 
