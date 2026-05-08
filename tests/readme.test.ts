@@ -27,6 +27,7 @@ describe("README 使用说明", () => {
       "handoff",
       "codex",
       "skill",
+      "clear",
     ]) {
       expect(commandNames).toContain(command);
     }
@@ -40,6 +41,7 @@ describe("README 使用说明", () => {
     expect(readme).toContain("louisgo context");
     expect(readme).toContain("louisgo stats");
     expect(readme).toContain("louisgo skill list");
+    expect(readme).toContain('louisgo clear --confirm "DELETE LOUISGO"');
     expect(readme).toContain("louisgo log");
     expect(readme).toContain("handoff promote");
     expect(

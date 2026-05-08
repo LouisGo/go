@@ -55,6 +55,7 @@ describe("init 服务", () => {
     expect(mission.frontMatter.defaultMode).toBe("assist");
     expect(capabilities.body).toContain(".louisgo/scripts/verify.sh");
     expect(capabilities.body).toContain("louisgo skill enable grill");
+    expect(capabilities.body).toContain('louisgo clear --confirm "DELETE LOUISGO"');
     expect(state.frontMatter.currentTask).toBe("NO_TASK");
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("RUNLOG.md");
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("stats/");

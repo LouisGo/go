@@ -1,29 +1,32 @@
 ---
 schema: louisgo-state-v1
 mode: assist
-current_task: T016
+current_task: T017
 handoff: .louisgo/HANDOFF.md
 verification: passed
-git_head: ef3c5a5abf4256917a9cb26d5f163ff1c234a230
-diff_hash: 8f50d7cd1c02ca922b81f5a74810c17851171c26d9183433314be82d908c821c
-updated_at: "2026-05-06T16:17:01.000Z"
+git_head: 804095a7bfd34635dffdf630b19aaf9615f62038
+diff_hash: 3fcf2efb354875b79f5af8fa4504b9ea68875ebc2b9524eff79675083eff3a7c
+updated_at: "2026-05-08T01:51:30.000Z"
 ---
 
 # State
 
 ## Now
 
-- task: T016 Codex-first stats 与上下文观测
-- verification: passed
+- task: T017 项目级 LouisGo clear 清理命令
+- verification: passed and fresh
 - recovery: prefer `.louisgo/HANDOFF.md` when present; otherwise use this file and `.louisgo/MEMORY.md`
-- focus: stats CLI、Codex usage 导入、token-aware context report、协议和文档已实现
+- focus: `louisgo clear` requires explicit confirmation, deletes project `.louisgo/`, removes the project `AGENTS.md` managed block, and leaves global Codex config untouched
 
 ## Next
 
-- first action: review current diff or run `louisgo stats` / `louisgo stats import codex --dry-run`
-- after meaningful work: update this file, run verification when appropriate, then use `$finish` for formal handoff
+- first action: commit the clear command changes, then push if remote permissions allow
+- after meaningful work: use `$finish` for formal handoff
 
 ## Evidence
 
 - verification | `node ./dist/cli.js verify` | passed and fresh at 2026-05-06T16:17:01Z
 - stats smoke | `node ./dist/cli.js stats --json` | command returns valid empty summary before events are collected
+- focused tests | `pnpm typecheck` and `pnpm test -- tests/clear-service.test.ts tests/clear-command.test.ts tests/readme.test.ts tests/templates.test.ts tests/init-service.test.ts` | passed during T017 implementation
+- verification | `node ./dist/cli.js verify` | passed and fresh at 2026-05-08T01:51:01Z after adding `louisgo clear`
+- smoke | temp Git repo with `node /Users/lou/Learn/go/dist/cli.js init --no-codex`, `clear --dry-run`, and `clear --confirm "DELETE LOUISGO"` | `.louisgo/` removed only in the temp repo

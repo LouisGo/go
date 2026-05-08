@@ -94,6 +94,7 @@ describe("协议模板", () => {
     expect(document.body).toContain("louisgo stats import codex");
     expect(document.body).toContain("louisgo skill list");
     expect(document.body).toContain("louisgo skill enable grill");
+    expect(document.body).toContain('louisgo clear --confirm "DELETE LOUISGO"');
     expect(document.body).toContain("## ADR Guidance");
     expect(document.body).toContain("是否难以逆转");
     expect(document.body).toContain("## Optional Skills");

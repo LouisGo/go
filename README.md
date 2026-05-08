@@ -18,9 +18,10 @@ npm install -g louisgo -> louisgo init -> 自然对话开发 -> $start 按需深
 | 按需技能      | `louisgo skill enable ...` | 仅在需要时启用预设 skill，若项目已有同名 skill 则阻止覆盖。           |
 | 语境失真      | 输入 `$start`              | 重新编译上下文包，优先恢复 `HANDOFF.md -> STATE.md -> MEMORY.md`。     |
 | 阶段收尾      | 输入 `$finish`             | 记录验证状态、Git diff、阻塞和下一步，生成正式 `.louisgo/HANDOFF.md`。 |
+| 项目清理      | `louisgo clear ...`        | 明确确认后删除当前项目 `.louisgo/`，并移除项目 `AGENTS.md` 管理块。    |
 | 换机器/换会话 | 拉取 Git 后继续对话        | 新 AI 会话从 `.louisgo/` 和源码恢复必要上下文。                        |
 
-`context`、`stats`、`skill`、`confirm`、`log`、`status`、`verify`、`pause`、`handoff promote`、`codex setup` 是 AI、高级用户和兼容场景的工具，不是日常主路径。
+`context`、`stats`、`skill`、`clear`、`confirm`、`log`、`status`、`verify`、`pause`、`handoff promote`、`codex setup` 是 AI、高级用户和兼容场景的工具，不是日常主路径。
 
 ## 为什么有用
 
@@ -106,6 +107,20 @@ louisgo skill enable caveman
 ```
 
 预设 skill 不会在 `init` 时默认写入项目。启用时会检查 `.codex/skills/` 和 `.louisgo/skills/` 的同名 skill，发现冲突会提示用户，不覆盖项目已有内容。
+
+如果要从当前项目移除 LouisGo 本地协议和缓存，先预览：
+
+```text
+louisgo clear --dry-run
+```
+
+确认风险后执行：
+
+```text
+louisgo clear --confirm "DELETE LOUISGO"
+```
+
+`clear` 会删除当前 Git 项目的 `.louisgo/`，包括记忆、交接、验证结果、诊断日志、stats 和缓存，并移除项目 `AGENTS.md` 中 LouisGo 管理的 Codex 指令块。它不会删除业务源码，也不会清理全局 Codex 配置或全局 skills。
 
 ## 外部项目实验
 

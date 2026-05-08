@@ -5,6 +5,7 @@ import { realpathSync } from "node:fs";
 import type { Readable, Writable } from "node:stream";
 import { fileURLToPath } from "node:url";
 
+import { registerClearCommand } from "./commands/clear.js";
 import { registerCodexCommand } from "./commands/codex.js";
 import { registerConfirmCommand } from "./commands/confirm.js";
 import { registerContextCommand } from "./commands/context.js";
@@ -52,6 +53,7 @@ export function createCli(options: CliOptions = {}): Command {
   registerCodexCommand(program, options);
   registerSkillCommand(program, options);
   registerLogCommand(program, options);
+  registerClearCommand(program, options);
 
   return program;
 }
