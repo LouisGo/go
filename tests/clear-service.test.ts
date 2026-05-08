@@ -6,12 +6,7 @@ import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
 
-import {
-  clearConfirmationPhrase,
-  clearLouisGo,
-  ClearServiceError,
-  clearTargetStatuses,
-} from "../src/services/clear-service.js";
+import { clearLouisGo, clearTargetStatuses } from "../src/services/clear-service.js";
 import { setupCodex } from "../src/services/codex-service.js";
 import { initLouisGo } from "../src/services/init-service.js";
 
@@ -19,13 +14,6 @@ const execFileAsync = promisify(execFile);
 const now = () => new Date("2026-05-01T12:00:00.000Z");
 
 describe("clear service", () => {
-  it("没有精确确认时拒绝清理", async () => {
-    await using repo = await createInitializedRepo();
-
-    await expect(clearLouisGo({ cwd: repo.path })).rejects.toBeInstanceOf(ClearServiceError);
-    await expect(access(join(repo.path, ".louisgo"))).resolves.toBeUndefined();
-  });
-
   it("dry-run 只预览目标，不删除文件", async () => {
     await using repo = await createInitializedRepo();
     await using codex = await createTempDir();
@@ -75,7 +63,6 @@ describe("clear service", () => {
 
     const result = await clearLouisGo({
       cwd: repo.path,
-      confirm: clearConfirmationPhrase,
     });
 
     expect(result.targets).toEqual(
@@ -105,7 +92,6 @@ describe("clear service", () => {
 
     const result = await clearLouisGo({
       cwd: repo.path,
-      confirm: clearConfirmationPhrase,
     });
 
     expect(result.targets).toContainEqual(

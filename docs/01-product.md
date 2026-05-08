@@ -37,7 +37,7 @@ AI 在启用 LouisGo 的仓库中工作时，应遵守这条顺序：
 
 观测 token 时，运行 `louisgo stats` 查看本项目本地事件；运行 `louisgo stats import codex` 才会显式读取 `$CODEX_HOME` / `~/.codex` 的 session JSONL。导入只保存 token usage 数字、来源文件指纹和 section stats，不保存 prompt、聊天正文或源码。
 
-需要移除当前项目 LouisGo 时，先运行 `louisgo clear --dry-run` 查看目标；实际删除必须使用 `louisgo clear --confirm "DELETE LOUISGO"`。该命令只清理当前 Git 项目的 `.louisgo/` 和项目 `AGENTS.md` 中 LouisGo 管理的指令块，不清理全局 Codex 配置或全局 skills。
+需要移除当前项目 LouisGo 时，先运行 `louisgo clear --dry-run` 查看目标；实际删除运行 `louisgo clear`，并在终端中交互确认。该命令只清理当前 Git 项目的 `.louisgo/` 和项目 `AGENTS.md` 中 LouisGo 管理的指令块，不清理全局 Codex 配置或全局 skills。
 
 ## 恢复模型
 

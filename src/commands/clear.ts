@@ -1,22 +1,20 @@
 import type { Command } from "commander";
-import type { Writable } from "node:stream";
+import { createInterface } from "node:readline/promises";
+import type { Readable, Writable } from "node:stream";
 
 import {
-  clearConfirmationPhrase,
   clearLouisGo,
-  ClearServiceError,
   type ClearLouisGoOptions,
   type ClearLouisGoResult,
 } from "../services/clear-service.js";
 
 export interface RegisterClearCommandOptions extends ClearLouisGoOptions {
+  readonly stdin?: Readable;
   readonly stdout?: Writable;
-  readonly stderr?: Writable;
   readonly setExitCode?: (exitCode: number) => void;
 }
 
 interface ClearCommandOptions {
-  readonly confirm?: string;
   readonly dryRun?: boolean;
 }
 
@@ -28,37 +26,43 @@ export function registerClearCommand(
     .command("clear")
     .description("清空当前项目的 LouisGo 协议文件和本地缓存")
     .option("--dry-run", "只预览会清理的目标，不实际删除")
-    .option("--confirm <phrase>", `明确确认执行清理；必须完全等于 "${clearConfirmationPhrase}"`)
     .action(async (commandOptions: ClearCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
-      const stderr = options.stderr ?? process.stderr;
       const setExitCode =
         options.setExitCode ??
         ((exitCode: number) => {
           process.exitCode = exitCode;
         });
-
       writeRiskWarning(stdout);
 
-      try {
+      if (commandOptions.dryRun === true) {
         const result = await clearLouisGo({
           ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
-          ...(commandOptions.confirm === undefined ? {} : { confirm: commandOptions.confirm }),
-          ...(commandOptions.dryRun === undefined ? {} : { dryRun: commandOptions.dryRun }),
+          dryRun: true,
         });
         writeClearResult(stdout, result);
         setExitCode(0);
-      } catch (error) {
-        if (!(error instanceof ClearServiceError)) {
-          throw error;
-        }
-
-        stderr.write(`${error.message}\n`);
-        stderr.write(
-          `未执行。若确认风险，请运行：louisgo clear --confirm "${clearConfirmationPhrase}"\n`,
-        );
-        setExitCode(1);
+        return;
       }
+
+      const preview = await clearLouisGo({
+        ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
+        dryRun: true,
+      });
+      writeClearResult(stdout, preview);
+      const confirmed = await askClearConfirmation(options.stdin ?? process.stdin, stdout);
+
+      if (!confirmed) {
+        stdout.write("已取消，未删除任何文件。\n");
+        setExitCode(1);
+        return;
+      }
+
+      const result = await clearLouisGo({
+        ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
+      });
+      writeClearResult(stdout, result);
+      setExitCode(0);
     });
 }
 
@@ -81,6 +85,21 @@ function writeClearResult(stdout: Writable, result: ClearLouisGoResult): void {
   }
 
   if (result.dryRun) {
-    stdout.write(`未执行删除。若确认风险，请运行：louisgo clear --confirm "DELETE LOUISGO"\n`);
+    stdout.write("未执行删除。\n");
+  }
+}
+
+async function askClearConfirmation(stdin: Readable, stdout: Writable): Promise<boolean> {
+  stdout.write("\n请选择：\n");
+  stdout.write("- A. 取消，不删除任何文件\n");
+  stdout.write("- B. 我理解风险，清理当前项目 LouisGo 数据\n");
+
+  const readline = createInterface({ input: stdin, output: stdout });
+
+  try {
+    const answer = await readline.question("请输入 A/B：");
+    return answer.trim().toUpperCase() === "B";
+  } finally {
+    readline.close();
   }
 }

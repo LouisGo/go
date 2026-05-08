@@ -117,10 +117,10 @@ louisgo clear --dry-run
 确认风险后执行：
 
 ```text
-louisgo clear --confirm "DELETE LOUISGO"
+louisgo clear
 ```
 
-`clear` 会删除当前 Git 项目的 `.louisgo/`，包括记忆、交接、验证结果、诊断日志、stats 和缓存，并移除项目 `AGENTS.md` 中 LouisGo 管理的 Codex 指令块。它不会删除业务源码，也不会清理全局 Codex 配置或全局 skills。
+`clear` 会在终端中展示风险和待清理目标，并要求用户交互选择后才会删除当前 Git 项目的 `.louisgo/`，包括记忆、交接、验证结果、诊断日志、stats 和缓存，同时移除项目 `AGENTS.md` 中 LouisGo 管理的 Codex 指令块。它不会删除业务源码，也不会清理全局 Codex 配置或全局 skills。
 
 ## 外部项目实验
 

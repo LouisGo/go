@@ -2,26 +2,24 @@ import { execFile } from "node:child_process";
 import { access, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Writable } from "node:stream";
+import { Readable, Writable } from "node:stream";
 import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
 
 import { createCli } from "../src/cli.js";
-import { clearConfirmationPhrase } from "../src/services/clear-service.js";
 
 const execFileAsync = promisify(execFile);
 
 describe("clear 命令", () => {
-  it("未确认时提示风险并拒绝执行", async () => {
+  it("交互选择取消时提示风险并拒绝执行", async () => {
     await using repo = await createGitRepo();
     const stdout = new MemoryWritable();
-    const stderr = new MemoryWritable();
     let exitCode: number | undefined;
     const program = createCli({
       cwd: repo.path,
+      stdin: Readable.from(["A\n"]),
       stdout,
-      stderr,
       setExitCode(value) {
         exitCode = value;
       },
@@ -32,7 +30,8 @@ describe("clear 命令", () => {
 
     expect(stdout.text).toContain("危险操作");
     expect(stdout.text).toContain("会删除 .louisgo/");
-    expect(stderr.text).toContain(`--confirm "${clearConfirmationPhrase}"`);
+    expect(stdout.text).toContain("请输入 A/B");
+    expect(stdout.text).toContain("已取消，未删除任何文件。");
     expect(exitCode).toBe(1);
     await expect(access(join(repo.path, ".louisgo"))).resolves.toBeUndefined();
   });
@@ -54,11 +53,16 @@ describe("clear 命令", () => {
   it("确认后清理当前项目 LouisGo 数据", async () => {
     await using repo = await createGitRepo();
     const stdout = new MemoryWritable();
-    const program = createCli({ cwd: repo.path, stdout });
+    const program = createCli({
+      cwd: repo.path,
+      stdin: Readable.from(["B\n"]),
+      stdout,
+    });
 
     await program.parseAsync(["node", "louisgo", "init", "--no-codex"]);
-    await program.parseAsync(["node", "louisgo", "clear", "--confirm", clearConfirmationPhrase]);
+    await program.parseAsync(["node", "louisgo", "clear"]);
 
+    expect(stdout.text).toContain("我理解风险，清理当前项目 LouisGo 数据");
     expect(stdout.text).toContain("LouisGo 项目数据已清理");
     expect(stdout.text).toContain("deleted .louisgo");
     await expect(access(join(repo.path, ".louisgo"))).rejects.toMatchObject({

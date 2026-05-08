@@ -8,8 +8,6 @@ import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js
 const managedBlockStart = "<!-- louisgo-codex:start -->";
 const managedBlockEnd = "<!-- louisgo-codex:end -->";
 
-export const clearConfirmationPhrase = "DELETE LOUISGO";
-
 export const clearTargetStatuses = {
   deleted: "deleted",
   missing: "missing",
@@ -22,7 +20,6 @@ export type ClearTargetStatus = (typeof clearTargetStatuses)[keyof typeof clearT
 
 export interface ClearLouisGoOptions {
   readonly cwd?: string;
-  readonly confirm?: string;
   readonly dryRun?: boolean;
 }
 
@@ -38,24 +35,11 @@ export interface ClearLouisGoResult {
   readonly targets: readonly ClearTargetResult[];
 }
 
-export class ClearServiceError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ClearServiceError";
-  }
-}
-
 export async function clearLouisGo(options: ClearLouisGoOptions = {}): Promise<ClearLouisGoResult> {
   const workspaceRoot = await findGitRoot(options.cwd);
   const paths = createProtocolPaths(workspaceRoot);
   const agentsPath = join(workspaceRoot, "AGENTS.md");
   const dryRun = options.dryRun === true;
-
-  if (!dryRun && options.confirm !== clearConfirmationPhrase) {
-    throw new ClearServiceError(
-      `未确认清理。请传入 --confirm "${clearConfirmationPhrase}" 后再执行。`,
-    );
-  }
 
   const louisgoExists = await pathExists(paths.louisgoDir);
   const agents = await readAgentsFile(agentsPath);

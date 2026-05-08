@@ -32,7 +32,7 @@ updated_at: "${options.updatedAt}"
 - Enable preset skills on demand: \`louisgo skill enable grill\` or \`louisgo skill enable caveman\`
 - Pending decision UI: \`louisgo confirm\`
 - Finish: \`louisgo finish\`
-- Clear project-local LouisGo data only after explicit confirmation: \`louisgo clear --confirm "DELETE LOUISGO"\`
+- Clear project-local LouisGo data with an interactive risk prompt: \`louisgo clear\`
 - Pending decision: \`.louisgo/CONFIRM_REQ.md\`
 
 ## AI Contract
