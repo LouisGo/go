@@ -42,9 +42,9 @@ describe("verify 命令", () => {
 
     expect(exitCode).toBe(0);
     expect(stderr.text).toBe("");
-    expect(stdout.text).toContain("验证状态：passed");
-    expect(stdout.text).toContain("新鲜度：fresh");
-    expect(stdout.text).toContain("结果：验证通过且结果新鲜");
+    expect(stdout.text).toContain("Verification status: passed");
+    expect(stdout.text).toContain("Freshness: fresh");
+    expect(stdout.text).toContain("Result: verification passed and is fresh");
   });
 
   it("验证失败时输出状态并返回非零退出码", async () => {
@@ -69,9 +69,9 @@ describe("verify 命令", () => {
     await program.parseAsync(["node", "louisgo", "verify"]);
 
     expect(exitCode).toBe(7);
-    expect(stdout.text).toContain("入口退出码：7");
-    expect(stdout.text).toContain("验证状态：failed");
-    expect(stdout.text).toContain("新鲜度：fresh");
+    expect(stdout.text).toContain("Entry exit code: 7");
+    expect(stdout.text).toContain("Verification status: failed");
+    expect(stdout.text).toContain("Freshness: fresh");
   });
 
   it("验证结果过期时输出 stale 并返回非零退出码", async () => {
@@ -96,9 +96,9 @@ describe("verify 命令", () => {
     await program.parseAsync(["node", "louisgo", "verify"]);
 
     expect(exitCode).toBe(1);
-    expect(stdout.text).toContain("验证状态：passed");
-    expect(stdout.text).toContain("新鲜度：stale");
-    expect(stdout.text).toContain("过期原因：diff_hash 不匹配");
+    expect(stdout.text).toContain("Verification status: passed");
+    expect(stdout.text).toContain("Freshness: stale");
+    expect(stdout.text).toContain("Stale reason: diff_hash mismatch");
   });
 
   it("没有项目脚本时由全局 verify 写入 skipped 结果", async () => {
@@ -120,9 +120,9 @@ describe("verify 命令", () => {
 
     expect(exitCode).toBe(1);
     expect(stderr.text).toBe("");
-    expect(stdout.text).toContain("验证入口：louisgo verify");
-    expect(stdout.text).toContain("验证状态：skipped");
-    expect(stdout.text).toContain("新鲜度：fresh");
+    expect(stdout.text).toContain("Verification entry: louisgo verify");
+    expect(stdout.text).toContain("Verification status: skipped");
+    expect(stdout.text).toContain("Freshness: fresh");
   });
 });
 

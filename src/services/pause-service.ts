@@ -57,7 +57,7 @@ export async function pauseLouisGo(options: PauseServiceOptions = {}): Promise<P
   if (!protocolStatus.complete || protocolStatus.mode === null) {
     throw new PauseServiceError({
       code: pauseServiceErrorCodes.protocolIncomplete,
-      message: "LouisGo 协议不完整，请先运行 louisgo init 或修复协议文件。",
+      message: "LouisGo protocol is incomplete. Run louisgo init first or fix the protocol files.",
       issues: protocolStatus.issues,
     });
   }

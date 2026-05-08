@@ -21,7 +21,7 @@ export function registerPauseCommand(
 ): void {
   program
     .command("pause")
-    .description("写入 LouisGo 快速暂停状态")
+    .description("Write a LouisGo quick-save checkpoint")
     .allowExcessArguments(false)
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
@@ -44,11 +44,11 @@ export function registerPauseCommand(
           throw error;
         }
 
-        stderr.write("暂停失败：LouisGo 协议不完整，请先运行 louisgo init。\n");
+        stderr.write("Pause failed: LouisGo protocol is incomplete. Run louisgo init first.\n");
         if (error.issues.length > 0) {
-          stderr.write("需要处理的问题：\n");
+          stderr.write("Issues to fix:\n");
           for (const issue of error.issues) {
-            stderr.write(`- ${issue.relativePath}：${issue.message}\n`);
+            stderr.write(`- ${issue.relativePath}: ${issue.message}\n`);
           }
         }
         setExitCode(1);
@@ -57,15 +57,15 @@ export function registerPauseCommand(
 }
 
 function formatPauseReport(result: PauseServiceResult): string {
-  const action = result.status === "created" ? "创建" : "更新";
+  const action = result.status === "created" ? "created" : "updated";
 
   return (
     [
-      `LouisGo 暂停状态已${action}：${result.filePath}`,
-      `当前任务：${result.frontMatter.taskId}`,
-      `Git HEAD：${result.frontMatter.gitHead}`,
-      `diff_hash：${result.frontMatter.diffHash}`,
-      "下一步：恢复时运行 louisgo status 查看协议状态",
+      `LouisGo quick save ${action}: ${result.filePath}`,
+      `Current task: ${result.frontMatter.taskId}`,
+      `Git HEAD: ${result.frontMatter.gitHead}`,
+      `diff_hash: ${result.frontMatter.diffHash}`,
+      "Next: run louisgo status to inspect protocol state before resuming.",
     ].join("\n") + "\n"
   );
 }

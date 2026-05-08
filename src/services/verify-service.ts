@@ -29,7 +29,7 @@ export async function verifyLouisGo(
   const testResults = runResult.freshness.testResults;
 
   if (testResults === null) {
-    throw new Error("验证运行后缺少 test-results.json");
+    throw new Error("test-results.json is missing after verification");
   }
 
   const freshness: VerificationFreshnessState =

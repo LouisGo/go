@@ -22,7 +22,7 @@ export const missingTaskId = "NO_TASK";
 
 const nonEmptyStringSchema = z.string().min(1);
 const isoDateTimeSchema = z.iso.datetime({ offset: true });
-const taskIdSchema = z.string().regex(/^T\d{3,}$/, "任务 ID 必须类似 T001");
+const taskIdSchema = z.string().regex(/^T\d{3,}$/, "Task ID must look like T001");
 const taskReferenceSchema = z.union([taskIdSchema, z.literal(missingTaskId)]);
 const nullableStringSchema = z.string().min(1).nullable();
 const nullableDateTimeSchema = isoDateTimeSchema.nullable();

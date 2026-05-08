@@ -34,10 +34,10 @@ export function registerStatsCommand(
 ): void {
   const statsCommand = program
     .command("stats")
-    .description("输出 LouisGo token 和 context 观测统计")
-    .option("--days <days>", "只统计最近 N 天", parseDays)
-    .option("--json", "输出 JSON")
-    .option("--source <source>", "只统计 context 或 codex 来源", parseSource)
+    .description("Print LouisGo token and context observability stats")
+    .option("--days <days>", "Only include the most recent N days", parseDays)
+    .option("--json", "Output JSON")
+    .option("--source <source>", "Only include context or codex events", parseSource)
     .action(async (commandOptions: StatsCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
       const summary = await summarizeStats({
@@ -54,14 +54,20 @@ export function registerStatsCommand(
       }
     });
 
-  const importCommand = statsCommand.command("import").description("导入外部工具 usage 统计");
+  const importCommand = statsCommand
+    .command("import")
+    .description("Import usage stats from external tools");
 
   importCommand
     .command("codex")
-    .description("显式导入 Codex session JSONL 的 token usage")
-    .option("--days <days>", "只扫描最近 N 天内修改过的 Codex JSONL", parseDays)
-    .option("--codex-home <path>", "Codex home 路径，默认 $CODEX_HOME 或 ~/.codex")
-    .option("--dry-run", "只报告可导入事件，不写入 .louisgo/stats")
+    .description("Explicitly import token usage from Codex session JSONL files")
+    .option(
+      "--days <days>",
+      "Only scan Codex JSONL files modified within the most recent N days",
+      parseDays,
+    )
+    .option("--codex-home <path>", "Codex home path; defaults to $CODEX_HOME or ~/.codex")
+    .option("--dry-run", "Report importable events without writing .louisgo/stats")
     .action(async (commandOptions: StatsImportCodexCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
       const codexHome = resolveCodexHome(options, commandOptions);
@@ -102,7 +108,7 @@ function parseDays(value: string): number {
   const parsed = Number.parseInt(value, 10);
 
   if (Number.isNaN(parsed) || parsed <= 0) {
-    throw new Error(`无效天数：${value}`);
+    throw new Error(`Invalid day count: ${value}`);
   }
 
   return parsed;

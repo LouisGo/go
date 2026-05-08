@@ -67,7 +67,7 @@ export async function readTestResults(filePath: string): Promise<TestResults> {
       throw new TestResultsError({
         code: testResultsErrorCodes.missing,
         filePath,
-        message: `验证结果文件不存在：${filePath}`,
+        message: `Verification result file does not exist: ${filePath}`,
         cause: error,
       });
     }
@@ -83,7 +83,7 @@ export async function readTestResults(filePath: string): Promise<TestResults> {
     throw new TestResultsError({
       code: testResultsErrorCodes.invalid,
       filePath,
-      message: `test-results.json 格式错误：${filePath}`,
+      message: `Invalid test-results.json format: ${filePath}`,
       cause: error,
     });
   }
@@ -94,7 +94,7 @@ export async function readTestResults(filePath: string): Promise<TestResults> {
     throw new TestResultsError({
       code: testResultsErrorCodes.invalid,
       filePath,
-      message: `test-results.json 格式错误：${filePath}`,
+      message: `Invalid test-results.json format: ${filePath}`,
       cause: error,
     });
   }

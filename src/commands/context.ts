@@ -24,10 +24,10 @@ export function registerContextCommand(
 ): void {
   program
     .command("context")
-    .description("生成 LouisGo prompt 上下文包")
-    .option("--budget <tokens>", "上下文预算，单位为估算 token", parseBudget)
-    .option("--goal <text>", "本轮目标，用于 context package 或 subagent capsule")
-    .option("--capsule", "生成 subagent context capsule 标题和约束")
+    .description("Generate a LouisGo prompt context package")
+    .option("--budget <tokens>", "Context budget in estimated tokens", parseBudget)
+    .option("--goal <text>", "Current goal for the context package or subagent capsule")
+    .option("--capsule", "Generate a subagent context capsule with title and constraints")
     .action(async (commandOptions: ContextCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
       const stderr = options.stderr ?? process.stderr;
@@ -71,11 +71,13 @@ export function registerContextCommand(
           throw error;
         }
 
-        stderr.write("上下文生成失败：LouisGo 协议不完整，请先运行 louisgo init。\n");
+        stderr.write(
+          "Context generation failed: LouisGo protocol is incomplete. Run louisgo init first.\n",
+        );
         if (error.issues.length > 0) {
-          stderr.write("需要处理的问题：\n");
+          stderr.write("Issues to fix:\n");
           for (const issue of error.issues) {
-            stderr.write(`- ${issue.relativePath}：${issue.message}\n`);
+            stderr.write(`- ${issue.relativePath}: ${issue.message}\n`);
           }
         }
         await appendRunLogEvent({
@@ -99,7 +101,7 @@ function parseBudget(value: string): number {
   const parsed = Number.parseInt(value, 10);
 
   if (Number.isNaN(parsed)) {
-    throw new Error(`无效上下文预算：${value}`);
+    throw new Error(`Invalid context budget: ${value}`);
   }
 
   return parsed;

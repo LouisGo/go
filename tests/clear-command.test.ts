@@ -31,16 +31,16 @@ describe("clear 命令", () => {
     });
     await clearProgram.parseAsync(["node", "louisgo", "clear"]);
 
-    expect(stdout.text).toContain("危险操作");
-    expect(stdout.text).toContain("会删除 .louisgo/");
-    expect(stdout.text).toContain("请选择清理操作");
-    expect(stdout.text).toContain("取消，不删除任何文件");
-    expect(stdout.text).toContain("已取消，未删除任何文件。");
+    expect(stdout.text).toContain("Dangerous operation");
+    expect(stdout.text).toContain("Deletes .louisgo/");
+    expect(stdout.text).toContain("Select cleanup action");
+    expect(stdout.text).toContain("Cancel and keep all files");
+    expect(stdout.text).toContain("Canceled. No files were deleted.");
     expect(exitCode).toBe(1);
     await expect(access(join(repo.path, ".louisgo"))).resolves.toBeUndefined();
   });
 
-  it("dry-run 输出清理预览", async () => {
+  it("dry-run 输出Cleanup preview", async () => {
     await using repo = await createGitRepo();
     const stdout = new MemoryWritable();
     const program = createCli({ cwd: repo.path, stdout });
@@ -48,9 +48,9 @@ describe("clear 命令", () => {
     await program.parseAsync(["node", "louisgo", "init", "--no-codex"]);
     await program.parseAsync(["node", "louisgo", "clear", "--dry-run"]);
 
-    expect(stdout.text).toContain("清理预览");
+    expect(stdout.text).toContain("Cleanup preview");
     expect(stdout.text).toContain("planned .louisgo");
-    expect(stdout.text).toContain("未执行删除");
+    expect(stdout.text).toContain("No deletion was performed");
     await expect(access(join(repo.path, ".louisgo"))).resolves.toBeUndefined();
   });
 
@@ -69,8 +69,8 @@ describe("clear 命令", () => {
     });
     await clearProgram.parseAsync(["node", "louisgo", "clear"]);
 
-    expect(stdout.text).toContain("我理解风险，清理当前项目 LouisGo 数据");
-    expect(stdout.text).toContain("LouisGo 项目数据已清理");
+    expect(stdout.text).toContain("I understand the risk. Remove LouisGo project data.");
+    expect(stdout.text).toContain("LouisGo project data removed");
     expect(stdout.text).toContain("deleted .louisgo");
     await expect(access(join(repo.path, ".louisgo"))).rejects.toMatchObject({
       code: "ENOENT",

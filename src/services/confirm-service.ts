@@ -66,9 +66,10 @@ export async function readConfirmRequest(
     relativePath: protocolRelativePaths.confirmReq,
     frontMatter: document.frontMatter,
     title: parseTitle(document.body) ?? "Confirm Request",
-    background: sections.get("背景")?.trim() ?? "",
-    choices: parseChoices(sections.get("选项") ?? ""),
-    recommendation: sections.get("建议")?.trim() ?? "",
+    background: sections.get("Background")?.trim() ?? sections.get("\u80cc\u666f")?.trim() ?? "",
+    choices: parseChoices(sections.get("Options") ?? sections.get("\u9009\u9879") ?? ""),
+    recommendation:
+      sections.get("Recommendation")?.trim() ?? sections.get("\u5efa\u8bae")?.trim() ?? "",
     body: document.body,
   };
 }
@@ -82,7 +83,7 @@ export async function selectConfirmChoice(params: {
   if (request === null) {
     throw new ConfirmServiceError({
       code: confirmServiceErrorCodes.requestMissing,
-      message: "当前没有未解决确认请求。",
+      message: "There is no open confirmation request.",
     });
   }
 
@@ -92,7 +93,7 @@ export async function selectConfirmChoice(params: {
   if (selectedChoice === undefined) {
     throw new ConfirmServiceError({
       code: confirmServiceErrorCodes.choiceInvalid,
-      message: `无效选择：${params.choice}`,
+      message: `Invalid choice: ${params.choice}`,
     });
   }
 

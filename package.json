@@ -1,7 +1,7 @@
 {
   "name": "louisgo",
   "version": "0.1.0",
-  "description": "轻量级 AI 编程 Harness",
+  "description": "Lightweight AI coding context harness",
   "license": "MIT",
   "type": "module",
   "keywords": [
@@ -17,6 +17,7 @@
   "files": [
     "dist",
     "README.md",
+    "README-zhCN.md",
     "docs",
     "LICENSE"
   ],

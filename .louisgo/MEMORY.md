@@ -7,27 +7,27 @@ updated_at: "2026-05-06T16:20:00.000Z"
 
 ## Stable Notes
 
-- 用户希望 80%-90% 日常工作只用 `$init`、`$start`、`$finish`；高级命令面向 AI、调试和自动化。
-- LouisGo 定位为 Git 可同步 prompt cache，不做默认外部记忆系统。
-- `HANDOFF.md` 是正式、大粒度交接；存在时优先读取，但没有 handoff 时不能导致新会话失忆。
-- `louisgo context` 是可执行上下文编译器：按稳定层级组装、报告来源、控制预算、保留用户 prompt 优先级。
-- `louisgo status` 必须让用户和 AI 看懂协议状态、验证状态、恢复来源和 Git 工作区是否还有待处理变更。
-- 子 agent 使用 `louisgo context --capsule --goal "<任务>"` 获取干净上下文，避免继承完整聊天历史。
-- `louisgo@0.1.0` 已发布到 npmjs，许可证 MIT；registry 安装 smoke test 已通过。
-- CLI 版本从 `package.json` 读取，避免发版时 `package.json` 与 `louisgo --version` 漂移。
-- `louisgo confirm --interactive` 支持终端交互式选择和补充输入；Codex 内仍可由 AI 展示并转接用户回复。
-- `pnpm pack:check` 使用临时 npm cache，且已纳入本仓库 LouisGo verify 门禁。
-- 当前自举收敛目标：README 给人看，`AGENTS.md`/skills 给 AI 执行，`context/status/verify/finish` 给其他项目实验。
-- T007 已通过本仓库验证和临时外部 Git 项目 smoke：init/context/verify/finish/status 均可运行。
-- `HANDOFF.md`、`STATE.md`、`QUICK_SAVE.md` 等生成型恢复文件不再计入验证 diff hash，避免 `$finish` 后验证立即无意义 stale。
-- `RUNLOG.md` 是本地诊断日志：自动记录 LouisGo 命令级事件和状态摘要，默认被 `.louisgo/.gitignore` 忽略，调试时可发给 AI。
-- T008 已通过本仓库测试和临时外部 Git 项目 smoke：`louisgo log --tail 10` 能输出 init/context/verify/finish 事件。
-- T016 引入 Codex-first stats：`louisgo context` 写本地 token/section 事件，`louisgo stats import codex` 显式导入 Codex JSONL usage，`.louisgo/stats/` 默认忽略且不保存 prompt/回复/源码。
+- The user wants 80-90% of daily work to use only `$init`, `$start`, and `$finish`; advanced commands are for AI, diagnostics, and automation.
+- LouisGo is positioned as a Git-synced prompt cache, not a default external memory system.
+- `HANDOFF.md` is the formal, coarse-grained handoff. Prefer it when present, but a missing handoff must not make new sessions forget the project.
+- `louisgo context` is an executable context compiler: it assembles stable layers, reports sources, controls budget, and preserves user-prompt priority.
+- `louisgo status` must make protocol state, verification state, recovery source, and pending Git workspace changes clear to users and AI.
+- Subagents use `louisgo context --capsule --goal "<task>"` for clean context instead of inheriting full chat history.
+- `louisgo@0.1.0` has been published to npmjs with MIT license; registry install smoke test passed.
+- CLI version is read from `package.json` so releases do not drift between package metadata and `louisgo --version`.
+- `louisgo confirm --interactive` supports terminal selection and additional input; inside Codex, AI can still present and route the user's reply.
+- `pnpm pack:check` uses an isolated npm cache and is included in this repository's LouisGo verification gate.
+- Current self-bootstrap convergence goal: README is for humans, `AGENTS.md`/skills are for AI execution, and `context/status/verify/finish` are for experiments in other projects.
+- T007 passed this repository's verification and a temporary external Git project smoke test: init/context/verify/finish/status all run.
+- Generated recovery files such as `HANDOFF.md`, `STATE.md`, and `QUICK_SAVE.md` no longer count toward verification diff hash, so `$finish` does not immediately make verification stale.
+- `RUNLOG.md` is a local diagnostic log: it records LouisGo command events and state summaries, is ignored by `.louisgo/.gitignore` by default, and can be sent to AI for debugging.
+- T008 passed repository tests and a temporary external Git project smoke test: `louisgo log --tail 10` prints init/context/verify/finish events.
+- T016 introduced Codex-first stats: `louisgo context` writes local token/section events, `louisgo stats import codex` explicitly imports Codex JSONL usage, and `.louisgo/stats/` is ignored by default without storing prompts, replies, or source code.
 
 ## Topic Files
 
-- `.louisgo/memory/` 只放跨会话复用的长期主题记忆。
+- `.louisgo/memory/` is only for long-term topic memory that should be reused across sessions.
 
 ## Recent Sessions
 
-- `.louisgo/sessions/` 只在需要审计、交接或总结关键会话时使用。
+- `.louisgo/sessions/` is only for audit, handoff, or key-session summaries when needed.

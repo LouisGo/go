@@ -21,8 +21,8 @@ export function registerInitCommand(
 ): void {
   program
     .command("init")
-    .description("初始化 .louisgo 协议目录")
-    .option("--no-codex", "跳过 Codex 集成安装")
+    .description("Initialize the .louisgo protocol directory")
+    .option("--no-codex", "Skip Codex integration setup")
     .action(async (commandOptions: { readonly codex?: boolean }) => {
       const result = await initLouisGo(options);
       const codex =
@@ -52,15 +52,15 @@ function writeInitResult(
   const createdCount = result.files.filter((file) => file.status === "created").length;
   const skippedCount = result.files.filter((file) => file.status === "skipped").length;
 
-  stdout.write(`LouisGo 初始化完成：${result.workspaceRoot}\n`);
-  stdout.write(`创建文件：${createdCount}\n`);
-  stdout.write(`跳过文件：${skippedCount}\n`);
+  stdout.write(`LouisGo initialized: ${result.workspaceRoot}\n`);
+  stdout.write(`Files created: ${createdCount}\n`);
+  stdout.write(`Files skipped: ${skippedCount}\n`);
   if (codex === null) {
-    stdout.write("Codex 集成：已跳过\n");
+    stdout.write("Codex integration: skipped\n");
   } else {
-    stdout.write(`Codex 集成：完成（${codex.codexHome}）\n`);
+    stdout.write(`Codex integration: completed (${codex.codexHome})\n`);
   }
-  stdout.write(`下一步：${result.nextSteps.join("；")}\n`);
+  stdout.write(`Next: ${result.nextSteps.join("; ")}\n`);
 }
 
 function countFiles(result: InitServiceResult, status: "created" | "skipped"): number {

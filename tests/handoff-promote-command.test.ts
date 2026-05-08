@@ -36,11 +36,11 @@ describe("handoff promote 命令", () => {
 
     expect(exitCode).toBe(0);
     expect(stderr.text).toBe("");
-    expect(stdout.text).toContain("LouisGo 正式交接已生成");
-    expect(stdout.text).toContain("当前任务：T021");
-    expect(stdout.text).toContain("验证状态：failed");
-    expect(stdout.text).toContain("写入状态：新建");
-    expect(stdout.text).toContain("下一步：运行 louisgo status 查看恢复状态");
+    expect(stdout.text).toContain("LouisGo formal handoff generated");
+    expect(stdout.text).toContain("Current task: T021");
+    expect(stdout.text).toContain("Verification status: failed");
+    expect(stdout.text).toContain("Write status: created");
+    expect(stdout.text).toContain("Next: run louisgo status to inspect recovery state.");
   });
 
   it("草稿缺失时提示先 finish", async () => {
@@ -62,7 +62,7 @@ describe("handoff promote 命令", () => {
 
     expect(exitCode).toBe(1);
     expect(stdout.text).toBe("");
-    expect(stderr.text).toContain("交接提升失败：HANDOFF_DRAFT.md 不存在");
+    expect(stderr.text).toContain("Handoff promotion failed: HANDOFF_DRAFT.md does not exist");
   });
 });
 

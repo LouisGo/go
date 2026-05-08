@@ -29,7 +29,7 @@ export class RoadmapParseError extends Error {
   readonly issues: readonly RoadmapIssue[];
 
   constructor(issues: readonly RoadmapIssue[]) {
-    super("ROADMAP.md 解析失败");
+    super("ROADMAP.md parse failed");
     this.name = "RoadmapParseError";
     this.issues = issues;
   }
@@ -71,7 +71,8 @@ export function parseRoadmap(markdown: string): RoadmapParseResult {
         code: roadmapErrorCodes.invalidTaskId,
         line: lineNumber,
         taskId: invalidTaskId,
-        message: invalidTaskId.length === 0 ? "缺少任务 ID" : `非法任务 ID：${invalidTaskId}`,
+        message:
+          invalidTaskId.length === 0 ? "Missing task ID" : `Invalid task ID: ${invalidTaskId}`,
       });
       continue;
     }
@@ -83,7 +84,7 @@ export function parseRoadmap(markdown: string): RoadmapParseResult {
         code: roadmapErrorCodes.duplicateTaskId,
         line: lineNumber,
         taskId,
-        message: `重复任务 ID：${taskId}，首次出现于第 ${firstSeenLine} 行`,
+        message: `Duplicate task ID: ${taskId}; first seen at line ${firstSeenLine}`,
       });
       continue;
     }

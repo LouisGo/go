@@ -94,7 +94,7 @@ function createWriteFailedError(filePath: string, cause: unknown): SafeWriteErro
   return new SafeWriteError({
     code: safeWriteErrorCodes.writeFailed,
     filePath,
-    message: `文件写入失败：${filePath}`,
+    message: `File write failed: ${filePath}`,
     cause,
   });
 }

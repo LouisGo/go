@@ -23,7 +23,7 @@ describe("confirm 命令", () => {
     const program = createCli({ cwd: repo.path, stdout });
     await program.parseAsync(["node", "louisgo", "confirm"]);
 
-    expect(stdout.text).toContain("当前没有未解决确认请求");
+    expect(stdout.text).toContain("There is no open confirmation request");
   });
 
   it("友好展示确认请求选项", async () => {
@@ -37,13 +37,13 @@ describe("confirm 命令", () => {
     const program = createCli({ cwd: repo.path, stdout });
     await program.parseAsync(["node", "louisgo", "confirm"]);
 
-    expect(stdout.text).toContain("确认请求：T002");
-    expect(stdout.text).toContain("来源：.louisgo/CONFIRM_REQ.md");
-    expect(stdout.text).toContain("背景：");
+    expect(stdout.text).toContain("Confirmation request: T002");
+    expect(stdout.text).toContain("Source: .louisgo/CONFIRM_REQ.md");
+    expect(stdout.text).toContain("Background:");
     expect(stdout.text).toContain("需要选择发布方式");
     expect(stdout.text).toContain("- A. 公开发布");
     expect(stdout.text).toContain("- B. 暂不发布");
-    expect(stdout.text).toContain("下一步：运行 louisgo confirm --choice A");
+    expect(stdout.text).toContain("Next: run louisgo confirm --choice A");
   });
 
   it("支持用 --choice 选择选项并输出结构化下一步", async () => {
@@ -57,9 +57,9 @@ describe("confirm 命令", () => {
     const program = createCli({ cwd: repo.path, stdout });
     await program.parseAsync(["node", "louisgo", "confirm", "--choice", "B"]);
 
-    expect(stdout.text).toContain("已选择：B. 暂不发布");
-    expect(stdout.text).toContain("任务：T002");
-    expect(stdout.text).toContain("AI 应基于该选择继续执行");
+    expect(stdout.text).toContain("Selected: B. 暂不发布");
+    expect(stdout.text).toContain("Task: T002");
+    expect(stdout.text).toContain("the AI should continue from this selection");
   });
 
   it("支持交互式选择选项", async () => {
@@ -77,9 +77,9 @@ describe("confirm 命令", () => {
     });
     await program.parseAsync(["node", "louisgo", "confirm", "--interactive"]);
 
-    expect(stdout.text).toContain("请选择 A/B");
-    expect(stdout.text).toContain("已选择：B. 暂不发布");
-    expect(stdout.text).toContain("AI 应基于该选择继续执行");
+    expect(stdout.text).toContain("Select A/B");
+    expect(stdout.text).toContain("Selected: B. 暂不发布");
+    expect(stdout.text).toContain("the AI should continue from this selection");
   });
 
   it("支持交互式输入补充说明", async () => {
@@ -97,8 +97,8 @@ describe("confirm 命令", () => {
     });
     await program.parseAsync(["node", "louisgo", "confirm", "-i"]);
 
-    expect(stdout.text).toContain("已输入补充说明：改用 Apache-2.0");
-    expect(stdout.text).toContain("AI 应基于该补充说明继续执行");
+    expect(stdout.text).toContain("Additional input: 改用 Apache-2.0");
+    expect(stdout.text).toContain("the AI should continue from this input");
   });
 });
 
@@ -117,7 +117,7 @@ created_at: "2026-05-01T12:00:00.000Z"
 
 需要选择发布方式。
 
-## 选项
+## Options
 
 - A. 公开发布
 - B. 暂不发布

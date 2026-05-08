@@ -11,7 +11,7 @@ describe("npm 包配置", () => {
 
     expect(packageJson.name).toBe("louisgo");
     expect(packageJson.version).toBe("0.1.0");
-    expect(packageJson.description).toContain("AI 编程 Harness");
+    expect(packageJson.description).toContain("AI coding context harness");
     expect(packageJson.license).toBe("MIT");
     expect(packageJson.bin).toEqual({ louisgo: "dist/cli.js" });
     expect(packageJson.files).toEqual(

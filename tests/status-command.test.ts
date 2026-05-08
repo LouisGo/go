@@ -23,11 +23,11 @@ describe("status 命令", () => {
     const program = createCli({ cwd: repo.path, stdout });
     await program.parseAsync(["node", "louisgo", "status"]);
 
-    expect(stdout.text).toContain("[assist/idle] 协议完整，当前任务 无");
-    expect(stdout.text).toContain("验证状态 missing");
-    expect(stdout.text).toContain("恢复来源 STATE");
-    expect(stdout.text).toContain("工作区：");
-    expect(stdout.text).not.toContain("需要处理的问题");
+    expect(stdout.text).toContain("[assist/idle] complete, current task none");
+    expect(stdout.text).toContain("verification status missing");
+    expect(stdout.text).toContain("recovery source STATE");
+    expect(stdout.text).toContain("Workspace:");
+    expect(stdout.text).not.toContain("Issues to fix");
     expect(initResult.workspaceRoot.length).toBeGreaterThan(0);
   });
 
@@ -42,10 +42,10 @@ describe("status 命令", () => {
     const program = createCli({ cwd: repo.path, stdout });
     await program.parseAsync(["node", "louisgo", "status"]);
 
-    expect(stdout.text).toContain("[unknown/idle] 协议不完整");
-    expect(stdout.text).toContain("工作区：");
-    expect(stdout.text).toContain(".louisgo/MISSION.md：协议路径缺失");
-    expect(stdout.text).toContain("下一步：运行 louisgo init 创建缺失文件");
+    expect(stdout.text).toContain("[unknown/idle] incomplete");
+    expect(stdout.text).toContain("Workspace:");
+    expect(stdout.text).toContain(".louisgo/MISSION.md: Protocol path is missing");
+    expect(stdout.text).toContain("Next: run louisgo init to create missing files");
   });
 });
 

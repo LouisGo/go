@@ -75,7 +75,10 @@ export async function setupCodex(options: CodexSetupOptions = {}): Promise<Codex
     workspaceRoot,
     codexHome,
     files,
-    nextSteps: ["新会话会自动读取 LouisGo 上下文", "需要深度重建时输入 $start"],
+    nextSteps: [
+      "New sessions will read LouisGo context automatically",
+      "Use $start for deep recovery",
+    ],
   };
 }
 
@@ -84,8 +87,8 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "init",
     directive: "$init",
     title: "LouisGo Init",
-    chineseTitle: "初始化",
-    shortDescription: "LouisGo 初始化：创建协议目录并安装 Codex 集成",
+    chineseTitle: "Init",
+    shortDescription: "LouisGo init: create the protocol directory and install Codex integration",
     description:
       "Initializes LouisGo protocol files and Codex integration for the current repository. Use when the user enters $init in Codex.",
     action:
@@ -95,8 +98,8 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "start",
     directive: "$start",
     title: "LouisGo Start",
-    chineseTitle: "启动",
-    shortDescription: "LouisGo 启动：生成分层上下文包",
+    chineseTitle: "Start",
+    shortDescription: "LouisGo start: generate a layered context package",
     description:
       "Runs the LouisGo start workflow to restore context for the current repository. Use when the user enters $start in Codex.",
     action:
@@ -106,8 +109,9 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "status",
     directive: "$status",
     title: "LouisGo Status",
-    chineseTitle: "状态",
-    shortDescription: "LouisGo 状态：查看协议完整性、当前任务、验证状态和恢复来源",
+    chineseTitle: "Status",
+    shortDescription:
+      "LouisGo status: inspect protocol completeness, current task, verification, and recovery source",
     description:
       "Runs louisgo status and summarizes protocol state. Use when the user enters $status in Codex.",
     action:
@@ -117,8 +121,8 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "context",
     directive: "$context",
     title: "LouisGo Context",
-    chineseTitle: "上下文",
-    shortDescription: "LouisGo 上下文：生成分层 prompt context package",
+    chineseTitle: "Context",
+    shortDescription: "LouisGo context: generate a layered prompt context package",
     description:
       "Generates a LouisGo prompt context package for the current repository. Use when the user enters $context in Codex.",
     action:
@@ -128,8 +132,8 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "verify",
     directive: "$verify",
     title: "LouisGo Verify",
-    chineseTitle: "验证",
-    shortDescription: "LouisGo 验证：运行仓库验证并报告新鲜度",
+    chineseTitle: "Verify",
+    shortDescription: "LouisGo verify: run repository verification and report freshness",
     description:
       "Runs LouisGo verification for the current repository. Use when the user enters $verify in Codex.",
     action:
@@ -139,8 +143,8 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "pause",
     directive: "$pause",
     title: "LouisGo Pause",
-    chineseTitle: "暂停",
-    shortDescription: "LouisGo 暂停：兼容旧流程，写入 QUICK_SAVE.md",
+    chineseTitle: "Pause",
+    shortDescription: "LouisGo pause: legacy flow that writes QUICK_SAVE.md",
     description:
       "Writes a LouisGo Quick Save checkpoint. Use when the user enters $pause in Codex.",
     action:
@@ -150,8 +154,8 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "resume",
     directive: "$resume",
     title: "LouisGo Resume",
-    chineseTitle: "恢复",
-    shortDescription: "LouisGo 恢复：兼容旧流程，优先读取 HANDOFF 和 STATE",
+    chineseTitle: "Resume",
+    shortDescription: "LouisGo resume: legacy flow that prefers HANDOFF and STATE",
     description:
       "Resumes from LouisGo handoff/status protocol. Use when the user enters $resume in Codex.",
     action:
@@ -161,8 +165,8 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "finish",
     directive: "$finish",
     title: "LouisGo Finish",
-    chineseTitle: "收尾",
-    shortDescription: "LouisGo 收尾：更新正式 HANDOFF.md 和当前状态",
+    chineseTitle: "Finish",
+    shortDescription: "LouisGo finish: update formal HANDOFF.md and current state",
     description: "Generates a LouisGo handoff snapshot. Use when the user enters $finish in Codex.",
     action:
       "- Run `louisgo finish`.\n- Report the `HANDOFF.md` path, verification status, cleanup result, and first next action for the next session.",
@@ -171,8 +175,8 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     name: "handoff-promote",
     directive: "$handoff-promote",
     title: "LouisGo Handoff Promote",
-    chineseTitle: "提升交接",
-    shortDescription: "LouisGo 交接：兼容旧流程，将 HANDOFF_DRAFT.md 提升为 HANDOFF.md",
+    chineseTitle: "Promote Handoff",
+    shortDescription: "LouisGo handoff: legacy flow that promotes HANDOFF_DRAFT.md to HANDOFF.md",
     description:
       "Promotes the LouisGo handoff draft to a formal handoff. Use when the user enters $handoff-promote in Codex.",
     action:

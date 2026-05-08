@@ -31,9 +31,9 @@ export function registerConfirmCommand(
 ): void {
   program
     .command("confirm")
-    .description("显示 LouisGo 确认请求并选择选项")
-    .option("--choice <A|B|C|D>", "选择确认请求中的选项")
-    .option("-i, --interactive", "交互式提示用户输入选择或补充说明")
+    .description("Show a LouisGo confirmation request and select an option")
+    .option("--choice <A|B|C|D>", "Select an option from the confirmation request")
+    .option("-i, --interactive", "Prompt for an option or additional input")
     .action(async (commandOptions: ConfirmCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
       const stderr = options.stderr ?? process.stderr;
@@ -115,7 +115,7 @@ async function formatInteractiveConfirm(
   request: ConfirmRequestView | null,
 ): Promise<string> {
   if (request === null) {
-    return "当前没有未解决确认请求。\n";
+    return "There is no open confirmation request.\n";
   }
 
   stdout.write(`${formatConfirmRequest(request)}\n`);
@@ -123,14 +123,14 @@ async function formatInteractiveConfirm(
   const answer = await askQuestion(
     stdin,
     stdout,
-    `请选择 ${formatChoiceKeys(request)}，或输入补充说明：`,
+    `Select ${formatChoiceKeys(request)}, or enter additional instructions:`,
   );
   const input = answer.trim();
 
   if (input.length === 0) {
     throw new ConfirmServiceError({
       code: confirmServiceErrorCodes.choiceInvalid,
-      message: "未输入选择或补充说明",
+      message: "No option or additional input was provided",
     });
   }
 
@@ -155,43 +155,43 @@ async function askQuestion(input: Readable, output: Writable, prompt: string): P
 
 function formatConfirmRequest(request: ConfirmRequestView | null): string {
   if (request === null) {
-    return "当前没有未解决确认请求。\n";
+    return "There is no open confirmation request.\n";
   }
 
   return [
-    `确认请求：${request.frontMatter.taskId}`,
-    `来源：${request.relativePath}`,
+    `Confirmation request: ${request.frontMatter.taskId}`,
+    `Source: ${request.relativePath}`,
     "",
-    "背景：",
+    "Background:",
     formatBlock(request.background),
     "",
-    "选项：",
+    "Options:",
     ...request.choices.map((choice) => `- ${choice.key}. ${choice.text}`),
     "",
-    "建议：",
+    "Recommendation:",
     formatBlock(request.recommendation),
     "",
-    `下一步：运行 louisgo confirm --choice ${request.choices[0]?.key ?? "A"}，或直接回复选项字母。`,
+    `Next: run louisgo confirm --choice ${request.choices[0]?.key ?? "A"}, or reply with an option letter.`,
   ].join("\n");
 }
 
 function formatConfirmSelection(selection: ConfirmChoiceSelection): string {
   return [
-    `已选择：${selection.selectedChoice.key}. ${selection.selectedChoice.text}`,
-    `任务：${selection.frontMatter.taskId}`,
-    `来源：${selection.relativePath}`,
+    `Selected: ${selection.selectedChoice.key}. ${selection.selectedChoice.text}`,
+    `Task: ${selection.frontMatter.taskId}`,
+    `Source: ${selection.relativePath}`,
     "",
-    "下一步：AI 应基于该选择继续执行，并在处理完成后清理确认请求或生成新的交接。",
+    "Next: the AI should continue from this selection and clear the request or generate a new handoff after handling it.",
   ].join("\n");
 }
 
 function formatCustomInput(request: ConfirmRequestView, input: string): string {
   return [
-    `已输入补充说明：${input}`,
-    `任务：${request.frontMatter.taskId}`,
-    `来源：${request.relativePath}`,
+    `Additional input: ${input}`,
+    `Task: ${request.frontMatter.taskId}`,
+    `Source: ${request.relativePath}`,
     "",
-    "下一步：AI 应基于该补充说明继续执行，并在处理完成后清理确认请求或生成新的交接。",
+    "Next: the AI should continue from this input and clear the request or generate a new handoff after handling it.",
   ].join("\n");
 }
 
@@ -199,7 +199,7 @@ function formatChoiceKeys(request: ConfirmRequestView): string {
   const keys = request.choices.map((choice) => choice.key);
 
   if (keys.length === 0) {
-    return "选项字母";
+    return "an option letter";
   }
 
   return keys.join("/");
@@ -208,9 +208,9 @@ function formatChoiceKeys(request: ConfirmRequestView): string {
 function formatConfirmError(error: ConfirmServiceError): string {
   switch (error.code) {
     case confirmServiceErrorCodes.requestMissing:
-      return "当前没有未解决确认请求。";
+      return "There is no open confirmation request.";
     case confirmServiceErrorCodes.choiceInvalid:
-      return `${error.message}。请运行 louisgo confirm 查看可选项。`;
+      return `${error.message}. Run louisgo confirm to view available options.`;
   }
 }
 
@@ -218,7 +218,7 @@ function formatBlock(source: string): string {
   const trimmed = source.trim();
 
   if (trimmed.length === 0) {
-    return "（空）";
+    return "(empty)";
   }
 
   return trimmed;

@@ -25,11 +25,11 @@ export function registerSkillCommand(
   program: Command,
   options: RegisterSkillCommandOptions = {},
 ): void {
-  const skill = program.command("skill").description("按需管理 LouisGo 预设 skill");
+  const skill = program.command("skill").description("Manage optional LouisGo preset skills");
 
   skill
     .command("list")
-    .description("列出可用 LouisGo 预设 skill 及冲突状态")
+    .description("List available LouisGo preset skills and conflict status")
     .action(async () => {
       await runSkillAction(options, "skill list", async () => {
         const result = await listSkills({
@@ -41,8 +41,8 @@ export function registerSkillCommand(
 
   skill
     .command("enable")
-    .argument("<name>", "预设 skill 名称：grill 或 caveman")
-    .description("启用一个 LouisGo 预设 skill")
+    .argument("<name>", "Preset skill name: grill or caveman")
+    .description("Enable a LouisGo preset skill")
     .action(async (name: string) => {
       await runSkillAction(options, `skill enable ${name}`, async () => {
         const result = await enableSkill(name, {
@@ -54,8 +54,8 @@ export function registerSkillCommand(
 
   skill
     .command("disable")
-    .argument("<name>", "预设 skill 名称：grill 或 caveman")
-    .description("停用一个 LouisGo 管理的预设 skill")
+    .argument("<name>", "Preset skill name: grill or caveman")
+    .description("Disable a LouisGo-managed preset skill")
     .action(async (name: string) => {
       await runSkillAction(options, `skill disable ${name}`, async () => {
         const result = await disableSkill(name, {
@@ -103,7 +103,7 @@ async function runSkillAction(
 }
 
 function writeListResult(stdout: Writable, result: ListSkillsResult): void {
-  stdout.write(`LouisGo 预设 skills：${result.workspaceRoot}\n`);
+  stdout.write(`LouisGo preset skills: ${result.workspaceRoot}\n`);
 
   for (const skill of result.skills) {
     const state = skill.enabled ? "enabled" : skill.conflicts.length > 0 ? "blocked" : "available";
@@ -119,31 +119,33 @@ function writeListResult(stdout: Writable, result: ListSkillsResult): void {
 
 function writeEnableResult(stdout: Writable, result: EnableSkillResult): void {
   if (result.status === skillEnableStatuses.enabled) {
-    stdout.write(`LouisGo skill 已启用：${result.id} -> ${result.relativePath}\n`);
+    stdout.write(`LouisGo skill enabled: ${result.id} -> ${result.relativePath}\n`);
     return;
   }
 
   if (result.status === skillEnableStatuses.unchanged) {
-    stdout.write(`LouisGo skill 已存在：${result.id} -> ${result.relativePath}\n`);
+    stdout.write(`LouisGo skill already exists: ${result.id} -> ${result.relativePath}\n`);
     return;
   }
 
-  stdout.write(`LouisGo skill 未启用：${result.id}\n`);
-  stdout.write(`发现同名 skill：${result.conflicts.join(", ")}\n`);
-  stdout.write("请先处理项目内同名 skill，LouisGo 不会自动覆盖。\n");
+  stdout.write(`LouisGo skill was not enabled: ${result.id}\n`);
+  stdout.write(`Same-name skill found: ${result.conflicts.join(", ")}\n`);
+  stdout.write("Resolve the project skill conflict first. LouisGo will not overwrite it.\n");
 }
 
 function writeDisableResult(stdout: Writable, result: DisableSkillResult): void {
   if (result.status === skillDisableStatuses.disabled) {
-    stdout.write(`LouisGo skill 已停用：${result.id} -> ${result.relativePath}\n`);
+    stdout.write(`LouisGo skill disabled: ${result.id} -> ${result.relativePath}\n`);
     return;
   }
 
   if (result.status === skillDisableStatuses.absent) {
-    stdout.write(`LouisGo skill 未启用：${result.id}\n`);
+    stdout.write(`LouisGo skill is not enabled: ${result.id}\n`);
     return;
   }
 
-  stdout.write(`LouisGo skill 未停用：${result.id}\n`);
-  stdout.write(`${result.relativePath} 不是 LouisGo 管理的预设文件，请手动处理。\n`);
+  stdout.write(`LouisGo skill was not disabled: ${result.id}\n`);
+  stdout.write(
+    `${result.relativePath} is not a LouisGo-managed preset file. Handle it manually.\n`,
+  );
 }

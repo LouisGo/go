@@ -32,7 +32,7 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("npx --yes louisgo@latest <subcommand>");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
-    ).resolves.toContain("启动");
+    ).resolves.toContain("Start");
     await expect(
       readFile(join(codex.path, "skills", "start", "SKILL.md"), "utf8"),
     ).resolves.toContain("run `louisgo confirm`");
@@ -41,7 +41,7 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain('display_name: "$start"');
     await expect(
       readFile(join(codex.path, "skills", "start", "agents", "openai.yaml"), "utf8"),
-    ).resolves.toContain("生成分层上下文包");
+    ).resolves.toContain("generate a layered context package");
     await expect(
       readFile(join(codex.path, "skills", "context", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo context");
@@ -76,7 +76,7 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("Restores project context from .louisgo/");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "agents", "openai.yaml"), "utf8"),
-    ).resolves.toContain("自动读取 .louisgo 记忆");
+    ).resolves.toContain("read .louisgo memory");
     await expect(readFile(join(codex.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "louisgo-codex:start",
     );

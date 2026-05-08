@@ -40,10 +40,12 @@ describe("finish service HANDOFF_DRAFT 兼容生成", () => {
       verification: "passed",
       generatedAt: "2026-05-01T12:30:00.000Z",
     });
-    expect(document.body).toContain("验证状态：passed");
-    expect(document.body).toContain("## 当前工作区");
-    expect(document.body).toContain("接手判断：验证通过且对应当前工作区");
-    expect(document.body).toContain("未找到 BLOCKER.md。");
+    expect(document.body).toContain("Verification status: passed");
+    expect(document.body).toContain("## Current Workspace");
+    expect(document.body).toContain(
+      "Handoff judgment: Verification passed and matches the current workspace",
+    );
+    expect(document.body).toContain("BLOCKER.md was not found.");
     expect(document.body).not.toContain("\n# Blocker\n");
   });
 
@@ -54,8 +56,8 @@ describe("finish service HANDOFF_DRAFT 兼容生成", () => {
     const draft = await generateHandoffDraft({ cwd: repo.path, now: generatedNow });
 
     expect(draft.frontMatter.verification).toBe("failed");
-    expect(draft.body).toContain("验证状态：failed");
-    expect(draft.body).toContain("接手者应先查看失败原因并修复");
+    expect(draft.body).toContain("Verification status: failed");
+    expect(draft.body).toContain("the next agent should inspect and fix the failure first");
   });
 
   it("生成验证过期草稿", async () => {
@@ -68,8 +70,8 @@ describe("finish service HANDOFF_DRAFT 兼容生成", () => {
     const draft = await generateHandoffDraft({ cwd: repo.path, now: generatedNow });
 
     expect(draft.frontMatter.verification).toBe("stale");
-    expect(draft.body).toContain("验证状态：stale");
-    expect(draft.body).toContain("验证结果已过期");
+    expect(draft.body).toContain("Verification status: stale");
+    expect(draft.body).toContain("The verification result is stale");
   });
 
   it("包含 BLOCKER.md 摘要", async () => {
@@ -97,8 +99,8 @@ describe("finish service HANDOFF_DRAFT 兼容生成", () => {
 
     const draft = await generateHandoffDraft({ cwd: repo.path, now: generatedNow });
 
-    expect(draft.body).toContain("存在未解决确认请求：T001");
-    expect(draft.body).toContain("## 选项");
+    expect(draft.body).toContain("Open confirmation request: T001");
+    expect(draft.body).toContain("## Options");
   });
 
   it("包含 Quick Save 摘要", async () => {
@@ -114,8 +116,8 @@ describe("finish service HANDOFF_DRAFT 兼容生成", () => {
 
     const draft = await generateHandoffDraft({ cwd: repo.path, now: generatedNow });
 
-    expect(draft.body).toContain("存在 Quick Save：T001");
-    expect(draft.body).toContain("QUICK_SAVE.md 没有填写具体正文。");
+    expect(draft.body).toContain("Quick Save exists: T001");
+    expect(draft.body).toContain("QUICK_SAVE.md has no meaningful body.");
     expect(draft.body.match(/### Quick Save/g)).toHaveLength(1);
   });
 
@@ -169,8 +171,8 @@ describe("finish service 收尾流程", () => {
     const result = await finishLouisGo({ cwd: repo.path, now: generatedNow });
 
     expect(result.quickSaveCleanup).toBe(finishCleanupStatuses.cleaned);
-    expect(result.body).toContain("存在 Quick Save：T001");
-    expect(result.body).toContain("QUICK_SAVE.md 没有填写具体正文。");
+    expect(result.body).toContain("Quick Save exists: T001");
+    expect(result.body).toContain("QUICK_SAVE.md has no meaningful body.");
     expect(result.body.match(/### Quick Save/g)).toHaveLength(1);
     await expectFileMissing(paths.quickSave);
   });
@@ -190,8 +192,8 @@ describe("finish service 收尾流程", () => {
     const result = await finishLouisGo({ cwd: repo.path, now: generatedNow });
 
     expect(result.confirmReqCleanup).toBe(finishCleanupStatuses.cleaned);
-    expect(result.body).toContain("存在未解决确认请求：T001");
-    expect(result.body).toContain("## 选项");
+    expect(result.body).toContain("Open confirmation request: T001");
+    expect(result.body).toContain("## Options");
     await expectFileMissing(paths.confirmReq);
   });
 
@@ -202,8 +204,8 @@ describe("finish service 收尾流程", () => {
 
     expect(result.verification).toBe("missing");
     expect(result.frontMatter.verification).toBe("missing");
-    expect(result.body).toContain("验证状态：missing");
-    expect(result.body).toContain("没有可用验证结果");
+    expect(result.body).toContain("Verification status: missing");
+    expect(result.body).toContain("No verification result is available");
   });
 });
 

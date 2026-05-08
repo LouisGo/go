@@ -110,23 +110,23 @@ export function serializeConfirmReqFrontMatter(
 export function createConfirmReqBody(taskId?: string | null): string {
   const taskLine =
     taskId === undefined || taskId === null
-      ? `当前 ROADMAP 没有可用任务，task_id 使用 ${missingTaskId} 占位。`
-      : `当前任务：${taskId}`;
+      ? `The current ROADMAP has no available task; task_id uses ${missingTaskId} as a placeholder.`
+      : `Current task: ${taskId}`;
 
   return `# Confirm Request
 
 ${taskLine}
 
-## 背景
+## Background
 
-## 选项
+## Options
 
-- A. 选项说明
-- B. 选项说明
-- C. 选项说明
-- D. 我重新说明需求
+- A. Option description
+- B. Option description
+- C. Option description
+- D. I will restate the requirement
 
-## 建议
+## Recommendation
 `;
 }
 

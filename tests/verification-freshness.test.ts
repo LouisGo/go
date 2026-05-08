@@ -51,7 +51,7 @@ describe("验证结果新鲜度", () => {
     });
   });
 
-  it("diff_hash 不匹配时返回 stale", async () => {
+  it("diff_hash mismatch时返回 stale", async () => {
     await using repo = await createCommittedRepo();
     const paths = createProtocolPaths(repo.path);
     const snapshot = await getCurrentGitSnapshot({ cwd: repo.path });

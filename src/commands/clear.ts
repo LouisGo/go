@@ -24,8 +24,8 @@ export function registerClearCommand(
 ): void {
   program
     .command("clear")
-    .description("清空当前项目的 LouisGo 协议文件和本地缓存")
-    .option("--dry-run", "只预览会清理的目标，不实际删除")
+    .description("Remove LouisGo protocol files and local caches from the current project")
+    .option("--dry-run", "Preview cleanup targets without deleting anything")
     .action(async (commandOptions: ClearCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
       const setExitCode =
@@ -53,7 +53,7 @@ export function registerClearCommand(
       const confirmed = await askClearConfirmation(options.stdin ?? process.stdin, stdout);
 
       if (!confirmed) {
-        stdout.write("已取消，未删除任何文件。\n");
+        stdout.write("Canceled. No files were deleted.\n");
         setExitCode(1);
         return;
       }
@@ -67,41 +67,45 @@ export function registerClearCommand(
 }
 
 function writeRiskWarning(stdout: Writable): void {
-  stdout.write("危险操作：即将清理当前 Git 项目的 LouisGo 数据。\n");
-  stdout.write("- 会删除 .louisgo/，包括项目记忆、交接、验证结果、诊断日志、stats 和本地缓存。\n");
-  stdout.write("- 会移除项目 agent 指令文件中 LouisGo 管理的 Codex 指令块。\n");
-  stdout.write("- 不会删除业务源码，也不会清理全局 Codex 配置或全局 skills。\n");
+  stdout.write(
+    "Dangerous operation: this will remove LouisGo data from the current Git project.\n",
+  );
+  stdout.write(
+    "- Deletes .louisgo/, including project memory, handoffs, verification results, diagnostics, stats, and local caches.\n",
+  );
+  stdout.write("- Removes the LouisGo-managed Codex block from project agent instruction files.\n");
+  stdout.write("- Does not delete product source code, global Codex config, or global skills.\n");
 }
 
 function writeClearResult(stdout: Writable, result: ClearLouisGoResult): void {
   stdout.write(
     result.dryRun
-      ? `清理预览：${result.workspaceRoot}\n`
-      : `LouisGo 项目数据已清理：${result.workspaceRoot}\n`,
+      ? `Cleanup preview: ${result.workspaceRoot}\n`
+      : `LouisGo project data removed: ${result.workspaceRoot}\n`,
   );
 
   for (const target of result.targets) {
-    stdout.write(`- ${target.status} ${target.relativePath}：${target.description}\n`);
+    stdout.write(`- ${target.status} ${target.relativePath}: ${target.description}\n`);
   }
 
   if (result.dryRun) {
-    stdout.write("未执行删除。\n");
+    stdout.write("No deletion was performed.\n");
   }
 }
 
 async function askClearConfirmation(stdin: Readable, stdout: Writable): Promise<boolean> {
   const answer = await select(
     {
-      message: "请选择清理操作",
+      message: "Select cleanup action",
       choices: [
         {
-          name: "取消，不删除任何文件",
+          name: "Cancel and keep all files",
           value: "cancel",
         },
         {
-          name: "我理解风险，清理当前项目 LouisGo 数据",
+          name: "I understand the risk. Remove LouisGo project data.",
           value: "clear",
-          description: "删除 .louisgo/ 并移除项目 agent 指令文件中的 LouisGo 管理块",
+          description: "Deletes .louisgo/ and removes the LouisGo block from project agent files",
         },
       ],
       default: "cancel",

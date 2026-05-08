@@ -1,30 +1,30 @@
 # Roadmap
 
-## Self-bootstrap Closed Loop
+## Self-Bootstrap Closed Loop
 
-- [x] T001 人工试用 LouisGo 自举流程
-- [x] T002 确认 npm 发布版本、许可证和包名
-- [x] T003 发布前审查和正式发布
-- [x] T004 CLI 版本读取 package.json 单一来源
-- [x] T005 confirm 支持交互式选择和补充输入
-- [x] T006 pack:check 使用隔离 npm cache 并进入验证门禁
-- [x] T007 收敛自举成果为人能理解、AI 能执行、外部项目能实验的最小闭环
-- [x] T008 增加可跨项目投递给 AI 诊断的 LouisGo 流程日志
-- [x] T009 工作阶段管理（explore/execute/idle）
-- [x] T010 ROADMAP 完成信号（#completion:）
-- [x] T011 结构化证据链（STATE.md Evidence 段）
-- [x] T012 CONTEXT.md 可选协议文件
-- [x] T013 ADR 草稿模板简化
-- [x] T014 Codex skill 描述规范化
-- [x] T015 上下文头部领域术语提示
-- [x] T016 Codex-first stats 与上下文观测
+- [x] T001 Manually try the LouisGo self-bootstrap flow
+- [x] T002 Confirm npm public version, license, and package name
+- [x] T003 Pre-publish review and formal publish
+- [x] T004 Read CLI version from package.json as the single source of truth
+- [x] T005 Add interactive confirm selection and additional input
+- [x] T006 Use an isolated npm cache for pack:check and include it in verification
+- [x] T007 Converge the bootstrap result into a minimal loop humans can understand, AI can execute, and external projects can test
+- [x] T008 Add LouisGo workflow logs that can be sent to AI for cross-project diagnostics
+- [x] T009 Work phase management (explore/execute/idle)
+- [x] T010 ROADMAP completion signal (#completion:)
+- [x] T011 Structured evidence chain (STATE.md Evidence section)
+- [x] T012 Optional CONTEXT.md protocol file
+- [x] T013 Simplify ADR draft template
+- [x] T014 Normalize Codex skill descriptions
+- [x] T015 Add domain glossary hint to context header
+- [x] T016 Codex-first stats and context observation
 
 ## Next Candidates
 
-- P1：`init` 交互选择 AI 平台，而不是拆成多个用户命令。
-- P2：为 Claude Code、Gemini CLI、Cursor 等平台输出对应规则文件。
-- P3：增加轻量 repo map，只缓存关键路径和模块边界。
-- P4：增强 `context --capsule` 的 subagent 写入边界和返回格式。
-- P5：CONTEXT.md 自动填充：AI 在探索阶段自动从代码中提取候选术语。
-- P6：多平台规则输出：为 Claude Code、Gemini CLI 等生成对应的 memory/rules 文件。
-- P7：扩展 stats adapter 到 Claude Code、OpenCode、Cursor，并支持用户自定义 pricing。
+- P1: choose AI platform interactively during `init` instead of splitting it into several user commands.
+- P2: emit matching rule files for Claude Code, Gemini CLI, Cursor, and similar platforms.
+- P3: add a lightweight repo map that caches only key paths and module boundaries.
+- P4: improve `context --capsule` subagent write boundaries and return format.
+- P5: auto-fill CONTEXT.md by extracting candidate terms from code during exploration.
+- P6: multi-platform rules output for Claude Code, Gemini CLI, and similar tools.
+- P7: extend stats adapters to Claude Code, OpenCode, and Cursor, with user-defined pricing.

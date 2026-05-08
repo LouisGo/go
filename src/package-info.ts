@@ -13,5 +13,5 @@ export function readPackageVersion(): string {
     return packageJson.version;
   }
 
-  throw new Error("package.json 缺少有效 version 字段");
+  throw new Error("package.json is missing a valid version field");
 }

@@ -47,7 +47,7 @@ COMMAND="pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pnpm 
 RESULT_PATH=".louisgo/test-results.json"
 STATUS="passed"
 EXIT_CODE=0
-SUMMARY="项目验证通过"
+SUMMARY="Project verification passed"
 
 run_step() {
   step_name="$1"
@@ -57,7 +57,7 @@ run_step() {
   if [ "$step_exit_code" -ne 0 ]; then
     EXIT_CODE="$step_exit_code"
     STATUS="failed"
-    SUMMARY="$step_name 未通过"
+    SUMMARY="$step_name failed"
     return 1
   fi
 

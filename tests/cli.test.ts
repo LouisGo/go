@@ -13,12 +13,12 @@ describe("CLI 入口", () => {
     const program = createCli();
 
     expect(program.name()).toBe("louisgo");
-    expect(program.description()).toContain("AI 编程 Harness");
+    expect(program.description()).toContain("AI coding context harness");
     expect(program.version()).toBe(readPackageVersion());
     expect(program.helpInformation()).toContain("Usage: louisgo");
   });
 
-  it("可以识别通过符号链接启动的 CLI 入口", async () => {
+  it("可以识别通过符号链接Start的 CLI 入口", async () => {
     await using tempDir = await createTempDir();
     const targetPath = resolve(dirname(fileURLToPath(import.meta.url)), "../src/cli.ts");
     const linkPath = join(tempDir.path, "louisgo");

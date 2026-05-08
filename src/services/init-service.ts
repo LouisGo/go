@@ -72,7 +72,10 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     workspaceRoot,
     directories,
     files,
-    nextSteps: ["新会话会自动读取 LouisGo 上下文", "需要深度重建时输入 $start"],
+    nextSteps: [
+      "New sessions will read LouisGo context automatically",
+      "Use $start for deep recovery",
+    ],
   };
 }
 

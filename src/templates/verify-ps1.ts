@@ -55,7 +55,7 @@ foreach ($File in (git ls-files --others --exclude-standard -- . @IgnoredPathspe
 $DiffHash = Get-StringSha256 $HashInput.ToString()
 $ExitCode = 0
 $Status = "skipped"
-$Summary = "未配置项目验证命令，已跳过"
+$Summary = "No project verification command configured; skipped"
 
 New-Item -ItemType Directory -Force -Path ".louisgo" | Out-Null
 

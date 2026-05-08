@@ -51,12 +51,13 @@ export async function clearLouisGo(options: ClearLouisGoOptions = {}): Promise<C
       targets: [
         {
           relativePath: protocolRelativePaths.louisgoDir,
-          description: "LouisGo 协议、记忆、交接、验证结果、诊断日志、stats 和缓存目录",
+          description:
+            "LouisGo protocol, memory, handoffs, verification results, diagnostics, stats, and cache directories",
           status: louisgoExists ? clearTargetStatuses.planned : clearTargetStatuses.missing,
         },
         ...agentRemovals.map((removal) => ({
           relativePath: removal.relativePath,
-          description: "LouisGo 管理的 Codex 指令块",
+          description: "LouisGo-managed Codex instruction block",
           status: removal.result.removed
             ? clearTargetStatuses.planned
             : clearTargetStatuses.unchanged,
@@ -64,8 +65,8 @@ export async function clearLouisGo(options: ClearLouisGoOptions = {}): Promise<C
         ...(agentRemovals.length === 0
           ? [
               {
-                relativePath: "项目 agent 指令文件",
-                description: "LouisGo 管理的 Codex 指令块",
+                relativePath: "project agent instruction file",
+                description: "LouisGo-managed Codex instruction block",
                 status: clearTargetStatuses.missing,
               },
             ]
@@ -80,21 +81,23 @@ export async function clearLouisGo(options: ClearLouisGoOptions = {}): Promise<C
     await rm(paths.louisgoDir, { force: true, recursive: true });
     targets.push({
       relativePath: protocolRelativePaths.louisgoDir,
-      description: "LouisGo 协议、记忆、交接、验证结果、诊断日志、stats 和缓存目录",
+      description:
+        "LouisGo protocol, memory, handoffs, verification results, diagnostics, stats, and cache directories",
       status: clearTargetStatuses.deleted,
     });
   } else {
     targets.push({
       relativePath: protocolRelativePaths.louisgoDir,
-      description: "LouisGo 协议、记忆、交接、验证结果、诊断日志、stats 和缓存目录",
+      description:
+        "LouisGo protocol, memory, handoffs, verification results, diagnostics, stats, and cache directories",
       status: clearTargetStatuses.missing,
     });
   }
 
   if (agentRemovals.length === 0) {
     targets.push({
-      relativePath: "项目 agent 指令文件",
-      description: "LouisGo 管理的 Codex 指令块",
+      relativePath: "project agent instruction file",
+      description: "LouisGo-managed Codex instruction block",
       status: clearTargetStatuses.missing,
     });
   } else {
@@ -102,21 +105,21 @@ export async function clearLouisGo(options: ClearLouisGoOptions = {}): Promise<C
       if (!removal.result.removed) {
         targets.push({
           relativePath: removal.relativePath,
-          description: "LouisGo 管理的 Codex 指令块",
+          description: "LouisGo-managed Codex instruction block",
           status: clearTargetStatuses.unchanged,
         });
       } else if (removal.result.nextContent.length === 0) {
         await rm(removal.filePath, { force: true });
         targets.push({
           relativePath: removal.relativePath,
-          description: "LouisGo 管理的 Codex 指令块",
+          description: "LouisGo-managed Codex instruction block",
           status: clearTargetStatuses.deleted,
         });
       } else {
         await writeFile(removal.filePath, removal.result.nextContent, "utf8");
         targets.push({
           relativePath: removal.relativePath,
-          description: "LouisGo 管理的 Codex 指令块",
+          description: "LouisGo-managed Codex instruction block",
           status: clearTargetStatuses.updated,
         });
       }

@@ -58,7 +58,7 @@ describe("init 服务", () => {
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("RUNLOG.md");
     await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("stats/");
     expect(result.files.every((file) => file.status === "created")).toBe(true);
-    expect(result.nextSteps).toContain("需要深度重建时输入 $start");
+    expect(result.nextSteps).toContain("Use $start for deep recovery");
   });
 
   it("重复 init 不覆盖用户文件", async () => {
@@ -82,7 +82,7 @@ describe("init 服务", () => {
 
     await expect(initLouisGo({ cwd: tempDir.path, now })).rejects.toMatchObject({
       code: workspaceErrorCodes.notGitRepository,
-      message: expect.stringContaining("请先执行 git init"),
+      message: expect.stringContaining("Run git init first"),
     });
   });
 });

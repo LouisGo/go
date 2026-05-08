@@ -20,12 +20,12 @@ describe("codex setup 命令", () => {
 
     await program.parseAsync(["node", "louisgo", "codex", "setup"]);
 
-    expect(stdout.text).toContain("LouisGo Codex 集成完成");
+    expect(stdout.text).toContain("LouisGo Codex integration completed");
     expect(stdout.text).toContain("skills/init/SKILL.md");
     expect(stdout.text).toContain("skills/start/SKILL.md");
     expect(stdout.text).toContain("skills/context/SKILL.md");
     expect(stdout.text).toContain("skills/finish/SKILL.md");
-    expect(stdout.text).toContain("下一步：新会话会自动读取 LouisGo 上下文");
+    expect(stdout.text).toContain("Next: New sessions will read LouisGo context automatically");
   });
 });
 

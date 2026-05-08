@@ -134,7 +134,7 @@ async function runGlobalSkippedVerification(paths: ProtocolPaths): Promise<RunVe
     diffHash: snapshot.diffHash,
     startedAt,
     completedAt,
-    summary: "未配置项目验证命令，已跳过",
+    summary: "No project verification command configured; skipped",
   });
 
   return {
@@ -207,7 +207,7 @@ async function assertScriptFile(script: VerificationScriptSelection): Promise<vo
   throw new VerifyRunnerError({
     code: verifyRunnerErrorCodes.scriptMissing,
     scriptPath: script.filePath,
-    message: `验证脚本不存在：${script.relativePath}`,
+    message: `Verification script does not exist: ${script.relativePath}`,
   });
 }
 
@@ -241,7 +241,7 @@ async function executeScript(
     throw new VerifyRunnerError({
       code: verifyRunnerErrorCodes.executionFailed,
       scriptPath: script.filePath,
-      message: `验证脚本执行失败：${script.relativePath}`,
+      message: `Verification script execution failed: ${script.relativePath}`,
       cause: error,
     });
   }
@@ -271,7 +271,7 @@ async function readPostRunFreshness(
         exitCode: execution.exitCode,
         stdout: execution.stdout,
         stderr: execution.stderr,
-        message: "验证脚本生成了非法 test-results.json",
+        message: "Verification script generated an invalid test-results.json",
         cause: error,
       });
     }
@@ -290,7 +290,7 @@ function createResultMissingError(
     exitCode: execution.exitCode,
     stdout: execution.stdout,
     stderr: execution.stderr,
-    message: "验证脚本未生成 .louisgo/test-results.json",
+    message: "Verification script did not generate .louisgo/test-results.json",
   });
 }
 

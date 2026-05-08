@@ -15,7 +15,7 @@ export function registerStatusCommand(
 ): void {
   program
     .command("status")
-    .description("查看 LouisGo 协议状态")
+    .description("Show LouisGo protocol status")
     .action(async () => {
       const status = await checkProtocolStatus(options);
       (options.stdout ?? process.stdout).write(formatStatusReport(status));

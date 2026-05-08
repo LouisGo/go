@@ -37,7 +37,7 @@ export function createCli(options: CliOptions = {}): Command {
 
   program
     .name("louisgo")
-    .description("轻量级 AI 编程 Harness")
+    .description("Lightweight AI coding context harness")
     .version(readPackageVersion())
     .showHelpAfterError();
 

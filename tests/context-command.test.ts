@@ -78,7 +78,9 @@ describe("context 命令", () => {
 
     expect(exitCode).toBe(1);
     expect(stdout.text).toBe("");
-    expect(stderr.text).toContain("上下文生成失败：LouisGo 协议不完整，请先运行 louisgo init。");
+    expect(stderr.text).toContain(
+      "Context generation failed: LouisGo protocol is incomplete. Run louisgo init first.",
+    );
   });
 });
 

@@ -38,10 +38,10 @@ describe("finish 命令", () => {
 
     expect(exitCode).toBe(0);
     expect(stderr.text).toBe("");
-    expect(stdout.text).toContain("LouisGo 正式交接已更新");
-    expect(stdout.text).toContain("验证状态：missing");
-    expect(stdout.text).toContain("STATE.md：已更新");
-    expect(stdout.text).toContain("下一步：新会话会优先读取 HANDOFF.md");
+    expect(stdout.text).toContain("LouisGo handoff updated");
+    expect(stdout.text).toContain("Verification status: missing");
+    expect(stdout.text).toContain("STATE.md: updated");
+    expect(stdout.text).toContain("Next: new sessions should prefer HANDOFF.md");
     await expect(access(paths.handoff)).resolves.toBeUndefined();
     await expect(access(paths.state)).resolves.toBeUndefined();
     await expect(access(paths.handoffDraft)).rejects.toMatchObject({ code: "ENOENT" });
@@ -66,7 +66,9 @@ describe("finish 命令", () => {
 
     expect(exitCode).toBe(1);
     expect(stdout.text).toBe("");
-    expect(stderr.text).toContain("收尾失败：LouisGo 协议不完整，请先运行 louisgo init。");
+    expect(stderr.text).toContain(
+      "Finish failed: LouisGo protocol is incomplete. Run louisgo init first.",
+    );
   });
 });
 

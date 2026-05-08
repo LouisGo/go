@@ -84,7 +84,8 @@ const skillPresets: readonly SkillPreset[] = [
     skillName: "grill-me",
     fileName: "grill.md",
     aliases: ["grill", "grill-me"],
-    description: "逐一追问并压测方案分支，直到形成共同理解。",
+    description:
+      "Pressure-test a plan branch by branch until the tradeoffs are jointly understood.",
     createContent: () => withManagedMarker("grill", createGrillSkill()),
   },
   {
@@ -92,7 +93,7 @@ const skillPresets: readonly SkillPreset[] = [
     skillName: "caveman",
     fileName: "caveman.md",
     aliases: ["caveman", "cavemen"],
-    description: "极简通信模式，减少填充词并保留技术准确性。",
+    description: "Use ultra-compressed communication while preserving technical accuracy.",
     createContent: () => withManagedMarker("caveman", createCavemanSkill()),
   },
 ];
@@ -218,7 +219,7 @@ function resolvePreset(id: string): SkillPreset {
 
   if (preset === undefined) {
     throw new SkillServiceError(
-      `未知 LouisGo skill：${id}。可用预设：${skillPresets.map((item) => item.id).join(", ")}`,
+      `Unknown LouisGo skill: ${id}. Available presets: ${skillPresets.map((item) => item.id).join(", ")}`,
     );
   }
 
@@ -231,7 +232,7 @@ async function ensureProtocol(options: StatusServiceOptions): Promise<string> {
   });
 
   if (!status.complete) {
-    throw new SkillServiceError("LouisGo 协议不完整，请先运行 louisgo init。");
+    throw new SkillServiceError("LouisGo protocol is incomplete. Run louisgo init first.");
   }
 
   return status.workspaceRoot;

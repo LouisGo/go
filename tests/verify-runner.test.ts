@@ -22,7 +22,7 @@ const timestamp = "2026-05-01T20:00:00+08:00";
 const completedAt = "2026-05-01T20:01:00+08:00";
 const now = () => new Date("2026-05-01T12:00:00.000Z");
 
-describe("验证脚本运行器", () => {
+describe("verification runner", () => {
   it("macOS / Linux 默认选择 verify.sh", () => {
     const paths = createProtocolPaths("/tmp/louisgo-runner");
 

@@ -33,7 +33,7 @@ describe("QUICK_SAVE 协议读写", () => {
     });
     expect(document.frontMatter.gitHead).toBe("NO_HEAD");
     expect(document.frontMatter.diffHash).toMatch(/^[a-f0-9]{64}$/);
-    expect(document.body).toContain("当前任务：T017");
+    expect(document.body).toContain("Current task: T017");
   });
 
   it("缺少任务时生成明确占位", async () => {
@@ -47,7 +47,7 @@ describe("QUICK_SAVE 协议读写", () => {
     });
 
     expect(result.frontMatter.taskId).toBe(missingTaskId);
-    expect(result.body).toContain(`task_id 使用 ${missingTaskId} 占位`);
+    expect(result.body).toContain(`task_id uses ${missingTaskId} as a placeholder`);
   });
 });
 

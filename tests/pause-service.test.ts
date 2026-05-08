@@ -38,7 +38,7 @@ describe("pause service", () => {
       savedAt: "2026-05-01T12:10:00.000Z",
     });
     expect(result.frontMatter.diffHash).toMatch(/^[a-f0-9]{64}$/);
-    expect(document.body).toContain("task_id 使用 NO_TASK 占位");
+    expect(document.body).toContain("task_id uses NO_TASK as a placeholder");
   });
 
   it("已存在 Quick Save 时更新暂停点，并保留 BLOCKER 和 HANDOFF", async () => {

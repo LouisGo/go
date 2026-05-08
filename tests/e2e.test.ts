@@ -21,15 +21,15 @@ describe("CLI 端到端工作流", () => {
     await using repo = await createGitRepo();
 
     const init = await runCli(repo.path, ["init"]);
-    expect(init.stdout).toContain("LouisGo 初始化完成");
-    expect(init.stdout).toContain("创建文件：4");
-    expect(init.stdout).toContain("Codex 集成：完成");
-    expect(init.stdout).toContain("下一步：新会话会自动读取 LouisGo 上下文");
+    expect(init.stdout).toContain("LouisGo initialized");
+    expect(init.stdout).toContain("Files created: 4");
+    expect(init.stdout).toContain("Codex integration: completed");
+    expect(init.stdout).toContain("Next: New sessions will read LouisGo context automatically");
 
     const initialStatus = await runCli(repo.path, ["status"]);
-    expect(initialStatus.stdout).toContain("[assist/idle] 协议完整，当前任务 无");
-    expect(initialStatus.stdout).toContain("验证状态 missing");
-    expect(initialStatus.stdout).toContain("恢复来源 STATE");
+    expect(initialStatus.stdout).toContain("[assist/idle] complete, current task none");
+    expect(initialStatus.stdout).toContain("verification status missing");
+    expect(initialStatus.stdout).toContain("recovery source STATE");
 
     const context = await runCli(repo.path, ["context", "--goal", "E2E 外部项目实验"]);
     expect(context.stdout).toContain("# LouisGo Context Package");
@@ -38,31 +38,33 @@ describe("CLI 端到端工作流", () => {
     expect(context.stdout).not.toContain("Source: `.louisgo/MISSION.md`");
 
     const verify = await runCli(repo.path, ["verify"], { allowedExitCodes: [1] });
-    expect(verify.stdout).toContain("验证入口：louisgo verify");
-    expect(verify.stdout).toContain("验证状态：skipped");
-    expect(verify.stdout).toContain("新鲜度：fresh");
-    expect(verify.stdout).toContain("结果：验证未通过或结果不可作为当前代码事实");
+    expect(verify.stdout).toContain("Verification entry: louisgo verify");
+    expect(verify.stdout).toContain("Verification status: skipped");
+    expect(verify.stdout).toContain("Freshness: fresh");
+    expect(verify.stdout).toContain(
+      "Result: verification did not pass or cannot represent the current code state",
+    );
 
     const verifiedStatus = await runCli(repo.path, ["status"]);
-    expect(verifiedStatus.stdout).toContain("验证状态 skipped");
+    expect(verifiedStatus.stdout).toContain("verification status skipped");
 
     const pause = await runCli(repo.path, ["pause"]);
-    expect(pause.stdout).toContain("LouisGo 暂停状态已创建");
+    expect(pause.stdout).toContain("LouisGo quick save created");
 
     const pausedStatus = await runCli(repo.path, ["status"]);
-    expect(pausedStatus.stdout).toContain("恢复来源 STATE");
+    expect(pausedStatus.stdout).toContain("recovery source STATE");
 
     const finish = await runCli(repo.path, ["finish"]);
-    expect(finish.stdout).toContain("LouisGo 正式交接已更新");
-    expect(finish.stdout).toContain("验证状态：skipped");
-    expect(finish.stdout).toContain("Quick Save：已转存并清理");
+    expect(finish.stdout).toContain("LouisGo handoff updated");
+    expect(finish.stdout).toContain("Verification status: skipped");
+    expect(finish.stdout).toContain("Quick Save: promoted and cleaned");
     await expect(access(join(repo.path, ".louisgo", "HANDOFF.md"))).resolves.toBeUndefined();
     await expectFileMissing(join(repo.path, ".louisgo", "HANDOFF_DRAFT.md"));
     await expectFileMissing(join(repo.path, ".louisgo", "QUICK_SAVE.md"));
 
     const finalStatus = await runCli(repo.path, ["status"]);
-    expect(finalStatus.stdout).toContain("验证状态 skipped");
-    expect(finalStatus.stdout).toContain("恢复来源 HANDOFF");
+    expect(finalStatus.stdout).toContain("verification status skipped");
+    expect(finalStatus.stdout).toContain("recovery source HANDOFF");
 
     const log = await runCli(repo.path, ["log", "--tail", "5"]);
     expect(log.stdout).toContain("# Run Log");
@@ -77,15 +79,15 @@ describe("CLI 端到端工作流", () => {
     await writeAdrDraft(repo.path);
 
     const status = await runCli(repo.path, ["status"]);
-    expect(status.stdout).toContain("存在未解决确认请求");
-    expect(status.stdout).toContain("存在 ADR 草稿：1 个");
+    expect(status.stdout).toContain("Open confirmation request");
+    expect(status.stdout).toContain("ADR drafts present: 1");
 
     const finish = await runCli(repo.path, ["finish"]);
-    expect(finish.stdout).toContain("Confirm Request：已转存并清理");
+    expect(finish.stdout).toContain("Confirm Request: promoted and cleaned");
 
     const handoff = await readFile(join(repo.path, ".louisgo", "HANDOFF.md"), "utf8");
-    expect(handoff).toContain("存在未解决确认请求：T001");
-    expect(handoff).toContain("## 选项");
+    expect(handoff).toContain("Open confirmation request: T001");
+    expect(handoff).toContain("## Options");
     expect(handoff).toContain("- 001-e2e.md");
     await expectFileMissing(join(repo.path, ".louisgo", "CONFIRM_REQ.md"));
   });
@@ -171,7 +173,7 @@ created_at: "${timestamp}"
 
 E2E 测试中的确认请求。
 
-## 选项
+## Options
 
 - A. 继续主流程
 - B. 停止
@@ -199,11 +201,11 @@ confirmed_at: null
 
 ## 背景
 
-## 决策
+## Decision
 
 ## 影响
 
-## 备选方案
+## Alternatives
 `,
     "utf8",
   );

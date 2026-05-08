@@ -47,7 +47,7 @@ Use the best available LouisGo command runner:
 - If \`.louisgo/\` is missing or incomplete, report the issue and suggest \`louisgo init\`.
 - \`HANDOFF.md\` is the formal recovery snapshot. \`STATE.md\` and \`MEMORY.md\` are supporting daily memory.
 - Do not mark work complete from narrative alone; use verification results, user confirmation, or protocol files.
-- Keep user-facing explanations concise and in Simplified Chinese by default.
+- Keep user-facing explanations concise and in English by default, unless the user asks for another language.
 `;
 }
 
@@ -87,7 +87,7 @@ Rules:
 
 - Always run the mapped \`louisgo\` command before answering.
 - If \`.louisgo/\` is missing or incomplete, report the issue and suggest \`louisgo init\`.
-- Keep the response concise and in Simplified Chinese by default.
+- Keep the response concise and in English by default, unless the user asks for another language.
 `;
 }
 
@@ -104,8 +104,8 @@ export function createCodexDirectiveSkillOpenAiYaml(
 export function createCodexSkillOpenAiYaml(): string {
   return `interface:
   display_name: "LouisGo Workflow"
-  short_description: "LouisGo 工作流：自动读取 .louisgo 记忆并识别 $start/$finish"
-  default_prompt: "在已启用 LouisGo 的仓库中读取 .louisgo/HANDOFF.md、STATE.md 和 MEMORY.md，恢复项目上下文。"
+  short_description: "LouisGo workflow: read .louisgo memory and route $start/$finish"
+  default_prompt: "In repositories with LouisGo enabled, read .louisgo/HANDOFF.md, STATE.md, and MEMORY.md to recover project context."
 `;
 }
 

@@ -46,9 +46,11 @@ describe("HANDOFF_DRAFT 协议写入", () => {
       verification: "passed",
       generatedAt: timestamp,
     });
-    expect(result.body).toContain("## 交接摘要");
-    expect(result.body).toContain("## 恢复建议");
-    expect(result.body).toContain("接手判断：验证通过且对应当前工作区");
+    expect(result.body).toContain("## Handoff Summary");
+    expect(result.body).toContain("## Recovery Advice");
+    expect(result.body).toContain(
+      "Handoff judgment: Verification passed and matches the current workspace",
+    );
     expect(result.body).not.toContain("TODO");
   });
 
@@ -63,7 +65,7 @@ describe("HANDOFF_DRAFT 协议写入", () => {
         quickSaveSummary: "无 Quick Save。",
         adrDrafts: [],
       }),
-    ).toContain(`task_id 使用 ${missingTaskId} 占位`);
+    ).toContain(`task_id uses ${missingTaskId} as a placeholder`);
   });
 });
 

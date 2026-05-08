@@ -23,7 +23,7 @@ export function registerVerifyCommand(
 ): void {
   program
     .command("verify")
-    .description("运行 LouisGo 项目验证")
+    .description("Run LouisGo project verification")
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
       const stderr = options.stderr ?? process.stderr;
@@ -62,38 +62,38 @@ export function registerVerifyCommand(
 
 function formatVerifyReport(result: VerifyServiceResult): string {
   const lines = [
-    `验证入口：${result.script.relativePath}`,
-    `入口退出码：${result.scriptExitCode}`,
-    `验证状态：${result.verificationStatus}`,
-    `新鲜度：${formatFreshness(result.freshness)}`,
-    `摘要：${result.summary}`,
+    `Verification entry: ${result.script.relativePath}`,
+    `Entry exit code: ${result.scriptExitCode}`,
+    `Verification status: ${result.verificationStatus}`,
+    `Freshness: ${formatFreshness(result.freshness)}`,
+    `Summary: ${result.summary}`,
   ];
 
   if (result.staleReason !== null) {
-    lines.push(`过期原因：${formatStaleReason(result.staleReason)}`);
+    lines.push(`Stale reason: ${formatStaleReason(result.staleReason)}`);
   }
 
   if (result.processExitCode === 0) {
-    lines.push("结果：验证通过且结果新鲜");
+    lines.push("Result: verification passed and is fresh");
   } else {
-    lines.push("结果：验证未通过或结果不可作为当前代码事实");
+    lines.push("Result: verification did not pass or cannot represent the current code state");
   }
 
   return `${lines.join("\n")}\n`;
 }
 
 function formatVerifyError(error: VerifyRunnerError): string {
-  return `验证失败：${formatVerifyRunnerError(error)}\n`;
+  return `Verification failed: ${formatVerifyRunnerError(error)}\n`;
 }
 
 function formatVerifyRunnerError(error: VerifyRunnerError): string {
   switch (error.code) {
     case verifyRunnerErrorCodes.scriptMissing:
-      return "验证脚本缺失";
+      return "verification script is missing";
     case verifyRunnerErrorCodes.resultMissing:
-      return "验证脚本未生成 .louisgo/test-results.json";
+      return "verification script did not generate .louisgo/test-results.json";
     case verifyRunnerErrorCodes.resultInvalid:
-      return "验证脚本生成了非法 test-results.json";
+      return "verification script generated an invalid test-results.json";
     case verifyRunnerErrorCodes.executionFailed:
       return error.message;
   }
@@ -111,8 +111,8 @@ function formatFreshness(freshness: VerificationFreshnessState): string {
 function formatStaleReason(reason: StaleReason): string {
   switch (reason) {
     case "git_head_mismatch":
-      return "Git HEAD 不匹配";
+      return "Git HEAD mismatch";
     case "diff_hash_mismatch":
-      return "diff_hash 不匹配";
+      return "diff_hash mismatch";
   }
 }

@@ -48,6 +48,6 @@ function createNotGitRepositoryError(cwd: string): WorkspaceError {
   return new WorkspaceError(
     workspaceErrorCodes.notGitRepository,
     cwd,
-    `当前目录不在 Git 仓库中：${cwd}。请先执行 git init。`,
+    `Current directory is not inside a Git repository: ${cwd}. Run git init first.`,
   );
 }

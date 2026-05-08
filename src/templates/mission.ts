@@ -23,11 +23,11 @@ updated_at: "${options.updatedAt}"
 
 ## Confirm First
 
-- 发布、许可证、包名、公开协议破坏性变更、大范围重构。
-- 两种以上明显可行方向，或指令与本文件冲突。
+- Publishing, licensing, package naming, public protocol breakage, and broad refactors.
+- Two or more viable directions, or instructions that conflict with this file.
 
 ## Decision Records
 
-- 公开 API、持久化格式、关键依赖、跨模块边界变更：先写 \`.louisgo/ADR/draft/\`。
+- For public APIs, persisted formats, critical dependencies, or cross-module boundary changes, draft an ADR under \`.louisgo/ADR/draft/\` first.
 `;
 }

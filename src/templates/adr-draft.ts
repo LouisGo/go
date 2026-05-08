@@ -4,7 +4,7 @@ export interface AdrDraftTemplateOptions {
 }
 
 export function createAdrDraftTemplate(options: AdrDraftTemplateOptions): string {
-  const title = options.title?.trim() || "标题";
+  const title = options.title?.trim() || "Title";
 
   return `---
 schema: louisgo-adr-v1
@@ -16,18 +16,18 @@ confirmed_at: null
 
 # ADR Draft: ${title}
 
-<!-- 创建 ADR 前三问：1) 是否难以逆转？2) 缺少上下文时是否会让人意外？3) 是否存在真实取舍？全部回答"是"才值得写。-->
+<!-- Before creating an ADR, ask: 1) Is this hard to reverse? 2) Would future readers be surprised without the context? 3) Is there a real tradeoff? Write the ADR only when all three answers are yes. -->
 
-## 背景
+## Background
 
-<!-- 什么情况导致需要做决策？缺少这段上下文时，未来的读者会意外。 -->
+<!-- What situation made this decision necessary? Future readers should not be surprised by missing context. -->
 
-## 决策（可选）
+## Decision (Optional)
 
-<!-- 我们选择了什么？为什么这个方案比其他选项好？如果背景已经足够清楚，一段话就够了。 -->
+<!-- What did we choose, and why is this option better than the alternatives? One paragraph is enough when the background is already clear. -->
 
-## 影响（可选）
+## Impact (Optional)
 
-<!-- 这个决策会带来什么可观察的后果？对哪些文件或模块有影响？ -->
+<!-- What observable consequences does this decision create? Which files or modules are affected? -->
 `;
 }

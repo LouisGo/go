@@ -56,7 +56,7 @@ export async function readFrontMatter<TFrontMatter>(
     throw new FrontMatterError({
       code: frontMatterErrorCodes.missingFrontMatter,
       filePath: resolvedPath,
-      message: `缺少 Front Matter：${resolvedPath}`,
+      message: `Missing front matter: ${resolvedPath}`,
     });
   }
 
@@ -64,7 +64,7 @@ export async function readFrontMatter<TFrontMatter>(
     throw new FrontMatterError({
       code: frontMatterErrorCodes.malformedFrontMatter,
       filePath: resolvedPath,
-      message: `Front Matter 缺少结束分隔符：${resolvedPath}`,
+      message: `Front matter is missing the closing delimiter: ${resolvedPath}`,
     });
   }
 
@@ -75,7 +75,7 @@ export async function readFrontMatter<TFrontMatter>(
     throw new FrontMatterError({
       code: frontMatterErrorCodes.schemaInvalid,
       filePath: resolvedPath,
-      message: `Front Matter schema 校验失败：${resolvedPath}`,
+      message: `Front matter schema validation failed: ${resolvedPath}`,
       issues: result.error.issues.map((issue) => ({
         field: issue.path.length === 0 ? "<root>" : issue.path.join("."),
         message: issue.message,
@@ -102,7 +102,7 @@ export async function writeFrontMatter(
     throw new FrontMatterError({
       code: frontMatterErrorCodes.schemaInvalid,
       filePath: resolvedPath,
-      message: `Front Matter schema 校验失败：${resolvedPath}`,
+      message: `Front matter schema validation failed: ${resolvedPath}`,
       issues: result.error.issues.map((issue) => ({
         field: issue.path.length === 0 ? "<root>" : issue.path.join("."),
         message: issue.message,
@@ -121,7 +121,7 @@ function parseMatter(source: string, filePath: string): GrayMatterFile<string> {
     throw new FrontMatterError({
       code: frontMatterErrorCodes.malformedFrontMatter,
       filePath,
-      message: `Front Matter 解析失败：${filePath}`,
+      message: `Front matter parse failed: ${filePath}`,
       issues: [
         {
           field: "<frontmatter>",

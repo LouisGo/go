@@ -25,11 +25,11 @@ describe("init 命令", () => {
     });
     await program.parseAsync(["node", "louisgo", "init", "--no-codex"]);
 
-    expect(stdout.text).toContain("LouisGo 初始化完成");
-    expect(stdout.text).toContain("创建文件：4");
-    expect(stdout.text).toContain("跳过文件：0");
-    expect(stdout.text).toContain("Codex 集成：已跳过");
-    expect(stdout.text).toContain("下一步：新会话会自动读取 LouisGo 上下文");
+    expect(stdout.text).toContain("LouisGo initialized");
+    expect(stdout.text).toContain("Files created: 4");
+    expect(stdout.text).toContain("Files skipped: 0");
+    expect(stdout.text).toContain("Codex integration: skipped");
+    expect(stdout.text).toContain("Next: New sessions will read LouisGo context automatically");
   });
 
   it("默认安装 Codex 集成", async () => {
@@ -47,7 +47,7 @@ describe("init 命令", () => {
     });
     await program.parseAsync(["node", "louisgo", "init"]);
 
-    expect(stdout.text).toContain("Codex 集成：完成");
+    expect(stdout.text).toContain("Codex integration: completed");
     expect(stdout.text).toContain(codex.path);
   });
 });

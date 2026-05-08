@@ -16,11 +16,13 @@ export function registerCodexCommand(
   program: Command,
   options: RegisterCodexCommandOptions = {},
 ): void {
-  const codex = program.command("codex").description("安装 LouisGo Codex 工作流集成");
+  const codex = program
+    .command("codex")
+    .description("Install the LouisGo Codex workflow integration");
 
   codex
     .command("setup")
-    .description("安装 $start 等 LouisGo Codex 指令")
+    .description("Install LouisGo Codex directives such as $start")
     .action(async () => {
       const result = await setupCodex(options);
       writeCodexSetupResult(options.stdout ?? process.stdout, result);
@@ -34,13 +36,13 @@ export function registerCodexCommand(
 }
 
 function writeCodexSetupResult(stdout: Writable, result: CodexSetupResult): void {
-  stdout.write(`LouisGo Codex 集成完成：${result.workspaceRoot}\n`);
-  stdout.write(`Codex Home：${result.codexHome}\n`);
-  stdout.write("写入文件：\n");
+  stdout.write(`LouisGo Codex integration completed: ${result.workspaceRoot}\n`);
+  stdout.write(`Codex home: ${result.codexHome}\n`);
+  stdout.write("Written files:\n");
 
   for (const file of result.files) {
     stdout.write(`- ${file.status} ${file.filePath}\n`);
   }
 
-  stdout.write(`下一步：${result.nextSteps.join("；")}\n`);
+  stdout.write(`Next: ${result.nextSteps.join("; ")}\n`);
 }

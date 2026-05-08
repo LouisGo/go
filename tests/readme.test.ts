@@ -42,7 +42,7 @@ describe("README 使用说明", () => {
     expect(readme).toContain("louisgo stats");
     expect(readme).toContain("louisgo skill list");
     expect(readme).toContain("louisgo clear");
-    expect(readme).toContain("方向键选择列表");
+    expect(readme).toContain("direction-key selection prompt");
     expect(readme).toContain("louisgo log");
     expect(readme).toContain("handoff promote");
     expect(

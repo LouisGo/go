@@ -50,7 +50,7 @@ GIT_HEAD="$(git rev-parse --verify HEAD 2>/dev/null || printf "NO_HEAD")"
 DIFF_HASH="$(create_diff_hash)"
 STATUS="skipped"
 EXIT_CODE=0
-SUMMARY="未配置项目验证命令，已跳过"
+SUMMARY="No project verification command configured; skipped"
 
 mkdir -p ".louisgo"
 

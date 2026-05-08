@@ -3,11 +3,11 @@ export function createRoadmapTemplate(): string {
 
 ## Active
 
-- [ ] T001 完成第一次 AI 编程闭环
+- [ ] T001 Complete the first AI coding loop
 
 ## Notes
 
-- 只把真正需要跨会话追踪的任务写成 Txxx checkbox。
-- 后续想法可以写普通 bullet，避免把路线图变成流水账。
+- Use Txxx checkboxes only for work that truly needs cross-session tracking.
+- Write follow-up ideas as normal bullets so the roadmap does not become a running chat log.
 `;
 }

@@ -24,7 +24,7 @@ export function registerFinishCommand(
 ): void {
   program
     .command("finish")
-    .description("生成 LouisGo 交接草稿")
+    .description("Generate a LouisGo handoff")
     .allowExcessArguments(false)
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
@@ -53,11 +53,11 @@ export function registerFinishCommand(
           throw error;
         }
 
-        stderr.write("收尾失败：LouisGo 协议不完整，请先运行 louisgo init。\n");
+        stderr.write("Finish failed: LouisGo protocol is incomplete. Run louisgo init first.\n");
         if (error.issues.length > 0) {
-          stderr.write("需要处理的问题：\n");
+          stderr.write("Issues to fix:\n");
           for (const issue of error.issues) {
-            stderr.write(`- ${issue.relativePath}：${issue.message}\n`);
+            stderr.write(`- ${issue.relativePath}: ${issue.message}\n`);
           }
         }
         await appendRunLogEvent({
@@ -74,13 +74,13 @@ export function registerFinishCommand(
 function formatFinishReport(result: FinishServiceResult): string {
   return (
     [
-      `LouisGo 正式交接已更新：${result.filePath}`,
-      `当前任务：${result.frontMatter.taskId}`,
-      `验证状态：${result.verification}`,
-      `Confirm Request：${formatCleanup(result.confirmReqCleanup)}`,
-      `Quick Save：${formatCleanup(result.quickSaveCleanup)}`,
-      `STATE.md：已更新（${result.statePath}）`,
-      "下一步：新会话会优先读取 HANDOFF.md；继续修改后请重新运行 louisgo verify",
+      `LouisGo handoff updated: ${result.filePath}`,
+      `Current task: ${result.frontMatter.taskId}`,
+      `Verification status: ${result.verification}`,
+      `Confirm Request: ${formatCleanup(result.confirmReqCleanup)}`,
+      `Quick Save: ${formatCleanup(result.quickSaveCleanup)}`,
+      `STATE.md: updated (${result.statePath})`,
+      "Next: new sessions should prefer HANDOFF.md. Run louisgo verify again after further changes.",
     ].join("\n") + "\n"
   );
 }
@@ -88,8 +88,8 @@ function formatFinishReport(result: FinishServiceResult): string {
 function formatCleanup(status: FinishCleanupStatus): string {
   switch (status) {
     case finishCleanupStatuses.cleaned:
-      return "已转存并清理";
+      return "promoted and cleaned";
     case finishCleanupStatuses.absent:
-      return "无";
+      return "absent";
   }
 }

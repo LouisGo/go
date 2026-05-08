@@ -86,18 +86,18 @@ export function serializeQuickSaveFrontMatter(
 export function createQuickSaveBody(taskId?: string | null): string {
   const taskLine =
     taskId === undefined || taskId === null
-      ? `当前 ROADMAP 没有可用任务，task_id 使用 ${missingTaskId} 占位。`
-      : `当前任务：${taskId}`;
+      ? `The current ROADMAP has no available task; task_id uses ${missingTaskId} as a placeholder.`
+      : `Current task: ${taskId}`;
 
   return `# Quick Save
 
 ${taskLine}
 
-## 当前进度
+## Current Progress
 
-## 下一步
+## Next Step
 
-## 遗留问题
+## Open Issues
 `;
 }
 

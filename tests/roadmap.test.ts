@@ -62,7 +62,7 @@ describe("ROADMAP 解析", () => {
           code: roadmapErrorCodes.duplicateTaskId,
           line: 2,
           taskId: "T001",
-          message: "重复任务 ID：T001，首次出现于第 1 行",
+          message: "Duplicate task ID: T001; first seen at line 1",
         },
       ]);
     }
@@ -80,7 +80,7 @@ describe("ROADMAP 解析", () => {
           code: roadmapErrorCodes.invalidTaskId,
           line: 1,
           taskId: "TASK-1",
-          message: "非法任务 ID：TASK-1",
+          message: "Invalid task ID: TASK-1",
         },
       ]);
     }
@@ -98,7 +98,7 @@ describe("ROADMAP 解析", () => {
           code: roadmapErrorCodes.invalidTaskId,
           line: 1,
           taskId: "实现模板生成",
-          message: "非法任务 ID：实现模板生成",
+          message: "Invalid task ID: 实现模板生成",
         },
       ]);
     }
@@ -116,7 +116,7 @@ describe("ROADMAP 解析", () => {
           code: roadmapErrorCodes.invalidTaskId,
           line: 1,
           taskId: "",
-          message: "缺少任务 ID",
+          message: "Missing task ID",
         },
       ]);
     }

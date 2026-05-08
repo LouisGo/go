@@ -19,11 +19,11 @@ export function registerHandoffPromoteCommand(
   program: Command,
   options: RegisterHandoffPromoteCommandOptions = {},
 ): void {
-  const handoff = program.command("handoff").description("管理 LouisGo 正式交接");
+  const handoff = program.command("handoff").description("Manage LouisGo formal handoffs");
 
   handoff
     .command("promote")
-    .description("将 HANDOFF_DRAFT.md 提升为 HANDOFF.md")
+    .description("Promote HANDOFF_DRAFT.md to HANDOFF.md")
     .allowExcessArguments(false)
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
@@ -43,7 +43,7 @@ export function registerHandoffPromoteCommand(
           throw error;
         }
 
-        stderr.write(`交接提升失败：${formatHandoffError(error)}\n`);
+        stderr.write(`Handoff promotion failed: ${formatHandoffError(error)}\n`);
         setExitCode(1);
       }
     });
@@ -52,12 +52,12 @@ export function registerHandoffPromoteCommand(
 function formatPromoteReport(result: PromoteHandoffResult): string {
   return (
     [
-      `LouisGo 正式交接已生成：${result.filePath}`,
-      `来源草稿：${result.draftPath}`,
-      `当前任务：${result.frontMatter.taskId}`,
-      `验证状态：${result.frontMatter.verification}`,
-      `写入状态：${result.status === "created" ? "新建" : "更新"}`,
-      "下一步：运行 louisgo status 查看恢复状态",
+      `LouisGo formal handoff generated: ${result.filePath}`,
+      `Source draft: ${result.draftPath}`,
+      `Current task: ${result.frontMatter.taskId}`,
+      `Verification status: ${result.frontMatter.verification}`,
+      `Write status: ${result.status === "created" ? "created" : "updated"}`,
+      "Next: run louisgo status to inspect recovery state.",
     ].join("\n") + "\n"
   );
 }
@@ -65,8 +65,8 @@ function formatPromoteReport(result: PromoteHandoffResult): string {
 function formatHandoffError(error: HandoffServiceError): string {
   switch (error.code) {
     case handoffServiceErrorCodes.draftMissing:
-      return "HANDOFF_DRAFT.md 不存在，请先运行 louisgo finish";
+      return "HANDOFF_DRAFT.md does not exist. Run louisgo finish first.";
     case handoffServiceErrorCodes.draftInvalid:
-      return "HANDOFF_DRAFT.md Front Matter 非法，请修复后重试";
+      return "HANDOFF_DRAFT.md has invalid front matter. Fix it and retry.";
   }
 }

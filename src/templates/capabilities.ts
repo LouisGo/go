@@ -43,9 +43,9 @@ updated_at: "${options.updatedAt}"
 
 ## ADR Guidance
 
-- 创建 ADR 前三问：是否难以逆转？缺少上下文是否会让人意外？是否存在真实取舍？全部回答"是"才值得写。
-- ADR 可以只有一段话（背景 + 决策合并）。
-- "影响"和"备选方案"只在有实际内容时才写。
+- Before creating an ADR, ask three questions: is the decision hard to reverse, would future readers be surprised without the context, and is there a real tradeoff? Write the ADR only when all three answers are yes.
+- An ADR can be a single paragraph when background and decision fit together.
+- Include impact and alternatives only when they add useful information.
 
 ## Optional Skills
 

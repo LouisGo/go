@@ -93,7 +93,7 @@ async function readHandoffDraft(filePath: string) {
       throw new HandoffServiceError({
         code: handoffServiceErrorCodes.draftMissing,
         filePath,
-        message: `HANDOFF_DRAFT.md 不存在：${filePath}`,
+        message: `HANDOFF_DRAFT.md does not exist: ${filePath}`,
         cause: error,
       });
     }
@@ -102,7 +102,7 @@ async function readHandoffDraft(filePath: string) {
       throw new HandoffServiceError({
         code: handoffServiceErrorCodes.draftInvalid,
         filePath,
-        message: `HANDOFF_DRAFT.md 格式非法：${filePath}`,
+        message: `HANDOFF_DRAFT.md has invalid format: ${filePath}`,
         cause: error,
       });
     }

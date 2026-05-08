@@ -96,7 +96,7 @@ describe("协议模板", () => {
     expect(document.body).toContain("louisgo skill enable grill");
     expect(document.body).toContain("louisgo clear");
     expect(document.body).toContain("## ADR Guidance");
-    expect(document.body).toContain("是否难以逆转");
+    expect(document.body).toContain("hard to reverse");
     expect(document.body).toContain("## Optional Skills");
     expect(document.body).toContain("not installed by default");
     expect(document.body).toContain("does not overwrite");
@@ -128,7 +128,7 @@ describe("协议模板", () => {
       status: "open",
       createdAt: timestamp,
     });
-    expect(document.body).toContain("## 选项");
+    expect(document.body).toContain("## Options");
   });
 
   it("生成 ADR 草稿模板并满足最小门禁结构", async () => {
@@ -145,9 +145,9 @@ describe("协议模板", () => {
       createdAt: timestamp,
       confirmedAt: null,
     });
-    expect(document.body).toContain("## 决策");
-    expect(document.body).toContain("是否难以逆转");
-    expect(document.body).not.toContain("## 备选方案");
+    expect(document.body).toContain("## Decision");
+    expect(document.body).toContain("hard to reverse");
+    expect(document.body).not.toContain("## Alternatives");
   });
 
   it("verify.sh 模板可以生成最小 test-results.json", async () => {
@@ -177,7 +177,7 @@ describe("协议模板", () => {
       command: ".louisgo/scripts/verify.sh",
       exitCode: 0,
       status: "skipped",
-      summary: "未配置项目验证命令，已跳过",
+      summary: "No project verification command configured; skipped",
     });
     expect(result.gitHead.length).toBeGreaterThan(0);
     expect(result.diffHash).toMatch(/^[a-f0-9]{64}$/);
@@ -228,7 +228,7 @@ describe("协议模板", () => {
       command: ".louisgo/scripts/verify.ps1",
       exitCode: 0,
       status: "skipped",
-      summary: "未配置项目验证命令，已跳过",
+      summary: "No project verification command configured; skipped",
     });
   });
 });

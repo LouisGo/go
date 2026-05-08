@@ -15,13 +15,13 @@ function Invoke-Step([string]$Name, [string[]]$Arguments) {
   if ($LASTEXITCODE -ne 0) {
     return @{
       ExitCode = $LASTEXITCODE
-      Summary = "$Name 未通过"
+      Summary = "$Name failed"
     }
   }
 
   return @{
     ExitCode = 0
-    Summary = "$Name 通过"
+    Summary = "$Name passed"
   }
 }
 
@@ -30,7 +30,7 @@ $Command = "pnpm format:check && pnpm typecheck && pnpm test && pnpm build && pn
 $ResultPath = ".louisgo/test-results.json"
 $Status = "passed"
 $ExitCode = 0
-$Summary = "项目验证通过"
+$Summary = "Project verification passed"
 
 foreach ($Step in @(
   @{ Name = "format:check"; Arguments = @("format:check") },

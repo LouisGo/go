@@ -120,7 +120,12 @@ async function checkRequiredPaths(paths: ProtocolPaths, issues: ProtocolIssue[])
   for (const path of requiredPaths) {
     if (!(await pathExists(path.filePath))) {
       issues.push(
-        createIssue(paths, protocolIssueCodes.missingPath, path.filePath, "协议路径缺失"),
+        createIssue(
+          paths,
+          protocolIssueCodes.missingPath,
+          path.filePath,
+          "Protocol path is missing",
+        ),
       );
       continue;
     }
@@ -130,7 +135,12 @@ async function checkRequiredPaths(paths: ProtocolPaths, issues: ProtocolIssue[])
 
     if (!isExpectedKind) {
       issues.push(
-        createIssue(paths, protocolIssueCodes.missingPath, path.filePath, "协议路径类型不正确"),
+        createIssue(
+          paths,
+          protocolIssueCodes.missingPath,
+          path.filePath,
+          "Protocol path has the wrong type",
+        ),
       );
     }
   }
@@ -182,7 +192,7 @@ async function readCurrentTask(
     const message =
       error instanceof RoadmapParseError
         ? error.issues.map((issue) => issue.message).join("；")
-        : "ROADMAP.md 解析失败";
+        : "ROADMAP.md parse failed";
     issues.push(createIssue(paths, protocolIssueCodes.roadmapInvalid, paths.roadmap, message));
     return null;
   }
@@ -263,7 +273,7 @@ async function readVerificationStatus(
         paths,
         protocolIssueCodes.testResultsInvalid,
         paths.testResults,
-        "test-results.json 格式错误",
+        "Invalid test-results.json format",
       ),
     );
     return "unchecked";
@@ -316,7 +326,7 @@ function createFrontMatterIssue(
   error: unknown,
 ): ProtocolIssue {
   const message =
-    error instanceof FrontMatterError ? error.message : "Front Matter schema 校验失败";
+    error instanceof FrontMatterError ? error.message : "Front Matter schema validation failed";
   return createIssue(paths, protocolIssueCodes.frontMatterInvalid, filePath, message);
 }
 

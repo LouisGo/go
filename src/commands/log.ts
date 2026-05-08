@@ -17,8 +17,8 @@ export function registerLogCommand(
 ): void {
   program
     .command("log")
-    .description("输出 LouisGo 诊断日志")
-    .option("--tail <events>", "只输出最近 N 条事件", parseTail)
+    .description("Print the LouisGo diagnostic log")
+    .option("--tail <events>", "Only print the most recent N events", parseTail)
     .action(async (commandOptions: LogCommandOptions) => {
       const result = await readRunLog({
         ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
@@ -28,7 +28,7 @@ export function registerLogCommand(
 
       if (result === null) {
         stdout.write(
-          "当前没有 LouisGo 诊断日志。运行 louisgo init 或任一 LouisGo 命令后会生成 .louisgo/RUNLOG.md。\n",
+          "There is no LouisGo diagnostic log yet. Run louisgo init or any LouisGo command to create .louisgo/RUNLOG.md.\n",
         );
         return;
       }
@@ -44,7 +44,7 @@ function parseTail(value: string): number {
   const parsed = Number.parseInt(value, 10);
 
   if (Number.isNaN(parsed) || parsed < 0) {
-    throw new Error(`无效日志条数：${value}`);
+    throw new Error(`Invalid log event count: ${value}`);
   }
 
   return parsed;

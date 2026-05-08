@@ -220,7 +220,7 @@ async function collectHandoffContext(options: FinishServiceOptions = {}): Promis
   if (!protocolStatus.complete || protocolStatus.mode === null) {
     throw new FinishServiceError({
       code: finishServiceErrorCodes.protocolIncomplete,
-      message: "LouisGo 协议不完整，请先运行 louisgo init 或修复协议文件。",
+      message: "LouisGo protocol is incomplete. Run louisgo init first or fix the protocol files.",
       issues: protocolStatus.issues,
     });
   }
@@ -297,23 +297,25 @@ async function getGitDiffSummary(workspaceRoot: string): Promise<string> {
     sections.push(["### Git diff --stat", fenced(diffStat.stdout)].join("\n\n"));
   }
 
-  return sections.length === 0 ? "当前工作区无 Git diff 摘要。" : sections.join("\n\n");
+  return sections.length === 0
+    ? "No Git diff summary for the current workspace."
+    : sections.join("\n\n");
 }
 
 async function readBlockerSummary(filePath: string): Promise<string> {
   if (!(await pathExists(filePath))) {
-    return "未找到 BLOCKER.md。";
+    return "BLOCKER.md was not found.";
   }
 
   const content = stripTopLevelHeading((await readFile(filePath, "utf8")).trim(), "Blocker");
-  return content.length === 0 ? "无 Blocker。" : content;
+  return content.length === 0 ? "No blockers." : content;
 }
 
 async function readConfirmReqSummary(filePath: string): Promise<ProtocolFileSummary> {
   if (!(await pathExists(filePath))) {
     return {
       present: false,
-      summary: "无未解决确认请求。",
+      summary: "No open confirmation requests.",
     };
   }
 
@@ -323,8 +325,8 @@ async function readConfirmReqSummary(filePath: string): Promise<ProtocolFileSumm
   return {
     present: true,
     summary: [
-      `存在未解决确认请求：${document.frontMatter.taskId}`,
-      body.length === 0 ? "CONFIRM_REQ.md 正文为空。" : body,
+      `Open confirmation request: ${document.frontMatter.taskId}`,
+      body.length === 0 ? "CONFIRM_REQ.md body is empty." : body,
     ].join("\n\n"),
   };
 }
@@ -333,18 +335,20 @@ async function readQuickSaveSummary(filePath: string): Promise<ProtocolFileSumma
   if (!(await pathExists(filePath))) {
     return {
       present: false,
-      summary: "无 Quick Save。",
+      summary: "No Quick Save.",
     };
   }
 
   const document = await readFrontMatter(filePath, quickSaveFrontMatterSchema);
   const body = document.body.trim();
-  const bodySummary = hasMeaningfulProtocolBody(body) ? body : "QUICK_SAVE.md 没有填写具体正文。";
+  const bodySummary = hasMeaningfulProtocolBody(body)
+    ? body
+    : "QUICK_SAVE.md has no meaningful body.";
 
   return {
     present: true,
     summary: [
-      `存在 Quick Save：${document.frontMatter.taskId}，保存时间 ${document.frontMatter.savedAt}`,
+      `Quick Save exists: ${document.frontMatter.taskId}, saved at ${document.frontMatter.savedAt}`,
       bodySummary,
     ].join("\n\n"),
   };
@@ -370,8 +374,8 @@ function hasMeaningfulProtocolBody(body: string): boolean {
     return (
       trimmed.length > 0 &&
       !trimmed.startsWith("#") &&
-      !trimmed.startsWith("当前任务：") &&
-      !trimmed.startsWith("当前 ROADMAP ")
+      !trimmed.startsWith("Current task:") &&
+      !trimmed.startsWith("The current ROADMAP ")
     );
   });
 }

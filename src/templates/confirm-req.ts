@@ -17,15 +17,15 @@ created_at: "${options.createdAt}"
 
 # Confirm Request
 
-## 背景
+## Background
 
-## 选项
+## Options
 
-- A. 选项说明
-- B. 选项说明
-- C. 选项说明
-- D. 我重新说明需求
+- A. Option description
+- B. Option description
+- C. Option description
+- D. I will restate the requirement
 
-## 建议
+## Recommendation
 `;
 }

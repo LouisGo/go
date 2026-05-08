@@ -129,52 +129,52 @@ function createHandoffDocumentBody(
 ): string {
   const taskLine =
     input.taskId === undefined || input.taskId === null
-      ? `当前 ROADMAP 没有可用任务，task_id 使用 ${missingTaskId} 占位。`
-      : `当前任务：${input.taskId}`;
-  const phaseLine = input.phase !== undefined ? `- 工作阶段：${input.phase}` : null;
+      ? `The current ROADMAP has no available task; task_id uses ${missingTaskId} as a placeholder.`
+      : `Current task: ${input.taskId}`;
+  const phaseLine = input.phase !== undefined ? `- Phase: ${input.phase}` : null;
   const adrDraftSummary =
     input.adrDrafts.length === 0
-      ? "无 ADR 草稿。"
+      ? "No ADR drafts."
       : input.adrDrafts.map((draft) => `- ${draft}`).join("\n");
 
   return `# ${title}
 
-## 交接摘要
+## Handoff Summary
 
 - ${taskLine}
-${phaseLine !== null ? `${phaseLine}\n` : ""}- 验证状态：${input.verification}
-- 接手判断：${formatVerificationHandoffGuidance(input.verification)}
+${phaseLine !== null ? `${phaseLine}\n` : ""}- Verification status: ${input.verification}
+- Handoff judgment: ${formatVerificationHandoffGuidance(input.verification)}
 
-## 恢复建议
+## Recovery Advice
 
-- 若存在未解决确认请求，先处理确认请求。
-- 若存在 ADR 草稿，先确认是否继续推进该决策。
-- 若继续修改代码，完成后运行 \`louisgo verify\`。
+- If there is an open confirmation request, handle it first.
+- If there is an ADR draft, confirm whether to continue that decision.
+- If you continue changing code, run \`louisgo verify\` when you are done.
 
-## 当前工作区
+## Current Workspace
 
 ${input.gitDiffSummary}
 
-## 验证
+## Verification
 
-- 状态：${input.verification}
-- 处理建议：${formatVerificationNextAction(input.verification)}
+- Status: ${input.verification}
+- Action: ${formatVerificationNextAction(input.verification)}
 
-## 待处理事项
+## Open Items
 
-### Blocker
+### Blockers
 
 ${input.blockerSummary}
 
-### 未解决确认请求
+### Open Confirmation Requests
 
 ${input.confirmReqSummary}
 
-### ADR 草稿
+### ADR Drafts
 
 ${adrDraftSummary}
 
-## 恢复上下文
+## Recovery Context
 
 ### Quick Save
 
@@ -189,33 +189,33 @@ function normalizeTaskReference(taskId?: string | null): string {
 function formatVerificationHandoffGuidance(status: VerificationStatus): string {
   switch (status) {
     case "passed":
-      return "验证通过且对应当前工作区，可以基于当前 diff 继续交接。";
+      return "Verification passed and matches the current workspace, so the current diff can be handed off.";
     case "failed":
-      return "验证失败，接手者应先查看失败原因并修复。";
+      return "Verification failed; the next agent should inspect and fix the failure first.";
     case "error":
-      return "验证流程出错，接手者应先修复验证入口或运行环境。";
+      return "Verification errored; the next agent should fix the verification entry or runtime environment first.";
     case "skipped":
-      return "验证被跳过，不能当作质量门禁。";
+      return "Verification was skipped and cannot be treated as a quality gate.";
     case "missing":
-      return "没有可用验证结果，接手前应先运行验证。";
+      return "No verification result is available; run verification before handing off.";
     case "stale":
-      return "验证结果已过期，不能代表当前工作区。";
+      return "The verification result is stale and does not represent the current workspace.";
   }
 }
 
 function formatVerificationNextAction(status: VerificationStatus): string {
   switch (status) {
     case "passed":
-      return "后续如有任何代码或协议文件变更，需要重新运行 `louisgo verify`。";
+      return "If you change code or protocol files later, rerun `louisgo verify`.";
     case "failed":
-      return "先修复失败项，再运行 `louisgo verify`，不要把 failed 当作已完成状态。";
+      return "Fix the failure first, then rerun `louisgo verify`. Do not treat failed as done.";
     case "error":
-      return "先修复验证入口、依赖或执行环境，再重新运行 `louisgo verify`。";
+      return "Fix the verification entry, dependencies, or runtime environment before rerunning `louisgo verify`.";
     case "skipped":
-      return "按项目情况配置真实验证命令，或显式维护项目验证脚本后重新验证。";
+      return "Configure a real verification command for the project, or maintain project verification scripts and rerun verification.";
     case "missing":
-      return "运行 `louisgo verify` 生成当前工作区的验证结果。";
+      return "Run `louisgo verify` to generate a verification result for the current workspace.";
     case "stale":
-      return "运行 `louisgo verify` 刷新验证结果，确认是否仍可交接。";
+      return "Run `louisgo verify` to refresh the result and confirm whether the workspace is still handoff-ready.";
   }
 }
