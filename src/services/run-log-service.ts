@@ -46,6 +46,11 @@ export async function appendRunLogEvent(
 ): Promise<ReadRunLogResult> {
   const workspaceRoot = await findGitRoot(options.cwd);
   const paths = createProtocolPaths(workspaceRoot);
+
+  if (!(await pathExists(paths.louisgoDir))) {
+    throw new Error("LouisGo protocol directory is missing; run log was not written.");
+  }
+
   const timestamp = (options.now?.() ?? new Date()).toISOString();
   const existing = await readOrCreateRunLog(paths.runLog, timestamp);
   const parsed = parseRunLog(existing);

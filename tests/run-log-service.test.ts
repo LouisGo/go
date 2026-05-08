@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, rm } from "node:fs/promises";
+import { access, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -45,6 +45,22 @@ describe("run log service", () => {
     expect(log?.content).toContain("finish");
     expect(log?.content).not.toContain(" init");
   });
+
+  it("does not recreate .louisgo only to write a diagnostic event", async () => {
+    await using repo = await createGitRepo("louisgo-runlog-missing-");
+
+    await expect(
+      appendRunLogEvent({
+        cwd: repo.path,
+        command: "status",
+        outcome: "failure",
+        now,
+      }),
+    ).rejects.toThrow("LouisGo protocol directory is missing");
+    await expect(access(join(repo.path, ".louisgo"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+  });
 });
 
 interface TempRepo extends AsyncDisposable {
@@ -52,9 +68,16 @@ interface TempRepo extends AsyncDisposable {
 }
 
 async function createInitializedRepo(): Promise<TempRepo> {
-  const path = await mkdtemp(join(tmpdir(), "louisgo-runlog-"));
-  await execFileAsync("git", ["init"], { cwd: path });
+  const repo = await createGitRepo("louisgo-runlog-");
+  const path = repo.path;
   await initLouisGo({ cwd: path, now });
+
+  return repo;
+}
+
+async function createGitRepo(prefix: string): Promise<TempRepo> {
+  const path = await mkdtemp(join(tmpdir(), prefix));
+  await execFileAsync("git", ["init"], { cwd: path });
 
   return {
     path,

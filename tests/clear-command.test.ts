@@ -76,6 +76,32 @@ describe("clear 命令", () => {
       code: "ENOENT",
     });
   });
+
+  it("does not leave a run log behind after cleanup and later status checks", async () => {
+    await using repo = await createGitRepo();
+    const stdout = new MemoryWritable();
+    const initProgram = createCli({
+      cwd: repo.path,
+      stdout,
+    });
+    await initProgram.parseAsync(["node", "louisgo", "init", "--no-codex"]);
+    const clearProgram = createCli({
+      cwd: repo.path,
+      stdin: createPromptInput("\x1B[B\n"),
+      stdout,
+    });
+    await clearProgram.parseAsync(["node", "louisgo", "clear"]);
+
+    const statusProgram = createCli({
+      cwd: repo.path,
+      stdout,
+    });
+    await statusProgram.parseAsync(["node", "louisgo", "status"]);
+
+    await expect(access(join(repo.path, ".louisgo"))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
+  });
 });
 
 class MemoryWritable extends Writable {

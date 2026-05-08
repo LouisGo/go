@@ -28,7 +28,7 @@ export function registerLogCommand(
 
       if (result === null) {
         stdout.write(
-          "There is no LouisGo diagnostic log yet. Run louisgo init or any LouisGo command to create .louisgo/RUNLOG.md.\n",
+          "There is no LouisGo diagnostic log yet. Run louisgo init to create .louisgo/RUNLOG.md.\n",
         );
         return;
       }
