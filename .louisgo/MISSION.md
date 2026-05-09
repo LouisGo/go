@@ -8,12 +8,13 @@ updated_at: "2026-05-08T13:55:47.718Z"
 
 ## Goal
 
-- Describe the project goal in 1-3 durable bullets.
-- LouisGo keeps AI coding context in Git so new sessions can recover without chat history.
+- LouisGo keeps AI coding task continuity in a user-private store, outside team Git by default.
+- New sessions recover from concise private checkpoints, Git facts, and verification state rather than chat history.
 
 ## Constraints
 
-- Record stable stack, naming, compatibility, release, and security constraints here.
+- TypeScript CLI package published as `louisgo`.
+- `.louisgo/` is only a small project anchor; personal checkpoints, stats, run logs, and resume packages live in the user-private store.
 - User prompts override cached context; source, Git, and verification facts override memory.
 
 ## Confirm First

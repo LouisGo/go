@@ -440,7 +440,7 @@ function createResumeDocument(input: {
 
 Continue LouisGo task ${input.meta.task_id}: ${input.meta.objective}.
 
-First, verify the repository state. Do not use legacy project singleton files as the primary recovery source.
+First, verify the repository state. Do not use shared project anchor files as the primary recovery source.
 
 ${input.checkpoint}
 ${blocked}`;

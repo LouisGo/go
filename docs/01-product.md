@@ -134,13 +134,15 @@ Task continuity state lives outside team Git by default, for example:
 ```text
 ~/.louisgo/
   projects/<project-key>/
+    RUNLOG.md
+    stats/
+      events.jsonl
+      imports.json
     tasks/<task-id>/
       state.md
       checkpoints/
       resume.md
-      agents.md
       patches/
-      stats/
 ```
 
 The exact on-disk shape can change, but the boundary cannot: this store belongs

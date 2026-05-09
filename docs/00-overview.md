@@ -41,7 +41,6 @@ discovery, optional local skills, and confirmation requests.
 | `README-zhCN.md` | Simplified Chinese README. |
 | `docs/01-product.md` | Product model and route definition. |
 | `docs/02-protocol.md` | Private store, optional project anchor, and data shape. |
-| `docs/03-roadmap.md` | Completed foundation and next candidates. |
 
 ## Design Principles
 

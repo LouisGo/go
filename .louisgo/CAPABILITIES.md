@@ -16,7 +16,7 @@ updated_at: "2026-05-08T13:55:47.718Z"
 
 - Run verification: `louisgo verify`
 - Default init does not copy verify scripts into the project.
-- Result: `.louisgo/test-results.json`
+- Result: verification facts are attached to the active private task.
 
 ## Context
 

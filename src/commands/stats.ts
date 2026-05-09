@@ -70,7 +70,7 @@ export function registerStatsCommand(
       parseDays,
     )
     .option("--codex-home <path>", "Codex home path; defaults to $CODEX_HOME or ~/.codex")
-    .option("--dry-run", "Report importable events without writing .louisgo/stats")
+    .option("--dry-run", "Report importable events without writing the private stats store")
     .action(async (commandOptions: StatsImportCodexCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
       const codexHome = resolveCodexHome(options, commandOptions);
@@ -105,6 +105,7 @@ function formatCodexImportResult(
       ? headline(theme, "🧭", "Codex stats dry run")
       : headline(theme, "📊", "Codex stats import complete"),
     field(theme, "Codex home", result.codexHome),
+    field(theme, "Private stats store", result.privateStatsStore),
     field(theme, "Scanned files", String(result.scannedFiles)),
     field(theme, "Skipped files", statusToken(theme, String(result.skippedFiles))),
     field(theme, "Matched usage events", String(result.matchedEvents)),

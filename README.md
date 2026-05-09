@@ -136,7 +136,6 @@ node ./dist/cli.js verify
 - [Overview](docs/00-overview.md)
 - [Product Path](docs/01-product.md)
 - [Private Store And Project Anchor](docs/02-protocol.md)
-- [Roadmap](docs/03-roadmap.md)
 
 ## Release Metadata
 

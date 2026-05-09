@@ -22,7 +22,7 @@ updated_at: "${options.updatedAt}"
 
 - Run verification: \`louisgo verify\`
 - Default init does not copy verify scripts into the project.
-- Result: verification facts are attached to the active private task; legacy \`.louisgo/test-results.json\` may exist for compatibility.
+- Result: verification facts are attached to the active private task.
 
 ## Context
 

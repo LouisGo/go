@@ -74,7 +74,7 @@ describe("协议模板", () => {
     });
     expect(document.body).toContain("louisgo verify");
     expect(document.body).toContain("Default init does not copy verify scripts");
-    expect(document.body).toContain(".louisgo/test-results.json");
+    expect(document.body).toContain("verification facts are attached to the active private task");
     expect(document.body).toContain("louisgo stats");
     expect(document.body).toContain("louisgo stats import codex");
     expect(document.body).toContain("louisgo skill list");

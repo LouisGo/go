@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -58,9 +58,6 @@ describe("clear service", () => {
       "utf8",
     );
     await setupCodex({ cwd: repo.path, codexHome: codex.path });
-    await mkdir(join(repo.path, ".louisgo", "stats"), { recursive: true });
-    await writeFile(join(repo.path, ".louisgo", "stats", "events.jsonl"), "{}\n", "utf8");
-
     const result = await clearLouisGo({
       cwd: repo.path,
     });

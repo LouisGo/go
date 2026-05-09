@@ -18,6 +18,7 @@ import {
   writeStatsImportIndex,
   type StatsImportIndex,
 } from "./store.js";
+import { resolvePrivateProjectPaths } from "../store/private-paths.js";
 
 export interface ImportCodexStatsOptions {
   readonly cwd?: string;
@@ -32,6 +33,7 @@ export interface ImportCodexStatsOptions {
 export interface ImportCodexStatsResult {
   readonly workspaceRoot: string;
   readonly codexHome: string;
+  readonly privateStatsStore: string;
   readonly dryRun: boolean;
   readonly scannedFiles: number;
   readonly skippedFiles: number;
@@ -54,6 +56,11 @@ export async function importCodexStats(
   const workspaceRoot = await findGitRoot(options.cwd);
   const now = options.now?.() ?? new Date();
   const codexHome = resolve(options.codexHome ?? join(homedir(), ".codex"));
+  const privatePaths = await resolvePrivateProjectPaths({
+    cwd: workspaceRoot,
+    ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
+    ...(options.env === undefined ? {} : { env: options.env }),
+  });
   const cutoff =
     options.days === undefined ? null : new Date(now.getTime() - options.days * 86_400_000);
   const importIndex = await readStatsImportIndex({
@@ -66,6 +73,7 @@ export async function importCodexStats(
     return {
       workspaceRoot,
       codexHome,
+      privateStatsStore: privatePaths.statsDir,
       dryRun: options.dryRun === true,
       scannedFiles: 0,
       skippedFiles: 0,
@@ -124,6 +132,7 @@ export async function importCodexStats(
     return {
       workspaceRoot,
       codexHome,
+      privateStatsStore: privatePaths.statsDir,
       dryRun: true,
       scannedFiles,
       skippedFiles,
@@ -144,6 +153,7 @@ export async function importCodexStats(
   return {
     workspaceRoot,
     codexHome,
+    privateStatsStore: privatePaths.statsDir,
     dryRun: false,
     scannedFiles,
     skippedFiles,

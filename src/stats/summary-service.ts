@@ -10,7 +10,7 @@ import {
   type TokenUsage,
 } from "./events.js";
 import { readStatsEvents } from "./store.js";
-import type { PrivateStoreOptions } from "../store/private-paths.js";
+import { resolvePrivateProjectPaths, type PrivateStoreOptions } from "../store/private-paths.js";
 
 export interface StatsSummaryOptions extends PrivateStoreOptions {
   readonly days?: number;
@@ -28,6 +28,7 @@ export interface SectionWeight {
 
 export interface StatsSummary {
   readonly workspaceRoot: string;
+  readonly privateStatsStore: string;
   readonly days: number | null;
   readonly source: StatsSource | null;
   readonly eventCount: number;
@@ -50,6 +51,11 @@ export interface StatsSummary {
 export async function summarizeStats(options: StatsSummaryOptions = {}): Promise<StatsSummary> {
   const workspaceRoot = await findGitRoot(options.cwd);
   const now = options.now?.() ?? new Date();
+  const privatePaths = await resolvePrivateProjectPaths({
+    cwd: workspaceRoot,
+    ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
+    ...(options.env === undefined ? {} : { env: options.env }),
+  });
   const cutoff =
     options.days === undefined ? null : new Date(now.getTime() - options.days * 86_400_000);
   const source = options.source === undefined ? null : statsSourceSchema.parse(options.source);
@@ -89,6 +95,7 @@ export async function summarizeStats(options: StatsSummaryOptions = {}): Promise
 
   return {
     workspaceRoot,
+    privateStatsStore: privatePaths.statsDir,
     days: options.days ?? null,
     source,
     eventCount: events.length,
@@ -160,6 +167,7 @@ export function formatStatsSummary(summary: StatsSummary, stdout?: Writable): st
 
   lines.push("");
   lines.push(field(theme, "Workspace", summary.workspaceRoot));
+  lines.push(field(theme, "Private stats store", summary.privateStatsStore));
 
   return `${lines.join("\n")}\n`;
 }
