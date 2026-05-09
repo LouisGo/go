@@ -2,13 +2,10 @@ import { mkdir } from "node:fs/promises";
 
 import { safeWriteFile, type SafeWriteResult } from "../fs/safe-write.js";
 import { findGitRoot } from "../fs/workspace.js";
-import { missingTaskId } from "../protocol/schemas.js";
 import { createProtocolPaths } from "../protocol/paths.js";
 import { createCapabilitiesTemplate } from "../templates/capabilities.js";
 import { createMissionTemplate } from "../templates/mission.js";
 import { createLouisGoGitignoreTemplate } from "../templates/run-log.js";
-import { createStateTemplate } from "../templates/state.js";
-import { getCurrentGitSnapshot } from "../verify/freshness.js";
 
 export interface InitServiceOptions {
   readonly cwd?: string;
@@ -37,7 +34,6 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
   const workspaceRoot = await findGitRoot(options.cwd);
   const paths = createProtocolPaths(workspaceRoot);
   const timestamp = (options.now?.() ?? new Date()).toISOString();
-  const snapshot = await getCurrentGitSnapshot({ cwd: workspaceRoot });
   const directories = [paths.louisgoDir];
 
   for (const directory of directories) {
@@ -48,15 +44,6 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     {
       filePath: paths.mission,
       content: createMissionTemplate({ updatedAt: timestamp }),
-    },
-    {
-      filePath: paths.state,
-      content: createStateTemplate({
-        updatedAt: timestamp,
-        currentTask: missingTaskId,
-        gitHead: snapshot.gitHead,
-        diffHash: snapshot.diffHash,
-      }),
     },
     {
       filePath: paths.gitignore,
@@ -73,8 +60,8 @@ export async function initLouisGo(options: InitServiceOptions = {}): Promise<Ini
     directories,
     files,
     nextSteps: [
-      "New sessions will read LouisGo context automatically",
-      "Use $start for deep recovery",
+      "Private task state will be stored outside team Git",
+      "Use louisgo pause and louisgo resume for task continuity",
     ],
   };
 }

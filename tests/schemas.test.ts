@@ -4,13 +4,8 @@ import {
   adrFrontMatterSchema,
   capabilitiesFrontMatterSchema,
   confirmReqFrontMatterSchema,
-  handoffFrontMatterSchema,
   louisGoModeSchema,
-  memoryFrontMatterSchema,
-  missingTaskId,
   missionFrontMatterSchema,
-  quickSaveFrontMatterSchema,
-  stateFrontMatterSchema,
   testResultsSchema,
   verificationStatusSchema,
 } from "../src/protocol/schemas.js";
@@ -54,37 +49,6 @@ describe("协议 schema", () => {
     });
 
     expect(
-      handoffFrontMatterSchema.parse({
-        schema: "louisgo-handoff-v1",
-        mode: "assist",
-        task_id: "T001",
-        git_head: "abc123",
-        diff_hash: "def456",
-        verification: "passed",
-        generated_at: timestamp,
-      }),
-    ).toMatchObject({
-      taskId: "T001",
-      generatedAt: timestamp,
-      verification: "passed",
-    });
-
-    expect(
-      quickSaveFrontMatterSchema.parse({
-        schema: "louisgo-quick-save-v1",
-        mode: "auto",
-        task_id: missingTaskId,
-        git_head: "abc123",
-        diff_hash: "def456",
-        saved_at: timestamp,
-      }),
-    ).toMatchObject({
-      mode: "auto",
-      taskId: missingTaskId,
-      savedAt: timestamp,
-    });
-
-    expect(
       capabilitiesFrontMatterSchema.parse({
         schema: "louisgo-capabilities-v1",
         updated_at: timestamp,
@@ -93,78 +57,10 @@ describe("协议 schema", () => {
       schema: "louisgo-capabilities-v1",
       updatedAt: timestamp,
     });
-
-    expect(
-      stateFrontMatterSchema.parse({
-        schema: "louisgo-state-v1",
-        mode: "assist",
-        current_task: "T001",
-        handoff: ".louisgo/HANDOFF.md",
-        verification: "missing",
-        git_head: "abc123",
-        diff_hash: "def456",
-        updated_at: timestamp,
-      }),
-    ).toMatchObject({
-      currentTask: "T001",
-      handoff: ".louisgo/HANDOFF.md",
-      verification: "missing",
-    });
-
-    // phase 可选字段
-    expect(
-      stateFrontMatterSchema.parse({
-        schema: "louisgo-state-v1",
-        mode: "assist",
-        phase: "explore",
-        current_task: "T001",
-        verification: "missing",
-        git_head: "abc123",
-        diff_hash: "def456",
-        updated_at: timestamp,
-      }),
-    ).toMatchObject({
-      mode: "assist",
-      phase: "explore",
-      currentTask: "T001",
-    });
-
-    expect(
-      stateFrontMatterSchema.parse({
-        schema: "louisgo-state-v1",
-        mode: "assist",
-        current_task: "T001",
-        verification: "missing",
-        git_head: "abc123",
-        diff_hash: "def456",
-        updated_at: timestamp,
-      }).phase,
-    ).toBeUndefined();
-
-    expect(
-      memoryFrontMatterSchema.parse({
-        schema: "louisgo-memory-v1",
-        updated_at: timestamp,
-      }),
-    ).toEqual({
-      schema: "louisgo-memory-v1",
-      updatedAt: timestamp,
-    });
   });
 
   it("拒绝非法模式、非法验证状态和缺失字段", () => {
     expect(louisGoModeSchema.safeParse("guided").success).toBe(false);
-
-    expect(
-      handoffFrontMatterSchema.safeParse({
-        schema: "louisgo-handoff-v1",
-        mode: "assist",
-        task_id: "T001",
-        git_head: "abc123",
-        diff_hash: "def456",
-        verification: "unknown",
-      }).success,
-    ).toBe(false);
 
     expect(
       testResultsSchema.safeParse({
@@ -192,19 +88,6 @@ describe("协议 schema", () => {
         schema: "louisgo-mission-v1",
         default_mode: "assist",
         updated_at: "2026-05-01T20:00:00",
-      }).success,
-    ).toBe(false);
-
-    expect(
-      stateFrontMatterSchema.safeParse({
-        schema: "louisgo-state-v1",
-        mode: "assist",
-        phase: "exploration",
-        current_task: "T001",
-        verification: "missing",
-        git_head: "abc123",
-        diff_hash: "def456",
-        updated_at: timestamp,
       }).success,
     ).toBe(false);
   });

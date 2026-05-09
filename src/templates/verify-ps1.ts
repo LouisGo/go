@@ -24,14 +24,7 @@ if ($LASTEXITCODE -ne 0 -or -not $GitHead) {
 $HashInput = [System.Text.StringBuilder]::new()
 $IgnoredPathspecs = @(
   ':!.louisgo/test-results.json',
-  ':!.louisgo/RUNLOG.md',
-  ':!.louisgo/HANDOFF.md',
-  ':!.louisgo/HANDOFF_DRAFT.md',
-  ':!.louisgo/QUICK_SAVE.md',
-  ':!.louisgo/STATE.md',
-  ':!.louisgo/CONFIRM_REQ.md',
-  ':!.louisgo/stats/**',
-  ':!.louisgo/sessions/**'
+  ':!.louisgo/CONFIRM_REQ.md'
 )
 [void]$HashInput.Append("git_head\`0$GitHead\`0")
 [void]$HashInput.Append("status\`0")

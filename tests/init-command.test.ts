@@ -26,10 +26,10 @@ describe("init 命令", () => {
     await program.parseAsync(["node", "louisgo", "init", "--no-codex"]);
 
     expect(stdout.text).toContain("LouisGo initialized");
-    expect(stdout.text).toContain("Files created: 4");
+    expect(stdout.text).toContain("Files created: 3");
     expect(stdout.text).toContain("Files skipped: 0");
     expect(stdout.text).toContain("Codex integration: skipped");
-    expect(stdout.text).toContain("→ New sessions will read LouisGo context automatically");
+    expect(stdout.text).toContain("→ Private task state will be stored outside team Git");
   });
 
   it("默认安装 Codex 集成", async () => {

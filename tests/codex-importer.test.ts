@@ -6,10 +6,10 @@ import { promisify } from "node:util";
 
 import { describe, expect, it } from "vitest";
 
-import { createProtocolPaths } from "../src/protocol/paths.js";
 import { initLouisGo } from "../src/services/init-service.js";
 import { importCodexStats, parseCodexUsageEvents } from "../src/stats/codex-importer.js";
 import { readStatsEvents } from "../src/stats/store.js";
+import { resolvePrivateProjectPaths } from "../src/store/private-paths.js";
 
 const execFileAsync = promisify(execFile);
 const now = () => new Date("2026-05-01T12:00:00.000Z");
@@ -54,15 +54,20 @@ describe("Codex stats importer", () => {
     const first = await importCodexStats({
       cwd: repo.path,
       codexHome: codex.path,
+      louisgoHome: repo.louisgoHome,
       now,
     });
     const second = await importCodexStats({
       cwd: repo.path,
       codexHome: codex.path,
+      louisgoHome: repo.louisgoHome,
       now,
     });
-    const events = await readStatsEvents({ cwd: repo.path });
-    const paths = createProtocolPaths(repo.path);
+    const events = await readStatsEvents({ cwd: repo.path, louisgoHome: repo.louisgoHome });
+    const paths = await resolvePrivateProjectPaths({
+      cwd: repo.path,
+      louisgoHome: repo.louisgoHome,
+    });
 
     expect(first).toMatchObject({
       scannedFiles: 1,
@@ -84,6 +89,7 @@ describe("Codex stats importer", () => {
     const result = await importCodexStats({
       cwd: repo.path,
       codexHome: codex.path,
+      louisgoHome: repo.louisgoHome,
       dryRun: true,
       now,
     });
@@ -93,7 +99,9 @@ describe("Codex stats importer", () => {
       matchedEvents: 1,
       importedEvents: 0,
     });
-    await expect(readStatsEvents({ cwd: repo.path })).resolves.toHaveLength(0);
+    await expect(
+      readStatsEvents({ cwd: repo.path, louisgoHome: repo.louisgoHome }),
+    ).resolves.toHaveLength(0);
   });
 });
 
@@ -126,6 +134,7 @@ function createCodexJsonl(): string {
 
 interface TempDir extends AsyncDisposable {
   readonly path: string;
+  readonly louisgoHome: string;
 }
 
 async function createInitializedRepo(): Promise<TempDir> {
@@ -137,11 +146,14 @@ async function createInitializedRepo(): Promise<TempDir> {
 
 async function createTempDir(): Promise<TempDir> {
   const path = await mkdtemp(join(tmpdir(), "louisgo-"));
+  const louisgoHome = await mkdtemp(join(tmpdir(), "louisgo-home-"));
 
   return {
     path,
+    louisgoHome,
     async [Symbol.asyncDispose]() {
       await rm(path, { force: true, recursive: true });
+      await rm(louisgoHome, { force: true, recursive: true });
     },
   };
 }

@@ -10,9 +10,9 @@ import {
   type TokenUsage,
 } from "./events.js";
 import { readStatsEvents } from "./store.js";
+import type { PrivateStoreOptions } from "../store/private-paths.js";
 
-export interface StatsSummaryOptions {
-  readonly cwd?: string;
+export interface StatsSummaryOptions extends PrivateStoreOptions {
   readonly days?: number;
   readonly source?: StatsSource;
   readonly now?: () => Date;
@@ -53,7 +53,13 @@ export async function summarizeStats(options: StatsSummaryOptions = {}): Promise
   const cutoff =
     options.days === undefined ? null : new Date(now.getTime() - options.days * 86_400_000);
   const source = options.source === undefined ? null : statsSourceSchema.parse(options.source);
-  const events = (await readStatsEvents({ cwd: workspaceRoot })).filter((event) => {
+  const events = (
+    await readStatsEvents({
+      cwd: workspaceRoot,
+      ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
+      ...(options.env === undefined ? {} : { env: options.env }),
+    })
+  ).filter((event) => {
     if (source !== null && event.source !== source) {
       return false;
     }

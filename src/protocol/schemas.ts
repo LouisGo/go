@@ -57,48 +57,6 @@ export const testResultsSchema = z
   }));
 export type TestResults = z.output<typeof testResultsSchema>;
 
-export const handoffFrontMatterSchema = z
-  .object({
-    schema: z.literal("louisgo-handoff-v1"),
-    mode: louisGoModeSchema,
-    task_id: taskReferenceSchema,
-    git_head: nonEmptyStringSchema,
-    diff_hash: nonEmptyStringSchema,
-    verification: verificationStatusSchema,
-    generated_at: isoDateTimeSchema.optional(),
-    confirmed_at: isoDateTimeSchema.optional(),
-  })
-  .transform((data) => ({
-    schema: data.schema,
-    mode: data.mode,
-    taskId: data.task_id,
-    gitHead: data.git_head,
-    diffHash: data.diff_hash,
-    verification: data.verification,
-    ...(data.generated_at === undefined ? {} : { generatedAt: data.generated_at }),
-    ...(data.confirmed_at === undefined ? {} : { confirmedAt: data.confirmed_at }),
-  }));
-export type HandoffFrontMatter = z.output<typeof handoffFrontMatterSchema>;
-
-export const quickSaveFrontMatterSchema = z
-  .object({
-    schema: z.literal("louisgo-quick-save-v1"),
-    mode: louisGoModeSchema,
-    task_id: taskReferenceSchema,
-    git_head: nonEmptyStringSchema,
-    diff_hash: nonEmptyStringSchema,
-    saved_at: isoDateTimeSchema,
-  })
-  .transform((data) => ({
-    schema: data.schema,
-    mode: data.mode,
-    taskId: data.task_id,
-    gitHead: data.git_head,
-    diffHash: data.diff_hash,
-    savedAt: data.saved_at,
-  }));
-export type QuickSaveFrontMatter = z.output<typeof quickSaveFrontMatterSchema>;
-
 export const confirmReqFrontMatterSchema = z
   .object({
     schema: z.literal("louisgo-confirm-req-v1"),
@@ -156,42 +114,6 @@ export const capabilitiesFrontMatterSchema = z
     updatedAt: data.updated_at,
   }));
 export type CapabilitiesFrontMatter = z.output<typeof capabilitiesFrontMatterSchema>;
-
-export const stateFrontMatterSchema = z
-  .object({
-    schema: z.literal("louisgo-state-v1"),
-    mode: louisGoModeSchema,
-    phase: workPhaseSchema.optional(),
-    current_task: taskReferenceSchema,
-    handoff: z.string().min(1).optional(),
-    verification: verificationStatusSchema,
-    git_head: nonEmptyStringSchema,
-    diff_hash: nonEmptyStringSchema,
-    updated_at: isoDateTimeSchema,
-  })
-  .transform((data) => ({
-    schema: data.schema,
-    mode: data.mode,
-    ...(data.phase === undefined ? {} : { phase: data.phase }),
-    currentTask: data.current_task,
-    ...(data.handoff === undefined ? {} : { handoff: data.handoff }),
-    verification: data.verification,
-    gitHead: data.git_head,
-    diffHash: data.diff_hash,
-    updatedAt: data.updated_at,
-  }));
-export type StateFrontMatter = z.output<typeof stateFrontMatterSchema>;
-
-export const memoryFrontMatterSchema = z
-  .object({
-    schema: z.literal("louisgo-memory-v1"),
-    updated_at: isoDateTimeSchema,
-  })
-  .transform((data) => ({
-    schema: data.schema,
-    updatedAt: data.updated_at,
-  }));
-export type MemoryFrontMatter = z.output<typeof memoryFrontMatterSchema>;
 
 export const runLogFrontMatterSchema = z
   .object({

@@ -31,7 +31,7 @@ export function registerLogCommand(
         const theme = createOutputTheme(stdout);
         stdout.write(`${headline(theme, "🪵", "No diagnostic log yet")}\n`);
         stdout.write(
-          `${tip(theme, `Run ${theme.command("louisgo init")} to create ${theme.path(".louisgo/RUNLOG.md")}.`)}\n`,
+          `${tip(theme, `Run any LouisGo command that records diagnostics; logs are stored in the private LouisGo store.`)}\n`,
         );
         return;
       }

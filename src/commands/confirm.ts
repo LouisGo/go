@@ -219,7 +219,7 @@ function formatConfirmSelection(selection: ConfirmChoiceSelection, stdout?: Writ
     "",
     tip(
       theme,
-      "AI should continue from this selection, then clear the request or generate a new handoff.",
+      "AI should continue from this selection, then clear the request or update the private task checkpoint.",
     ),
   ].join("\n");
 }
@@ -233,7 +233,7 @@ function formatCustomInput(request: ConfirmRequestView, input: string, stdout?: 
     "",
     tip(
       theme,
-      "AI should continue from this input, then clear the request or generate a new handoff.",
+      "AI should continue from this input, then clear the request or update the private task checkpoint.",
     ),
   ].join("\n");
 }

@@ -7,7 +7,6 @@ import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
 import { readFrontMatter } from "../src/protocol/frontmatter.js";
-import { parseRoadmap } from "../src/protocol/roadmap.js";
 import {
   adrFrontMatterSchema,
   capabilitiesFrontMatterSchema,
@@ -17,11 +16,9 @@ import {
   testResultsSchema,
 } from "../src/protocol/schemas.js";
 import { createAdrDraftTemplate } from "../src/templates/adr-draft.js";
-import { createBlockerTemplate } from "../src/templates/blocker.js";
 import { createCapabilitiesTemplate } from "../src/templates/capabilities.js";
 import { createConfirmReqTemplate } from "../src/templates/confirm-req.js";
 import { createMissionTemplate } from "../src/templates/mission.js";
-import { createRoadmapTemplate } from "../src/templates/roadmap.js";
 import { createLouisGoGitignoreTemplate, createRunLogTemplate } from "../src/templates/run-log.js";
 import { createVerifyPs1Template } from "../src/templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../src/templates/verify-sh.js";
@@ -46,19 +43,6 @@ describe("协议模板", () => {
     expect(document.body).toContain("## Decision Records");
   });
 
-  it("生成 ROADMAP.md 稳定任务 ID 模板", () => {
-    const result = parseRoadmap(createRoadmapTemplate());
-
-    expect(result.firstIncompleteTask).toMatchObject({
-      id: "T001",
-      completed: false,
-    });
-  });
-
-  it("生成 BLOCKER.md 极简日志模板", () => {
-    expect(createBlockerTemplate()).toBe("# Blocker\n\n");
-  });
-
   it("生成 RUNLOG.md 诊断日志模板", async () => {
     await using tempDir = await createTempDir();
     const filePath = join(tempDir.path, "RUNLOG.md");
@@ -72,8 +56,9 @@ describe("协议模板", () => {
       maxEvents: 80,
     });
     expect(document.body).toContain("louisgo-runlog:events");
-    expect(createLouisGoGitignoreTemplate()).toContain("RUNLOG.md");
-    expect(createLouisGoGitignoreTemplate()).toContain("stats/");
+    expect(createLouisGoGitignoreTemplate()).toContain("CONFIRM_REQ.md");
+    expect(createLouisGoGitignoreTemplate()).not.toContain("RUNLOG.md");
+    expect(createLouisGoGitignoreTemplate()).not.toContain("stats/");
   });
 
   it("生成 CAPABILITIES.md 必要 Front Matter 和验证入口", async () => {

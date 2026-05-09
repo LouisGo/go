@@ -12,11 +12,11 @@ describe("README 使用说明", () => {
     const readme = await readFile(readmePath, "utf8");
     const program = createCli();
     const commandNames = program.commands.map((command) => command.name());
-    const handoff = program.commands.find((command) => command.name() === "handoff");
 
     for (const command of [
       "init",
       "context",
+      "resume",
       "stats",
       "confirm",
       "log",
@@ -24,7 +24,6 @@ describe("README 使用说明", () => {
       "verify",
       "pause",
       "finish",
-      "handoff",
       "codex",
       "skill",
       "clear",
@@ -32,19 +31,18 @@ describe("README 使用说明", () => {
       expect(commandNames).toContain(command);
     }
 
-    expect(handoff?.commands.map((command) => command.name())).toContain("promote");
     expect(readme).toContain("npm install -g louisgo");
     expect(readme).toContain("npx --yes louisgo@latest init");
-    expect(readme).toContain("$start");
-    expect(readme).toContain("$finish");
-    expect(readme).toContain("HANDOFF.md -> STATE.md -> MEMORY.md");
+    expect(readme).toContain("$pause");
+    expect(readme).toContain("$resume");
     expect(readme).toContain("louisgo context");
+    expect(readme).toContain("louisgo pause");
+    expect(readme).toContain("louisgo resume");
     expect(readme).toContain("louisgo stats");
     expect(readme).toContain("louisgo skill list");
     expect(readme).toContain("louisgo clear");
-    expect(readme).toContain("direction-key selection prompt");
     expect(readme).toContain("louisgo log");
-    expect(readme).toContain("handoff promote");
+    expect(readme).not.toContain("handoff promote");
     expect(
       program.commands
         .find((command) => command.name() === "codex")

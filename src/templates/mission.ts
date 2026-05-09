@@ -14,7 +14,7 @@ updated_at: "${options.updatedAt}"
 ## Goal
 
 - Describe the project goal in 1-3 durable bullets.
-- LouisGo keeps AI coding context in Git so new sessions can recover without chat history.
+- LouisGo keeps private task continuity outside team Git so new sessions can recover without chat history.
 
 ## Constraints
 
@@ -28,6 +28,6 @@ updated_at: "${options.updatedAt}"
 
 ## Decision Records
 
-- For public APIs, persisted formats, critical dependencies, or cross-module boundary changes, draft an ADR under \`.louisgo/ADR/draft/\` first.
+- For public APIs, persisted formats, critical dependencies, or cross-module boundary changes, draft and confirm an explicit decision before changing shared project anchors.
 `;
 }

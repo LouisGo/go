@@ -1,169 +1,123 @@
 # LouisGo
 
-LouisGo is a lightweight context harness for AI coding. It stores project goals, constraints, state, memory, verification results, and formal handoffs in `.louisgo/`, so a new AI session can recover context from Git files instead of relying on chat history.
+LouisGo is a task-continuity layer for AI coding. It stores personal task
+checkpoints outside team Git, then compiles the minimum context needed for a new
+AI session to continue safely.
 
 Simplified Chinese: [README-zhCN.md](README-zhCN.md)
 
 ## Minimal Loop
 
-Most users only need this path:
-
 ```text
-npm install -g louisgo -> louisgo init -> natural AI coding -> $start for deep recovery when needed -> $finish for formal handoff
+npm install -g louisgo
+louisgo init
+louisgo context
+# work normally with an AI coding tool
+louisgo pause --message "what changed"
+louisgo resume
+louisgo verify
+louisgo finish
 ```
 
-| Stage              | User action                | AI / CLI behavior                                                                 |
-| ------------------ | -------------------------- | --------------------------------------------------------------------------------- |
-| Install command    | `npm install -g louisgo`   | Gives new Codex sessions a stable `louisgo context`, `status`, and `finish` entry. |
-| Enable project     | `louisgo init`             | Creates the minimal `.louisgo/` protocol, Codex skills, and project agent entry.   |
-| Daily work         | Ask the AI normally        | AI reads `louisgo context` through project agent instructions before editing.      |
-| Optional skills    | `louisgo skill enable ...` | Enables preset skills only when needed, writes a local manifest, and blocks same-name project conflicts. |
-| Context drift      | Enter `$start`             | Rebuilds the context package, preferring `HANDOFF.md -> STATE.md -> MEMORY.md`.    |
-| Phase handoff      | Enter `$finish`            | Records verification, Git diff, blockers, next steps, and `.louisgo/HANDOFF.md`.   |
-| Project cleanup    | `louisgo clear ...`        | Removes `.louisgo/` after explicit confirmation and removes the managed agent block. |
-| New machine/session | Pull Git and continue      | New AI sessions recover required context from `.louisgo/` and source code.         |
+| Stage | User action | CLI behavior |
+| --- | --- | --- |
+| Install | `npm install -g louisgo` | Installs the `louisgo` command. |
+| Enable repo | `louisgo init` | Creates a small `.louisgo/` project anchor and optional Codex routing. |
+| Work | `louisgo context` | Compiles current request, active task, project anchor, Git facts, and verification state. |
+| Pause | `louisgo pause` | Writes a private task checkpoint under `~/.louisgo/`. |
+| Resume | `louisgo resume` | Checks repo state and emits a continuation package, or blocks with mismatches. |
+| Verify | `louisgo verify` | Runs project verification and attaches facts to the active task. |
+| Finish | `louisgo finish` | Writes a private phase summary for commit, PR, or next-session prep. |
 
-`context`, `stats`, `skill`, `clear`, `confirm`, `log`, `status`, `verify`, `pause`, `handoff promote`, and `codex setup` exist for AI, advanced users, and compatibility flows. They are not the daily main path.
+## Storage Model
 
-## Why It Helps
+Private task state lives outside the repository by default:
 
-LouisGo does not run a background service, database, or vector memory. It only caches prompt material that is useful, auditable, and commit-friendly for AI coding:
+```text
+~/.louisgo/
+  projects/<project-key>/
+    active-task.json
+    tasks/<task-id>/
+      meta.json
+      state.md
+      checkpoints/latest.md
+      resume.md
+      verification.json
+      finish.md
+```
 
-- `MISSION.md`: project goals, constraints, and confirm-first rules.
-- `CAPABILITIES.md`: available commands, verification entry, and AI behavior contract.
-- `STATE.md`: current task, verification state, and next step.
-- `MEMORY.md`: durable memory index; not a chat transcript. It is created only after real memory exists.
-- `HANDOFF.md`: formal recovery snapshot at the end of a phase.
-- `test-results.json`: verification facts.
-- `.louisgo/stats/`: local token and context observation events, ignored by default.
-
-Core rule: **the current user prompt is always the task source; LouisGo only provides a sourced, budgeted, trim-friendly context prefix.** If memory conflicts with source code, Git state, or verification results, trust the facts.
+The repository `.louisgo/` directory is a small shared anchor. It is not the
+home for personal checkpoints, resume prompts, stats, run logs, transfer files,
+or subagent task queues.
 
 ## Codex Usage
 
-Install the global command first:
+Install and initialize:
 
 ```text
 npm install -g louisgo
-```
-
-Then run this inside the target Git repository:
-
-```text
+cd /path/to/your/git-project
 louisgo init
 ```
 
-After that, keep asking Codex for work normally. `init` installs the LouisGo Codex integration so ordinary new sessions read `louisgo context` before editing files. If the repository root already has `AGENTS.md`, `AGENT.md`, `Agent.md`, `agents.md`, or `agent.md`, LouisGo only updates its managed block in that file. If none exists, it creates `AGENTS.md`.
-
-If you do not want to install globally first, use the one-shot entry:
+If you do not want to install globally first:
 
 ```text
 npx --yes louisgo@latest init
 ```
 
-Generated Codex instructions prefer `louisgo <subcommand>`. If the global command is unavailable, they can fall back to `npx --yes louisgo@latest <subcommand>`.
-
-Manual recovery:
-
-```text
-$start
-```
-
-Phase completion:
-
-```text
-$finish
-```
-
-Protocol and workspace status:
+Common commands:
 
 ```text
 louisgo status
-```
-
-`status` reports protocol completeness, current task, verification state, recovery source, and whether the Git workspace has pending changes.
-
-Workflow diagnostics:
-
-```text
-louisgo log --tail 30
-```
-
-You can also send `.louisgo/RUNLOG.md`. It records command-level events, recovery source, verification state, and workspace summaries. It does not record user prompt text or full chat content.
-
-Token and context observation:
-
-```text
-louisgo stats
-louisgo stats import codex --days 7
-```
-
-`stats` reads only this project's `.louisgo/stats/` by default. Codex usage import is explicit via `stats import codex`; it extracts token numbers from Codex session JSONL files without storing prompts, responses, or source code.
-
-Enable optional LouisGo preset skills:
-
-```text
-louisgo skill list
-louisgo skill enable grill
-louisgo skill enable caveman
-```
-
-Preset skills are not written during `init`. When enabling one, LouisGo checks `.codex/skills/` and `.louisgo/skills/` for same-name skills. If it finds a conflict, it reports it and does not overwrite project content. Successful enablement also writes `.louisgo/skills/manifest.json`, which Codex uses as the metadata index before lazily reading the matched skill file.
-
-Remove LouisGo project-local protocol and caches:
-
-```text
-louisgo clear --dry-run
-```
-
-After reviewing the risk, run:
-
-```text
-louisgo clear
-```
-
-`clear` shows the risk and cleanup targets, then requires confirmation through a direction-key selection prompt. It deletes this Git project's `.louisgo/`, including memory, handoffs, verification results, diagnostics, stats, and caches. It also removes the LouisGo-managed Codex block from project agent instruction files. It does not delete product source code, global Codex config, or global skills.
-
-## External Project Experiment
-
-Using the published package:
-
-```text
-cd /path/to/your/git-project
-npm install -g louisgo
-louisgo init
-louisgo context --goal "recover project context"
+louisgo context --goal "continue the refactor"
+louisgo pause --message "implemented parser boundary"
+louisgo resume
 louisgo verify
 louisgo finish
 ```
 
-Using a local build from this repository:
+Codex directive skills map `$context`, `$pause`, `$resume`, `$verify`, and
+`$finish` to the same CLI commands.
+
+For direct Codex integration setup, run `louisgo codex setup`.
+
+## Subagents
+
+Codex provides native subagent support. LouisGo does not implement its own
+subagent scheduler in the MVP.
+
+LouisGo can still prepare narrow context:
 
 ```text
-pnpm build
-cd /path/to/your/git-project
-node "/Users/louistation/Documents/New project/dist/cli.js" init
-node "/Users/louistation/Documents/New project/dist/cli.js" context --goal "recover project context"
-node "/Users/louistation/Documents/New project/dist/cli.js" verify
-node "/Users/louistation/Documents/New project/dist/cli.js" finish
+louisgo context --capsule --goal "review verification flow"
 ```
 
-The experiment is not meant to make every project's tests pass automatically. It confirms that `.louisgo/` can be created, AI can recover context, verification results can be recorded, and phase results can become formal handoffs.
+That capsule can be handed to Codex-native subagents, while LouisGo remains
+responsible only for task continuity and context compilation.
 
-## Protocol Directory
+## Diagnostics
 
-| Path                         | Purpose                                                                                |
-| ---------------------------- | -------------------------------------------------------------------------------------- |
-| `.louisgo/MISSION.md`        | Project contract.                                                                      |
-| `.louisgo/CAPABILITIES.md`   | Capabilities, verification entry, and AI behavior contract.                            |
-| `.louisgo/STATE.md`          | Current state and next step.                                                           |
-| `.louisgo/MEMORY.md`         | Durable memory index, created on demand.                                               |
-| `.louisgo/HANDOFF.md`        | Formal handoff snapshot.                                                               |
-| `.louisgo/CONFIRM_REQ.md`    | Structured signal for decisions that need user confirmation.                           |
-| `.louisgo/RUNLOG.md`         | Local diagnostic log, ignored by `.louisgo/.gitignore` by default.                     |
-| `.louisgo/stats/`            | Local stats events and Codex import index, ignored by `.louisgo/.gitignore` by default. |
-| `.louisgo/ROADMAP.md`        | Created on demand when stable cross-session task tracking is useful.                   |
-| `.louisgo/skills/`           | Optional LouisGo preset skills and local skill manifest enabled on demand.            |
+Diagnostics are private by default:
+
+```text
+louisgo log --tail 30
+louisgo stats
+louisgo stats import codex --days 7
+```
+
+Codex usage import stores token numbers only. It does not preserve prompts,
+responses, source code, or secrets.
+
+## Optional Tools
+
+```text
+louisgo skill list
+louisgo clear --dry-run
+```
+
+`skill` is the optional local behavior-preset surface. `clear` removes the
+project anchor after explicit confirmation.
 
 ## Development Commands
 
@@ -181,7 +135,7 @@ node ./dist/cli.js verify
 
 - [Overview](docs/00-overview.md)
 - [Product Path](docs/01-product.md)
-- [File Protocol](docs/02-protocol.md)
+- [Private Store And Project Anchor](docs/02-protocol.md)
 - [Roadmap](docs/03-roadmap.md)
 
 ## Release Metadata

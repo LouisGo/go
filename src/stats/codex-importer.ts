@@ -22,6 +22,8 @@ import {
 export interface ImportCodexStatsOptions {
   readonly cwd?: string;
   readonly codexHome?: string;
+  readonly louisgoHome?: string;
+  readonly env?: NodeJS.ProcessEnv;
   readonly days?: number;
   readonly dryRun?: boolean;
   readonly now?: () => Date;
@@ -54,7 +56,11 @@ export async function importCodexStats(
   const codexHome = resolve(options.codexHome ?? join(homedir(), ".codex"));
   const cutoff =
     options.days === undefined ? null : new Date(now.getTime() - options.days * 86_400_000);
-  const importIndex = await readStatsImportIndex({ cwd: workspaceRoot });
+  const importIndex = await readStatsImportIndex({
+    cwd: workspaceRoot,
+    ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
+    ...(options.env === undefined ? {} : { env: options.env }),
+  });
 
   if (!(await pathExists(codexHome))) {
     return {
@@ -127,8 +133,13 @@ export async function importCodexStats(
     };
   }
 
-  const appendResult = await appendStatsEvents({ cwd: workspaceRoot, events });
-  await writeStatsImportIndex({ cwd: workspaceRoot, index: nextIndex });
+  const storeOptions = {
+    cwd: workspaceRoot,
+    ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
+    ...(options.env === undefined ? {} : { env: options.env }),
+  };
+  const appendResult = await appendStatsEvents({ ...storeOptions, events });
+  await writeStatsImportIndex({ ...storeOptions, index: nextIndex });
 
   return {
     workspaceRoot,

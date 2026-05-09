@@ -22,7 +22,7 @@ This is a compact diagnostic trace for LouisGo workflow behavior. It records com
 ## How To Share
 
 - Send this file when you want another AI session to diagnose whether LouisGo helped or got in the way.
-- Pair it with \`.louisgo/HANDOFF.md\` only when the recovery state matters.
+- Pair it with \`louisgo status\` or \`louisgo resume\` output when recovery state matters.
 - Newest events are first and older events are trimmed automatically.
 
 ## Events
@@ -32,7 +32,7 @@ ${runLogEventsMarker}
 }
 
 export function createLouisGoGitignoreTemplate(): string {
-  return `RUNLOG.md
-stats/
+  return `CONFIRM_REQ.md
+test-results.json
 `;
 }

@@ -25,7 +25,8 @@ export function registerVerifyCommand(
   program
     .command("verify")
     .description("🧪 Run project verification and freshness checks")
-    .action(async () => {
+    .option("--task <id>", "Private task id to attach verification to")
+    .action(async (commandOptions: { readonly task?: string }) => {
       const stdout = options.stdout ?? process.stdout;
       const stderr = options.stderr ?? process.stderr;
       const setExitCode =
@@ -35,7 +36,10 @@ export function registerVerifyCommand(
         });
 
       try {
-        const result = await verifyLouisGo(options);
+        const result = await verifyLouisGo({
+          ...options,
+          ...(commandOptions.task === undefined ? {} : { taskId: commandOptions.task }),
+        });
         stdout.write(formatVerifyReport(result, stdout));
         await appendRunLogEvent({
           cwd: result.workspaceRoot,

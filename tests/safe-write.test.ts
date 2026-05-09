@@ -27,7 +27,7 @@ describe("安全写入", () => {
 
   it("已存在文件不会被覆盖", async () => {
     await using tempDir = await createTempDir();
-    const filePath = join(tempDir.path, "ROADMAP.md");
+    const filePath = join(tempDir.path, "MISSION.md");
 
     await writeFile(filePath, "原内容", "utf8");
 

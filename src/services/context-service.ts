@@ -2,6 +2,11 @@ import { access, readFile } from "node:fs/promises";
 
 import { isNodeError } from "../internal/utils.js";
 import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js";
+import {
+  createResumePackage,
+  readCurrentTask as readPrivateCurrentTask,
+  checkResumeReadiness,
+} from "../store/task-store.js";
 import { countTextTokens, truncateToTokens } from "../stats/token-counter.js";
 import type {
   ContextSectionStats,
@@ -27,6 +32,7 @@ export interface ContextServiceOptions extends StatusServiceOptions {
   readonly budgetTokens?: number;
   readonly goal?: string;
   readonly capsule?: boolean;
+  readonly taskId?: string;
 }
 
 export interface GenerateContextResult {
@@ -97,7 +103,7 @@ export async function generateContext(
 
   const budgetTokens = normalizeBudget(options.budgetTokens);
   const paths = createProtocolPaths(status.workspaceRoot);
-  const protocolSections = await createSections(status.workspaceRoot);
+  const protocolSections = await createSections(status.workspaceRoot, options.taskId);
   const skillSections = protocolSections.filter(
     (section) => section.source === protocolRelativePaths.skillsManifest,
   );
@@ -110,8 +116,8 @@ export async function generateContext(
     capsule: options.capsule === true,
     mode: status.mode,
     phase: status.phase,
-    currentTask: status.currentTask?.id ?? "none",
-    currentTaskCompletionSignal: status.currentTask?.completionSignal ?? null,
+    currentTask: status.currentTask?.task_id ?? "none",
+    currentTaskCompletionSignal: null,
     verificationStatus: status.verificationStatus,
     recoverySource: status.recoverySource,
     workspaceSummary: formatWorkspaceSummary(status.workspace),
@@ -150,15 +156,16 @@ export async function generateContext(
   };
 }
 
-async function createSections(workspaceRoot: string): Promise<ContextSection[]> {
+async function createSections(workspaceRoot: string, taskId?: string): Promise<ContextSection[]> {
   const paths = createProtocolPaths(workspaceRoot);
   const sections: ContextSection[] = [];
   const confirmReq = await readIfExists(paths.confirmReq);
-  const handoff = await readIfExists(paths.handoff);
-  const state = await readIfExists(paths.state);
-  const memory = await readIfExists(paths.memory);
   const context = await readIfExists(paths.context);
   const localSkillIndex = await buildLocalSkillIndex(workspaceRoot);
+  const privateTask = await readPrivateCurrentTask({
+    cwd: workspaceRoot,
+    ...(taskId === undefined ? {} : { taskId }),
+  });
 
   sections.push(
     {
@@ -179,13 +186,14 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
     },
   );
 
-  if (memory !== null) {
+  if (privateTask !== null) {
+    const readiness = await checkResumeReadiness(privateTask);
     sections.push({
-      title: "L2 Stable Memory Index: MEMORY.md",
-      source: protocolRelativePaths.memory,
-      content: memory,
-      layer: "L2",
-      stability: "stable",
+      title: "L3 Private Active Task",
+      source: `private:${privateTask.meta.task_id}`,
+      content: createResumePackage(privateTask, readiness),
+      layer: "L3",
+      stability: "dynamic",
       required: true,
     });
   }
@@ -212,40 +220,11 @@ async function createSections(workspaceRoot: string): Promise<ContextSection[]> 
     });
   }
 
-  if (handoff !== null) {
-    sections.push({
-      title: "L3 Formal Recovery: HANDOFF.md",
-      source: protocolRelativePaths.handoff,
-      content: handoff,
-      layer: "L3",
-      stability: "dynamic",
-      required: false,
-      preserveHeadings: [
-        "\u4ea4\u63a5\u6458\u8981",
-        "\u6062\u590d\u5efa\u8bae",
-        "\u5efa\u8bae\u4e0b\u4e00\u6b65",
-        "\u9a8c\u8bc1",
-        "\u5f85\u5904\u7406\u4e8b\u9879",
-      ],
-    });
-  }
-
   if (confirmReq !== null) {
     sections.push({
       title: "L4 Urgent Signal: CONFIRM_REQ.md",
       source: protocolRelativePaths.confirmReq,
       content: confirmReq,
-      layer: "L4",
-      stability: "dynamic",
-      required: true,
-    });
-  }
-
-  if (state !== null) {
-    sections.push({
-      title: "L4 Active State: STATE.md",
-      source: protocolRelativePaths.state,
-      content: state,
       layer: "L4",
       stability: "dynamic",
       required: true,
@@ -261,7 +240,7 @@ function isColdStartContext(
 ): boolean {
   if (
     status.hasConfirmReq ||
-    status.recoverySource !== "state" ||
+    status.recoverySource !== "none" ||
     status.currentTask !== null ||
     status.verificationStatus !== "missing"
   ) {
@@ -269,22 +248,13 @@ function isColdStartContext(
   }
 
   const sources = new Set(sections.map((section) => section.source));
-  if (
-    sources.has(protocolRelativePaths.handoff) ||
-    sources.has(protocolRelativePaths.confirmReq) ||
-    sources.has(protocolRelativePaths.context) ||
-    sources.has(protocolRelativePaths.memory)
-  ) {
+  if (sources.has(protocolRelativePaths.confirmReq) || sources.has(protocolRelativePaths.context)) {
     return false;
   }
 
   const mission = sections.find((section) => section.source === protocolRelativePaths.mission);
-  const state = sections.find((section) => section.source === protocolRelativePaths.state);
 
-  return (
-    mission?.content.includes("Describe the project goal in 1-3 durable bullets.") === true &&
-    state?.content.includes("focus: fill this with the current concrete development goal") === true
-  );
+  return mission?.content.includes("Describe the project goal in 1-3 durable bullets.") === true;
 }
 
 function createColdStartSection(): ContextSection {
@@ -294,12 +264,12 @@ function createColdStartSection(): ContextSection {
     content: [
       "# Cold Start",
       "",
-      "LouisGo is initialized, but no durable project memory or handoff exists yet.",
+      "LouisGo is initialized, but no private task checkpoint exists yet.",
       "",
       "- Treat the user's current prompt and repository source as the task source.",
       "- Existing project instructions, local skills, docs, source code, Git state, and verification commands remain authoritative.",
-      "- Do not expand LouisGo template files into prompt context until the project fills MISSION, MEMORY, CONTEXT, HANDOFF, or CONFIRM_REQ with real content.",
-      "- After meaningful work, run verification when appropriate and use `$finish` to create the first useful handoff.",
+      "- Do not expand LouisGo template files into prompt context until the project fills shared anchors or a private task checkpoint exists.",
+      "- After meaningful work, run verification when appropriate and use `louisgo pause` to create the first private checkpoint.",
     ].join("\n"),
     layer: "runtime",
     stability: "stable",
@@ -349,8 +319,8 @@ function createHeader(params: {
     "",
     "- Determine the real task from the user's current prompt \u2014 do not treat historical context as the task itself.",
     "- Before making changes, verify against source code, Git state, and verification facts. Memory only provides direction.",
-    "- Write only reusable facts to `STATE.md` or `MEMORY.md`; do not record chat logs.",
-    "- When a phase is complete, run verification and use `$finish` to generate a formal `HANDOFF.md`.",
+    "- Keep reusable task facts in the private task state; do not record chat logs.",
+    "- When a phase is complete, run verification and use `louisgo finish` to write a private phase summary.",
     ...(params.phase === "execute"
       ? [
           "",
@@ -362,7 +332,7 @@ function createHeader(params: {
                 "- Before stopping, confirm the completion signal is met. If unsure, keep pushing.",
               ]
             : [
-                "- Before stopping, confirm the current task goal is achieved. Document evidence in STATE.md Evidence section.",
+                "- Before stopping, confirm the current task goal is achieved. Preserve evidence in the private task checkpoint.",
               ]),
         ]
       : []),
@@ -372,7 +342,7 @@ function createHeader(params: {
           "## Explore Reminders",
           "",
           "- Understand existing code and data before proposing changes.",
-          "- Record findings in STATE.md Evidence section: claim | basis | implication.",
+          "- Record findings as sourced claims in the private task checkpoint.",
           "- Do not perform large-scale refactoring during exploration \u2014 focus on gathering facts and confirming direction.",
         ]
       : []),
@@ -540,7 +510,7 @@ function createFooter(
     "- Only read relevant source code, `memory/*.md`, or `sessions/*.md` when the task requires it.",
   );
   lines.push(
-    "- After substantive changes, update `STATE.md`; when a phase is complete, run `$finish`.",
+    "- After substantive changes, run `louisgo pause`; when a phase is complete, run `louisgo finish`.",
   );
 
   if (truncated) {
@@ -671,12 +641,8 @@ async function readIfExists(filePath: string): Promise<string | null> {
 
 function formatRecoverySource(source: string): string {
   switch (source) {
-    case "handoff":
-      return "HANDOFF";
-    case "state":
-      return "STATE";
-    case "quick_save":
-      return "QUICK_SAVE";
+    case "task":
+      return "PRIVATE_TASK";
     case "none":
       return "none";
     default:

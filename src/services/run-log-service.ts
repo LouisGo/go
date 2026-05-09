@@ -1,19 +1,17 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-import { getGitHead } from "../git/git.js";
-import { findGitRoot } from "../fs/workspace.js";
 import { isNodeError, pathExists } from "../internal/utils.js";
-import { createProtocolPaths, protocolRelativePaths } from "../protocol/paths.js";
+import { createProtocolPaths } from "../protocol/paths.js";
+import { getGitHead } from "../git/git.js";
+import { resolvePrivateProjectPaths, type PrivateStoreOptions } from "../store/private-paths.js";
 import {
   defaultRunLogMaxEvents,
   createRunLogTemplate,
   runLogEventsMarker,
 } from "../templates/run-log.js";
 
-export interface RunLogServiceOptions {
-  readonly cwd?: string;
-}
+export interface RunLogServiceOptions extends PrivateStoreOptions {}
 
 export type RunLogOutcome = "success" | "failure" | "info";
 
@@ -44,12 +42,8 @@ interface ParsedRunLog {
 export async function appendRunLogEvent(
   options: AppendRunLogEventOptions,
 ): Promise<ReadRunLogResult> {
-  const workspaceRoot = await findGitRoot(options.cwd);
-  const paths = createProtocolPaths(workspaceRoot);
-
-  if (!(await pathExists(paths.louisgoDir))) {
-    throw new Error("LouisGo protocol directory is missing; run log was not written.");
-  }
+  const paths = await resolvePrivateProjectPaths(options);
+  const workspaceRoot = paths.workspaceRoot;
 
   const timestamp = (options.now?.() ?? new Date()).toISOString();
   const existing = await readOrCreateRunLog(paths.runLog, timestamp);
@@ -64,7 +58,7 @@ export async function appendRunLogEvent(
   return {
     workspaceRoot,
     filePath: paths.runLog,
-    relativePath: protocolRelativePaths.runLog,
+    relativePath: "~/.louisgo/projects/<project>/RUNLOG.md",
     content,
     eventCount: events.length,
   };
@@ -73,8 +67,8 @@ export async function appendRunLogEvent(
 export async function readRunLog(
   options: ReadRunLogOptions = {},
 ): Promise<ReadRunLogResult | null> {
-  const workspaceRoot = await findGitRoot(options.cwd);
-  const paths = createProtocolPaths(workspaceRoot);
+  const paths = await resolvePrivateProjectPaths(options);
+  const workspaceRoot = paths.workspaceRoot;
 
   if (!(await pathExists(paths.runLog))) {
     return null;
@@ -92,7 +86,7 @@ export async function readRunLog(
   return {
     workspaceRoot,
     filePath: paths.runLog,
-    relativePath: protocolRelativePaths.runLog,
+    relativePath: "~/.louisgo/projects/<project>/RUNLOG.md",
     content: output,
     eventCount: events.length,
   };

@@ -10,10 +10,10 @@ import { registerCodexCommand } from "./commands/codex.js";
 import { registerConfirmCommand } from "./commands/confirm.js";
 import { registerContextCommand } from "./commands/context.js";
 import { registerFinishCommand } from "./commands/finish.js";
-import { registerHandoffPromoteCommand } from "./commands/handoff-promote.js";
 import { registerInitCommand } from "./commands/init.js";
 import { registerLogCommand } from "./commands/log.js";
 import { registerPauseCommand } from "./commands/pause.js";
+import { registerResumeCommand } from "./commands/resume.js";
 import { registerSkillCommand } from "./commands/skill.js";
 import { registerStatusCommand } from "./commands/status.js";
 import { registerStatsCommand } from "./commands/stats.js";
@@ -24,6 +24,7 @@ import { readPackageVersion } from "./package-info.js";
 export interface CliOptions {
   readonly cwd?: string;
   readonly codexHome?: string;
+  readonly louisgoHome?: string;
   readonly now?: () => Date;
   readonly stdin?: Readable;
   readonly stdout?: Writable;
@@ -55,13 +56,13 @@ export function createCli(options: CliOptions = {}): Command {
 
   registerInitCommand(program, options);
   registerPauseCommand(program, options);
+  registerResumeCommand(program, options);
   registerStatusCommand(program, options);
   registerStatsCommand(program, options);
   registerConfirmCommand(program, options);
   registerContextCommand(program, options);
   registerVerifyCommand(program, options);
   registerFinishCommand(program, options);
-  registerHandoffPromoteCommand(program, options);
   registerCodexCommand(program, options);
   registerSkillCommand(program, options);
   registerLogCommand(program, options);

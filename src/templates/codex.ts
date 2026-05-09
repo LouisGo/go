@@ -1,21 +1,20 @@
 export function createCodexSkillTemplate(): string {
   return `---
 name: louisgo-workflow
-description: "Restores project context from .louisgo/ protocol files and maps LouisGo dollar directives to CLI commands. Use when the user enters $init, $start, $status, $context, $verify, $finish, or when working inside a repository that contains .louisgo/."
+description: "Restores LouisGo private task context and maps dollar directives to CLI commands. Use when the user enters $init, $start, $status, $context, $pause, $resume, $verify, or $finish."
 ---
 
 # LouisGo Workflow
 
-When a repository contains \`.louisgo/\`, treat LouisGo files as the project memory and recovery protocol.
+When a repository contains \`.louisgo/\`, treat it as a small project anchor. Private task continuity lives in the user-private LouisGo store.
 
 For ordinary coding work in an enabled repo, refresh recovery context at task boundaries:
 
 1. Run \`louisgo context\` on the first repository task in a new session, or before the first file edit after the branch, goal, or \`.louisgo/\` state changes.
 2. If you already ran \`louisgo context\` for the same task and workspace state, keep using that context; use \`louisgo status\` for a lightweight freshness check.
 3. If the context package or status reports \`.louisgo/CONFIRM_REQ.md\`, run \`louisgo confirm\` and present the choices before continuing.
-4. If \`louisgo context\` is unavailable, fall back to reading \`.louisgo/CONFIRM_REQ.md\`, \`.louisgo/HANDOFF.md\`, \`.louisgo/STATE.md\`, and \`.louisgo/MEMORY.md\`.
-5. Topic files under \`.louisgo/memory/\` only when relevant.
-6. If the user asks to debug whether LouisGo helped, run \`louisgo log --tail 30\` and summarize \`.louisgo/RUNLOG.md\`.
+4. If the user asks to resume a task, run \`louisgo resume\`.
+5. If the user asks to debug whether LouisGo helped, run \`louisgo log --tail 30\`; diagnostics are private by default.
 
 ## Local Skills
 
@@ -46,17 +45,16 @@ Use the best available LouisGo command runner:
 | \`$status\` | Run \`louisgo status\` and report mode, current task, verification state, recovery source, and unresolved protocol signals. |
 | \`$context\` | Run \`louisgo context\` and relay the context budget, source layers, and any truncation warning. |
 | \`$verify\` | Run \`louisgo verify\` and relay verification status, freshness, summary, and exit-code meaning. |
-| \`$pause\` | Legacy command: run \`louisgo pause\`; report where \`QUICK_SAVE.md\` was written. |
-| \`$resume\` | Legacy alias for deep recovery: run \`louisgo context\`; prefer \`HANDOFF.md\` content, then \`STATE.md\`. |
-| \`$finish\` | Run \`louisgo finish\`; report the resulting \`.louisgo/HANDOFF.md\`, verification status, cleanup result, and next action. |
-| \`$handoff-promote\` | Legacy command: run \`louisgo handoff promote\`; report the resulting \`HANDOFF.md\` status. |
+| \`$pause\` | Run \`louisgo pause\`; report the private checkpoint path and task id. |
+| \`$resume\` | Run \`louisgo resume\`; if blocked, report the repository-state mismatch and recovery options. |
+| \`$finish\` | Run \`louisgo finish\`; report the private finish summary, verification status, and next action. |
 
 ## Rules
 
 - Always run the mapped \`louisgo\` command before answering a directive.
 - Command selection may replace \`louisgo <subcommand>\` with \`node ./dist/cli.js <subcommand>\` for the local \`louisgo\` source repository, or with \`npx --yes louisgo@latest <subcommand>\` when no global command is available.
 - If \`.louisgo/\` is missing or incomplete, report the issue and suggest \`louisgo init\`.
-- \`HANDOFF.md\` is the formal recovery snapshot. \`STATE.md\` and \`MEMORY.md\` are supporting daily memory.
+- Private task state is the primary recovery source.
 - Do not mark work complete from narrative alone; use verification results, user confirmation, or protocol files.
 - Keep user-facing explanations concise and in English by default, unless the user asks for another language.
 `;
@@ -115,18 +113,18 @@ export function createCodexDirectiveSkillOpenAiYaml(
 export function createCodexSkillOpenAiYaml(): string {
   return `interface:
   display_name: "LouisGo Workflow"
-  short_description: "LouisGo workflow: read .louisgo memory and route $start/$finish"
-  default_prompt: "In repositories with LouisGo enabled, read .louisgo/HANDOFF.md, STATE.md, and MEMORY.md to recover project context."
+  short_description: "LouisGo workflow: recover private task context and route directives"
+  default_prompt: "In repositories with LouisGo enabled, run louisgo context or louisgo resume to recover private task context."
 `;
 }
 
 export function createCodexAgentsBlock(): string {
   return `## LouisGo
 
-When this repository contains \`.louisgo/\`, use LouisGo as a project-local recovery protocol.
+When this repository contains \`.louisgo/\`, use LouisGo as a small project anchor. Private task continuity lives outside team Git.
 
 - Existing project instructions in this file remain authoritative.
-- On the first repository task in a new session, or before the first file edit after the branch, goal, or \`.louisgo/\` state changes, run \`louisgo context\`.
+- On the first repository task in a new session, or before the first file edit after the branch, goal, or LouisGo task state changes, run \`louisgo context\`.
 - If \`louisgo context\` already ran for the same task and workspace state, keep using that context; use \`louisgo status\` for a lightweight freshness check.
 - If context or status reports \`.louisgo/CONFIRM_REQ.md\`, run \`louisgo confirm\` and present the choices before continuing.
 - Local skill discovery uses \`.louisgo/skills/manifest.json\`. If it is absent, scan \`.louisgo/skills/*.md\` and \`.louisgo/skills/*/SKILL.md\` front matter. Do not read full skill files by default; when the user invokes a matching skill by name, alias, or trigger phrase, read only that skill file and apply it.
@@ -135,6 +133,8 @@ When this repository contains \`.louisgo/\`, use LouisGo as a project-local reco
   - \`$start\` / \`$context\`: \`louisgo context\`
   - \`$status\`: \`louisgo status\`
   - \`$verify\`: \`louisgo verify\`
+  - \`$pause\`: \`louisgo pause\`
+  - \`$resume\`: \`louisgo resume\`
   - \`$finish\`: \`louisgo finish\`
   - \`$init\`: \`louisgo init\`
 

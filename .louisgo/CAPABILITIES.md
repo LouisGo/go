@@ -37,7 +37,7 @@ updated_at: "2026-05-08T13:55:47.718Z"
 
 - User prompt is the task source; LouisGo files only provide context.
 - Source, Git status, and verification results override memory.
-- Write only durable facts to `STATE.md` or `MEMORY.md`; avoid chat logs.
+- Keep private task state in the user-private LouisGo store; avoid chat logs.
 
 ## ADR Guidance
 

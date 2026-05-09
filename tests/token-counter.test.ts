@@ -8,10 +8,10 @@ describe("token counter", () => {
     expect(countTextTokens("上下文缓存")).toBeGreaterThan(0);
     expect(
       countTextTokens(`---
-schema: louisgo-state-v1
+schema: louisgo-mission-v1
 ---
 
-# State
+# Mission
 `),
     ).toBeGreaterThan(0);
   });
@@ -27,16 +27,16 @@ schema: louisgo-state-v1
   it("counts section tokens without changing content", () => {
     const result = countSections([
       {
-        source: ".louisgo/MEMORY.md",
-        title: "Memory",
-        content: "# Memory\n\n- stable note\n",
+        source: ".louisgo/CONTEXT.md",
+        title: "Context",
+        content: "# Context\n\n- stable note\n",
       },
     ]);
 
     expect(result).toEqual([
       {
-        source: ".louisgo/MEMORY.md",
-        title: "Memory",
+        source: ".louisgo/CONTEXT.md",
+        title: "Context",
         tokens: expect.any(Number),
       },
     ]);

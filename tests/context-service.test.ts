@@ -32,21 +32,6 @@ updated_at: "2026-05-01T12:00:00.000Z"
 `,
       "utf8",
     );
-    await writeFile(
-      paths.memory,
-      `---
-schema: louisgo-memory-v1
-updated_at: "2026-05-01T12:00:00.000Z"
----
-
-# Memory
-
-## Stable Notes
-
-- Keep context short.
-`,
-      "utf8",
-    );
 
     const result = await generateContext({
       cwd: repo.path,
@@ -58,8 +43,6 @@ updated_at: "2026-05-01T12:00:00.000Z"
     expect(result.content).toContain("The user's current prompt is always the final task source");
     expect(result.content).toContain("Source: `.louisgo/MISSION.md`");
     expect(result.content).toContain("Source: `.louisgo/CAPABILITIES.md`");
-    expect(result.content).toContain("Source: `.louisgo/MEMORY.md`");
-    expect(result.content).toContain("Source: `.louisgo/STATE.md`");
     expect(result.content).toContain("Goal: experiment prompt cache");
     expect(result.sources).toContain(".louisgo/MISSION.md");
     expect(result.estimatedTokens).toBeLessThanOrEqual(result.budgetTokens + 500);
@@ -71,7 +54,7 @@ updated_at: "2026-05-01T12:00:00.000Z"
     const result = await generateContext({ cwd: repo.path, budgetTokens: 2_000 });
 
     expect(result.content).toContain("Cold Start");
-    expect(result.content).toContain("no durable project memory or handoff exists yet");
+    expect(result.content).toContain("no private task checkpoint exists yet");
     expect(result.content).not.toContain("Describe the project goal");
     expect(result.sources).toEqual(["cold-start"]);
   });
@@ -88,96 +71,6 @@ updated_at: "2026-05-01T12:00:00.000Z"
     expect(result.content).toContain("# LouisGo Subagent Context Capsule");
     expect(result.content).toContain("Goal: review verification flow");
     expect(result.content).toContain("Do not read `sessions/`");
-  });
-
-  it("truncates long files and preserves sources when budget is small", async () => {
-    await using repo = await createInitializedRepo();
-    const paths = createProtocolPaths(repo.path);
-
-    await writeFile(
-      paths.handoff,
-      `---
-schema: louisgo-handoff-v1
-mode: assist
-task_id: T001
-git_head: NO_HEAD
-diff_hash: abc123
-verification: missing
-generated_at: "2026-05-01T12:00:00.000Z"
----
-
-# Handoff
-
-${"long handoff content\n".repeat(2_000)}`,
-      "utf8",
-    );
-
-    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
-
-    expect(result.truncated).toBe(true);
-    expect(result.content).toContain("[semantic-truncated: .louisgo/HANDOFF.md]");
-    expect(result.content).toContain("Context Budget Report");
-    expect(result.sources).toContain(".louisgo/HANDOFF.md");
-  });
-
-  it("includes Stop Check section in execute phase", async () => {
-    await using repo = await createInitializedRepo();
-    const paths = createProtocolPaths(repo.path);
-
-    await writeFile(
-      paths.state,
-      `---
-schema: louisgo-state-v1
-mode: assist
-phase: execute
-current_task: T001
-verification: missing
-git_head: NO_HEAD
-diff_hash: NO_DIFF
-updated_at: "2026-05-01T12:00:00.000Z"
----
-
-# State
-`,
-      "utf8",
-    );
-
-    await writeFile(
-      paths.roadmap,
-      `- [ ] T001 complete first AI coding loop #completion: all tests pass\n`,
-      "utf8",
-    );
-
-    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
-    expect(result.content).toContain("## Stop Check");
-    expect(result.content).toContain("completion signal: all tests pass");
-  });
-
-  it("includes Explore Reminders section in explore phase", async () => {
-    await using repo = await createInitializedRepo();
-    const paths = createProtocolPaths(repo.path);
-
-    await writeFile(
-      paths.state,
-      `---
-schema: louisgo-state-v1
-mode: assist
-phase: explore
-current_task: T001
-verification: missing
-git_head: NO_HEAD
-diff_hash: NO_DIFF
-updated_at: "2026-05-01T12:00:00.000Z"
----
-
-# State
-`,
-      "utf8",
-    );
-
-    const result = await generateContext({ cwd: repo.path, budgetTokens: 4_000 });
-    expect(result.content).toContain("## Explore Reminders");
-    expect(result.content).toContain("Understand existing code and data before proposing changes");
   });
 
   it("idle phase does not add extra guidance sections", async () => {

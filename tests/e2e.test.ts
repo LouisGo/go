@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
@@ -22,14 +22,14 @@ describe("CLI 端到端工作流", () => {
 
     const init = await runCli(repo.path, ["init"]);
     expect(init.stdout).toContain("LouisGo initialized");
-    expect(init.stdout).toContain("Files created: 4");
+    expect(init.stdout).toContain("Files created: 3");
     expect(init.stdout).toContain("Codex integration: completed");
-    expect(init.stdout).toContain("→ New sessions will read LouisGo context automatically");
+    expect(init.stdout).toContain("→ Private task state will be stored outside team Git");
 
     const initialStatus = await runCli(repo.path, ["status"]);
     expect(initialStatus.stdout).toContain("[assist/idle] complete, current task none");
     expect(initialStatus.stdout).toContain("verification status missing");
-    expect(initialStatus.stdout).toContain("recovery source STATE");
+    expect(initialStatus.stdout).toContain("recovery source none");
 
     const context = await runCli(repo.path, ["context", "--goal", "E2E 外部项目实验"]);
     expect(context.stdout).toContain("# LouisGo Context Package");
@@ -49,22 +49,18 @@ describe("CLI 端到端工作流", () => {
     expect(verifiedStatus.stdout).toContain("verification status skipped");
 
     const pause = await runCli(repo.path, ["pause"]);
-    expect(pause.stdout).toContain("LouisGo quick save created");
+    expect(pause.stdout).toContain("LouisGo private checkpoint updated");
 
     const pausedStatus = await runCli(repo.path, ["status"]);
-    expect(pausedStatus.stdout).toContain("recovery source STATE");
+    expect(pausedStatus.stdout).toContain("recovery source PRIVATE_TASK");
 
     const finish = await runCli(repo.path, ["finish"]);
-    expect(finish.stdout).toContain("LouisGo handoff updated");
+    expect(finish.stdout).toContain("LouisGo private finish updated");
     expect(finish.stdout).toContain("Verification status: skipped");
-    expect(finish.stdout).toContain("Quick Save: promoted and cleaned");
-    await expect(access(join(repo.path, ".louisgo", "HANDOFF.md"))).resolves.toBeUndefined();
-    await expectFileMissing(join(repo.path, ".louisgo", "HANDOFF_DRAFT.md"));
-    await expectFileMissing(join(repo.path, ".louisgo", "QUICK_SAVE.md"));
 
     const finalStatus = await runCli(repo.path, ["status"]);
     expect(finalStatus.stdout).toContain("verification status skipped");
-    expect(finalStatus.stdout).toContain("recovery source HANDOFF");
+    expect(finalStatus.stdout).toContain("recovery source PRIVATE_TASK");
 
     const log = await runCli(repo.path, ["log", "--tail", "5"]);
     expect(log.stdout).toContain("# Run Log");
@@ -83,13 +79,8 @@ describe("CLI 端到端工作流", () => {
     expect(status.stdout).toContain("ADR drafts present: 1");
 
     const finish = await runCli(repo.path, ["finish"]);
-    expect(finish.stdout).toContain("Confirm Request: promoted and cleaned");
-
-    const handoff = await readFile(join(repo.path, ".louisgo", "HANDOFF.md"), "utf8");
-    expect(handoff).toContain("Open confirmation request: T001");
-    expect(handoff).toContain("## Options");
-    expect(handoff).toContain("- 001-e2e.md");
-    await expectFileMissing(join(repo.path, ".louisgo", "CONFIRM_REQ.md"));
+    expect(finish.stdout).toContain("LouisGo private finish updated");
+    await expect(access(join(repo.path, ".louisgo", "CONFIRM_REQ.md"))).resolves.toBeUndefined();
   });
 });
 
@@ -105,16 +96,20 @@ interface RunCliOptions {
 
 interface TempRepo extends AsyncDisposable {
   readonly path: string;
+  readonly louisgoHome: string;
 }
 
 async function createGitRepo(): Promise<TempRepo> {
   const path = await mkdtemp(join(tmpdir(), "louisgo-e2e-"));
+  const louisgoHome = join(tmpdir(), `${basename(path)}-home`);
   await execFileAsync("git", ["init"], { cwd: path });
 
   return {
     path,
+    louisgoHome,
     async [Symbol.asyncDispose]() {
       await rm(path, { force: true, recursive: true });
+      await rm(louisgoHome, { force: true, recursive: true });
     },
   };
 }
@@ -130,7 +125,11 @@ async function runCli(
     const result = await execFileAsync(process.execPath, [cliPath, ...args], {
       cwd,
       encoding: "utf8",
-      env: { ...process.env, CODEX_HOME: join(tmpdir(), "louisgo-e2e-codex-home") },
+      env: {
+        ...process.env,
+        CODEX_HOME: join(tmpdir(), "louisgo-e2e-codex-home"),
+        LOUISGO_HOME: join(tmpdir(), `${basename(cwd)}-home`),
+      },
     });
 
     return {
@@ -209,10 +208,6 @@ confirmed_at: null
 `,
     "utf8",
   );
-}
-
-async function expectFileMissing(filePath: string): Promise<void> {
-  await expect(access(filePath)).rejects.toMatchObject({ code: "ENOENT" });
 }
 
 function isExecError(error: unknown): error is NodeJS.ErrnoException & {

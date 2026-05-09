@@ -22,9 +22,11 @@ export function registerPauseCommand(
 ): void {
   program
     .command("pause")
-    .description("⏸️ Write a LouisGo quick-save checkpoint")
+    .description("⏸️ Write a private LouisGo task checkpoint")
+    .option("--task <id>", "Private task id to update instead of the active task")
+    .option("--message <text>", "Short checkpoint message")
     .allowExcessArguments(false)
-    .action(async () => {
+    .action(async (commandOptions: { readonly task?: string; readonly message?: string }) => {
       const stdout = options.stdout ?? process.stdout;
       const stderr = options.stderr ?? process.stderr;
       const setExitCode =
@@ -34,7 +36,11 @@ export function registerPauseCommand(
         });
 
       try {
-        const result = await pauseLouisGo(options);
+        const result = await pauseLouisGo({
+          ...options,
+          ...(commandOptions.task === undefined ? {} : { taskId: commandOptions.task }),
+          ...(commandOptions.message === undefined ? {} : { message: commandOptions.message }),
+        });
         stdout.write(formatPauseReport(result, stdout));
         setExitCode(0);
       } catch (error) {
@@ -66,13 +72,13 @@ function formatPauseReport(result: PauseServiceResult, stdout?: Writable): strin
 
   return (
     [
-      headline(theme, "⏸️", `LouisGo quick save ${action}`, result.filePath),
-      field(theme, "Current task", result.frontMatter.taskId),
-      field(theme, "Git HEAD", result.frontMatter.gitHead),
-      field(theme, "diff_hash", result.frontMatter.diffHash),
+      headline(theme, "⏸️", `LouisGo private checkpoint ${action}`, result.filePath),
+      field(theme, "Current task", result.task.meta.task_id),
+      field(theme, "Git HEAD", result.task.meta.current_head),
+      field(theme, "diff_hash", result.task.meta.diff_hash),
       tip(
         theme,
-        `Run ${theme.command("louisgo status")} to inspect protocol state before resuming.`,
+        `Run ${theme.command("louisgo resume")} to restore this private task in a new session.`,
       ),
     ].join("\n") + "\n"
   );

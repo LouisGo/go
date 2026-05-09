@@ -25,7 +25,7 @@ describe("codex setup 命令", () => {
     expect(stdout.text).toContain("skills/start/SKILL.md");
     expect(stdout.text).toContain("skills/context/SKILL.md");
     expect(stdout.text).toContain("skills/finish/SKILL.md");
-    expect(stdout.text).toContain("→ New sessions will read LouisGo context automatically");
+    expect(stdout.text).toContain("→ New sessions can recover private task context");
   });
 });
 

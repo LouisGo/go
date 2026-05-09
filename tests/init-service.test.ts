@@ -12,7 +12,6 @@ import { createProtocolPaths } from "../src/protocol/paths.js";
 import {
   capabilitiesFrontMatterSchema,
   missionFrontMatterSchema,
-  stateFrontMatterSchema,
 } from "../src/protocol/schemas.js";
 import { initLouisGo } from "../src/services/init-service.js";
 
@@ -30,15 +29,10 @@ describe("init 服务", () => {
     await expect(access(paths.louisgoDir)).resolves.toBeUndefined();
     await expect(access(paths.scriptsDir)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(paths.mission)).resolves.toBeUndefined();
-    await expect(access(paths.state)).resolves.toBeUndefined();
     await expect(access(paths.gitignore)).resolves.toBeUndefined();
     await expect(access(paths.capabilities)).resolves.toBeUndefined();
     await expect(access(paths.verifySh)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(paths.verifyPs1)).rejects.toMatchObject({ code: "ENOENT" });
-    await expect(access(paths.roadmap)).rejects.toMatchObject({ code: "ENOENT" });
-    await expect(access(paths.memory)).rejects.toMatchObject({ code: "ENOENT" });
-    await expect(access(paths.blocker)).rejects.toMatchObject({ code: "ENOENT" });
-    await expect(access(paths.runLog)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(paths.skillsDir)).rejects.toMatchObject({ code: "ENOENT" });
     await expect(access(join(paths.skillsDir, "diagnose.md"))).rejects.toMatchObject({
       code: "ENOENT",
@@ -49,16 +43,13 @@ describe("init 服务", () => {
 
     const mission = await readFrontMatter(paths.mission, missionFrontMatterSchema);
     const capabilities = await readFrontMatter(paths.capabilities, capabilitiesFrontMatterSchema);
-    const state = await readFrontMatter(paths.state, stateFrontMatterSchema);
     expect(mission.frontMatter.defaultMode).toBe("assist");
     expect(capabilities.body).toContain("louisgo verify");
     expect(capabilities.body).toContain("louisgo skill enable grill");
     expect(capabilities.body).toContain("louisgo clear");
-    expect(state.frontMatter.currentTask).toBe("NO_TASK");
-    await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("RUNLOG.md");
-    await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("stats/");
+    await expect(readFile(paths.gitignore, "utf8")).resolves.toContain("CONFIRM_REQ.md");
     expect(result.files.every((file) => file.status === "created")).toBe(true);
-    expect(result.nextSteps).toContain("Use $start for deep recovery");
+    expect(result.nextSteps).toContain("Private task state will be stored outside team Git");
   });
 
   it("重复 init 不覆盖用户文件", async () => {

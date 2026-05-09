@@ -50,6 +50,7 @@ export async function setupCodex(options: CodexSetupOptions = {}): Promise<Codex
   );
   const skillsDir = join(codexHome, "skills");
   await rm(join(skillsDir, "louisgo-workflow"), { force: true, recursive: true });
+  await rm(join(skillsDir, "handoff-promote"), { force: true, recursive: true });
 
   const files = await Promise.all([
     ...codexDirectiveSkills.flatMap((skill) => {
@@ -76,8 +77,8 @@ export async function setupCodex(options: CodexSetupOptions = {}): Promise<Codex
     codexHome,
     files,
     nextSteps: [
-      "New sessions will read LouisGo context automatically",
-      "Use $start for deep recovery",
+      "New sessions can recover private task context with louisgo context or louisgo resume",
+      "Use louisgo pause and louisgo resume for task continuity",
     ],
   };
 }
@@ -144,43 +145,33 @@ const codexDirectiveSkills: readonly CodexDirectiveSkillTemplateOptions[] = [
     directive: "$pause",
     title: "LouisGo Pause",
     chineseTitle: "Pause",
-    shortDescription: "LouisGo pause: legacy flow that writes QUICK_SAVE.md",
+    shortDescription: "LouisGo pause: write a private task checkpoint",
     description:
-      "Writes a LouisGo Quick Save checkpoint. Use when the user enters $pause in Codex.",
+      "Writes a LouisGo private task checkpoint. Use when the user enters $pause in Codex.",
     action:
-      "- Run `louisgo pause`.\n- Report where `QUICK_SAVE.md` was written and remind the user that it is a short-term recovery point.",
+      "- Run `louisgo pause`.\n- Report the private checkpoint path, task id, and next resume command.",
   },
   {
     name: "resume",
     directive: "$resume",
     title: "LouisGo Resume",
     chineseTitle: "Resume",
-    shortDescription: "LouisGo resume: legacy flow that prefers HANDOFF and STATE",
+    shortDescription: "LouisGo resume: restore a private task checkpoint",
     description:
-      "Resumes from LouisGo handoff/status protocol. Use when the user enters $resume in Codex.",
+      "Resumes from LouisGo private task state. Use when the user enters $resume in Codex.",
     action:
-      "- Run `louisgo context`.\n- Prefer `HANDOFF.md` content in the context package for formal recovery when present.\n- Otherwise use `STATE.md` and report the current roadmap task and available recovery source.",
+      "- Run `louisgo resume`.\n- If resume is blocked, report the repository-state mismatch and recovery options.",
   },
   {
     name: "finish",
     directive: "$finish",
     title: "LouisGo Finish",
     chineseTitle: "Finish",
-    shortDescription: "LouisGo finish: update formal HANDOFF.md and current state",
-    description: "Generates a LouisGo handoff snapshot. Use when the user enters $finish in Codex.",
-    action:
-      "- Run `louisgo finish`.\n- Report the `HANDOFF.md` path, verification status, cleanup result, and first next action for the next session.",
-  },
-  {
-    name: "handoff-promote",
-    directive: "$handoff-promote",
-    title: "LouisGo Handoff Promote",
-    chineseTitle: "Promote Handoff",
-    shortDescription: "LouisGo handoff: legacy flow that promotes HANDOFF_DRAFT.md to HANDOFF.md",
+    shortDescription: "LouisGo finish: write a private task phase summary",
     description:
-      "Promotes the LouisGo handoff draft to a formal handoff. Use when the user enters $handoff-promote in Codex.",
+      "Generates a LouisGo private phase summary. Use when the user enters $finish in Codex.",
     action:
-      "- Run `louisgo handoff promote`.\n- Report `HANDOFF.md`, verification status, and recovery implication.",
+      "- Run `louisgo finish`.\n- Report the private finish summary path, verification status, and first next action for the next session.",
   },
 ];
 

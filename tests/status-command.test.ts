@@ -25,7 +25,8 @@ describe("status 命令", () => {
 
     expect(stdout.text).toContain("[assist/idle] complete, current task none");
     expect(stdout.text).toContain("verification status missing");
-    expect(stdout.text).toContain("recovery source STATE");
+    expect(stdout.text).toContain("recovery source none");
+    expect(stdout.text).toContain("Private store: no active task");
     expect(stdout.text).toContain("Workspace:");
     expect(stdout.text).not.toContain("Issues to fix");
     expect(initResult.workspaceRoot.length).toBeGreaterThan(0);

@@ -18,15 +18,16 @@ describe("run log service", () => {
 
     await appendRunLogEvent({
       cwd: repo.path,
+      louisgoHome: repo.louisgoHome,
       command: "context",
       outcome: "success",
       note: "budget=1500",
       now,
     });
 
-    const log = await readRunLog({ cwd: repo.path });
+    const log = await readRunLog({ cwd: repo.path, louisgoHome: repo.louisgoHome });
 
-    expect(log?.relativePath).toBe(".louisgo/RUNLOG.md");
+    expect(log?.relativePath).toBe("~/.louisgo/projects/<project>/RUNLOG.md");
     expect(log?.content).toContain("### 2026-05-01T12:00:00.000Z context");
     expect(log?.content).toContain("- outcome: success");
     expect(log?.content).toContain("- note:");
@@ -36,27 +37,40 @@ describe("run log service", () => {
   it("支持只读取最近 N 条事件", async () => {
     await using repo = await createInitializedRepo();
 
-    await appendRunLogEvent({ cwd: repo.path, command: "init", outcome: "success", now });
-    await appendRunLogEvent({ cwd: repo.path, command: "finish", outcome: "success", now });
+    await appendRunLogEvent({
+      cwd: repo.path,
+      louisgoHome: repo.louisgoHome,
+      command: "init",
+      outcome: "success",
+      now,
+    });
+    await appendRunLogEvent({
+      cwd: repo.path,
+      louisgoHome: repo.louisgoHome,
+      command: "finish",
+      outcome: "success",
+      now,
+    });
 
-    const log = await readRunLog({ cwd: repo.path, tailEvents: 1 });
+    const log = await readRunLog({ cwd: repo.path, louisgoHome: repo.louisgoHome, tailEvents: 1 });
 
     expect(log?.eventCount).toBe(1);
     expect(log?.content).toContain("finish");
     expect(log?.content).not.toContain(" init");
   });
 
-  it("does not recreate .louisgo only to write a diagnostic event", async () => {
+  it("writes diagnostics to the private store without recreating .louisgo", async () => {
     await using repo = await createGitRepo("louisgo-runlog-missing-");
 
     await expect(
       appendRunLogEvent({
         cwd: repo.path,
+        louisgoHome: repo.louisgoHome,
         command: "status",
         outcome: "failure",
         now,
       }),
-    ).rejects.toThrow("LouisGo protocol directory is missing");
+    ).resolves.toMatchObject({ relativePath: "~/.louisgo/projects/<project>/RUNLOG.md" });
     await expect(access(join(repo.path, ".louisgo"))).rejects.toMatchObject({
       code: "ENOENT",
     });
@@ -65,6 +79,7 @@ describe("run log service", () => {
 
 interface TempRepo extends AsyncDisposable {
   readonly path: string;
+  readonly louisgoHome: string;
 }
 
 async function createInitializedRepo(): Promise<TempRepo> {
@@ -77,12 +92,15 @@ async function createInitializedRepo(): Promise<TempRepo> {
 
 async function createGitRepo(prefix: string): Promise<TempRepo> {
   const path = await mkdtemp(join(tmpdir(), prefix));
+  const louisgoHome = await mkdtemp(join(tmpdir(), "louisgo-home-"));
   await execFileAsync("git", ["init"], { cwd: path });
 
   return {
     path,
+    louisgoHome,
     async [Symbol.asyncDispose]() {
       await rm(path, { force: true, recursive: true });
+      await rm(louisgoHome, { force: true, recursive: true });
     },
   };
 }

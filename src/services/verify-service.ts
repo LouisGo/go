@@ -5,9 +5,14 @@ import {
   type RunVerificationOptions,
   type VerificationScriptSelection,
 } from "../verify/runner.js";
+import { writeTaskVerification } from "../store/task-store.js";
 
 export type VerificationFreshnessState = "fresh" | "stale";
-export type VerifyServiceOptions = RunVerificationOptions;
+export interface VerifyServiceOptions extends RunVerificationOptions {
+  readonly taskId?: string;
+  readonly louisgoHome?: string;
+  readonly now?: () => Date;
+}
 
 export interface VerifyServiceResult {
   readonly workspaceRoot: string;
@@ -38,6 +43,14 @@ export async function verifyLouisGo(
     freshness === "fresh" && testResults.status === "passed" && runResult.exitCode === 0
       ? 0
       : normalizeNonZeroExitCode(runResult.exitCode);
+
+  await writeTaskVerification({
+    cwd: runResult.workspaceRoot,
+    ...(options.env === undefined ? {} : { env: options.env }),
+    ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
+    ...(options.taskId === undefined ? {} : { taskId: options.taskId }),
+    testResults,
+  }).catch(() => undefined);
 
   return {
     workspaceRoot: runResult.workspaceRoot,

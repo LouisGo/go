@@ -51,8 +51,7 @@ export async function clearLouisGo(options: ClearLouisGoOptions = {}): Promise<C
       targets: [
         {
           relativePath: protocolRelativePaths.louisgoDir,
-          description:
-            "LouisGo protocol, memory, handoffs, verification results, diagnostics, stats, and cache directories",
+          description: "LouisGo project anchor, verification results, and local skill metadata",
           status: louisgoExists ? clearTargetStatuses.planned : clearTargetStatuses.missing,
         },
         ...agentRemovals.map((removal) => ({
@@ -81,15 +80,13 @@ export async function clearLouisGo(options: ClearLouisGoOptions = {}): Promise<C
     await rm(paths.louisgoDir, { force: true, recursive: true });
     targets.push({
       relativePath: protocolRelativePaths.louisgoDir,
-      description:
-        "LouisGo protocol, memory, handoffs, verification results, diagnostics, stats, and cache directories",
+      description: "LouisGo project anchor, verification results, and local skill metadata",
       status: clearTargetStatuses.deleted,
     });
   } else {
     targets.push({
       relativePath: protocolRelativePaths.louisgoDir,
-      description:
-        "LouisGo protocol, memory, handoffs, verification results, diagnostics, stats, and cache directories",
+      description: "LouisGo project anchor, verification results, and local skill metadata",
       status: clearTargetStatuses.missing,
     });
   }

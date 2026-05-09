@@ -75,7 +75,7 @@ function writeRiskWarning(stdout: Writable): void {
 
   stdout.write(`${headline(theme, "⚠️", "Dangerous operation")}\n`);
   stdout.write(
-    `  ${theme.warning("Deletes")} ${theme.path(".louisgo/")} including project memory, handoffs, verification results, diagnostics, stats, and local caches.\n`,
+    `  ${theme.warning("Deletes")} ${theme.path(".louisgo/")} including the project anchor and legacy protocol files. Private task state under the user store is not removed.\n`,
   );
   stdout.write(
     `  ${theme.warning("Removes")} the LouisGo-managed Codex block from project agent instruction files.\n`,

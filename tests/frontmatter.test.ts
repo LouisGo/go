@@ -75,7 +75,7 @@ describe("Markdown Front Matter 读写", () => {
     await writeFile(
       filePath,
       `---
-schema: louisgo-quick-save-v1
+schema: louisgo-context-v1
 ---
 
 # Mission

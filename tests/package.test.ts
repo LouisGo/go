@@ -18,7 +18,7 @@ describe("npm 包配置", () => {
       expect.arrayContaining(["dist", "README.md", "docs", "LICENSE"]),
     );
     expect(packageJson.keywords).toEqual(
-      expect.arrayContaining(["ai", "cli", "harness", "handoff", "verification"]),
+      expect.arrayContaining(["ai", "cli", "harness", "continuity", "verification"]),
     );
     expect(packageJson.scripts).toMatchObject({
       build: "tsup",

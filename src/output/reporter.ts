@@ -7,7 +7,7 @@ export function formatStatusReport(status: ProtocolStatus, stdout?: Writable): s
   const theme = createOutputTheme(stdout);
   const mode = status.mode ?? "unknown";
   const completeness = status.complete ? "complete" : "incomplete";
-  const currentTask = status.currentTask?.id ?? "none";
+  const currentTask = status.currentTask?.task_id ?? "none";
   const phaseLabel = formatPhaseLabel(status.phase);
   const lines = [
     `${headline(
@@ -20,6 +20,21 @@ export function formatStatusReport(status: ProtocolStatus, stdout?: Writable): s
   ];
 
   lines.push(formatWorkspaceLine(status, theme));
+  lines.push(
+    field(
+      theme,
+      "Private store",
+      status.privateStore.path === null
+        ? "no active task"
+        : `${theme.path(status.privateStore.path)} (${status.privateStore.projectKey})`,
+    ),
+  );
+
+  if (status.privateTasks.length > 1) {
+    lines.push(
+      `${theme.warning("Multiple private tasks")}: use ${theme.command("--task <id>")} to select explicitly.`,
+    );
+  }
 
   if (status.hasConfirmReq) {
     lines.push(
@@ -72,16 +87,16 @@ function formatWorkspaceLine(status: ProtocolStatus, theme = createOutputTheme()
 
 function formatWorkspaceNextStep(status: ProtocolStatus, theme = createOutputTheme()): string {
   if (status.verificationStatus === "passed") {
-    if (status.recoverySource === "handoff") {
+    if (status.recoverySource === "task") {
       return tip(
         theme,
-        "HANDOFF is up to date. Commit or sync the current diff, then continue in a new session.",
+        "Private task state is up to date. Commit or sync the current diff through normal Git workflow when ready.",
       );
     }
 
     return tip(
       theme,
-      `If these diffs are the current result, run ${theme.command("$finish")} to finalize the handoff. Handle the Git diff according to project policy before committing.`,
+      `If these diffs are the current result, run ${theme.command("louisgo finish")} to write a private phase summary. Handle the Git diff according to project policy before committing.`,
     );
   }
 
@@ -94,18 +109,14 @@ function formatWorkspaceNextStep(status: ProtocolStatus, theme = createOutputThe
 
   return tip(
     theme,
-    `Finish the current changes, run ${theme.command("louisgo verify")}, then use ${theme.command("$finish")} to finalize the handoff.`,
+    `Finish the current changes, run ${theme.command("louisgo verify")}, then use ${theme.command("louisgo finish")} to write a private phase summary.`,
   );
 }
 
 function formatRecoverySource(source: RecoverySource): string {
   switch (source) {
-    case "handoff":
-      return "HANDOFF";
-    case "state":
-      return "STATE";
-    case "quick_save":
-      return "QUICK_SAVE";
+    case "task":
+      return "PRIVATE_TASK";
     case "none":
       return "none";
   }

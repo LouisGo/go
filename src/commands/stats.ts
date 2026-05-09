@@ -46,6 +46,8 @@ export function registerStatsCommand(
         ...(commandOptions.days === undefined ? {} : { days: commandOptions.days }),
         ...(commandOptions.source === undefined ? {} : { source: commandOptions.source }),
         ...(options.now === undefined ? {} : { now: options.now }),
+        ...(options.env === undefined ? {} : { env: options.env }),
+        ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
       });
 
       if (commandOptions.json === true) {
@@ -78,6 +80,8 @@ export function registerStatsCommand(
         ...(commandOptions.days === undefined ? {} : { days: commandOptions.days }),
         ...(commandOptions.dryRun === undefined ? {} : { dryRun: commandOptions.dryRun }),
         ...(options.now === undefined ? {} : { now: options.now }),
+        ...(options.env === undefined ? {} : { env: options.env }),
+        ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
       });
 
       stdout.write(formatCodexImportResult(result, stdout));

@@ -13,19 +13,21 @@ updated_at: "${options.updatedAt}"
 ## Daily Loop
 
 - Setup once: \`louisgo init\`
-- Restore at task boundaries: \`$start\` or \`louisgo context --goal "<task>"\`
-- Reuse the last context while the task and workspace state stay stable.
-- Finish a phase: \`$finish\` or \`louisgo finish\`
+- Check current context: \`louisgo context --goal "<task>"\`
+- Pause private task state: \`louisgo pause --message "<what changed>"\`
+- Resume in a new session: \`louisgo resume\`
+- Finish a phase: \`louisgo finish\`
 
 ## Verify
 
 - Run verification: \`louisgo verify\`
 - Default init does not copy verify scripts into the project.
-- Result: \`.louisgo/test-results.json\`
+- Result: verification facts are attached to the active private task; legacy \`.louisgo/test-results.json\` may exist for compatibility.
 
 ## Context
 
 - Start/recover: \`louisgo context\`
+- Resume task: \`louisgo resume\`
 - Observe token/context stats: \`louisgo stats\`
 - Import Codex usage explicitly: \`louisgo stats import codex --days 7\`
 - List optional preset skills: \`louisgo skill list\`
@@ -35,14 +37,14 @@ updated_at: "${options.updatedAt}"
 - Claude support is reserved for a future manifest/agent adapter.
 - Pending decision UI: \`louisgo confirm\`
 - Finish: \`louisgo finish\`
-- Clear project-local LouisGo data with an interactive risk prompt: \`louisgo clear\`
+- Clear project-local LouisGo anchor data with an interactive risk prompt: \`louisgo clear\`
 - Pending decision: \`.louisgo/CONFIRM_REQ.md\`
 
 ## AI Contract
 
 - User prompt is the task source; LouisGo files only provide context.
 - Source, Git status, and verification results override memory.
-- Write only durable facts to \`STATE.md\` or \`MEMORY.md\`; avoid chat logs.
+- Keep private task state in the user-private LouisGo store; avoid chat logs.
 
 ## ADR Guidance
 

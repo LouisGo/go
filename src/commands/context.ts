@@ -28,6 +28,7 @@ export function registerContextCommand(
     .description("📚 Generate a LouisGo prompt context package")
     .option("--budget <tokens>", "Context budget in estimated tokens", parseBudget)
     .option("--goal <text>", "Current goal for the context package or subagent capsule")
+    .option("--task <id>", "Private task id to use instead of the active task")
     .option("--capsule", "Generate a subagent context capsule with title and constraints")
     .action(async (commandOptions: ContextCommandOptions) => {
       const stdout = options.stdout ?? process.stdout;
@@ -43,6 +44,7 @@ export function registerContextCommand(
           ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
           ...(commandOptions.budget === undefined ? {} : { budgetTokens: commandOptions.budget }),
           ...(commandOptions.goal === undefined ? {} : { goal: commandOptions.goal }),
+          ...(commandOptions.task === undefined ? {} : { taskId: commandOptions.task }),
           ...(commandOptions.capsule === undefined ? {} : { capsule: commandOptions.capsule }),
         });
 
@@ -50,6 +52,8 @@ export function registerContextCommand(
         stdout.write("\n");
         await appendStatsEvents({
           cwd: result.workspaceRoot,
+          ...(options.env === undefined ? {} : { env: options.env }),
+          ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
           events: [
             createContextStatsEvent({
               timestamp: (options.now?.() ?? new Date()).toISOString(),
@@ -96,6 +100,7 @@ export function registerContextCommand(
 interface ContextCommandOptions {
   readonly budget?: number;
   readonly goal?: string;
+  readonly task?: string;
   readonly capsule?: boolean;
 }
 

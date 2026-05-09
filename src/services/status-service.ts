@@ -1,4 +1,4 @@
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, stat } from "node:fs/promises";
 import { basename, relative } from "node:path";
 import type { ZodType } from "zod";
 
@@ -11,31 +11,30 @@ import {
   type ProtocolPaths,
   verificationIgnoredRelativePaths,
 } from "../protocol/paths.js";
-import { parseRoadmap, RoadmapParseError, type RoadmapTask } from "../protocol/roadmap.js";
 import {
   capabilitiesFrontMatterSchema,
   confirmReqFrontMatterSchema,
-  handoffFrontMatterSchema,
-  memoryFrontMatterSchema,
   missionFrontMatterSchema,
-  quickSaveFrontMatterSchema,
-  stateFrontMatterSchema,
   type LouisGoMode,
   type VerificationStatus,
-  type WorkPhase,
 } from "../protocol/schemas.js";
 import { TestResultsError, testResultsErrorCodes } from "../protocol/test-results.js";
+import {
+  listTaskMetas,
+  readCurrentTask as readPrivateCurrentTask,
+  type TaskMeta,
+} from "../store/task-store.js";
+import type { PrivateStoreOptions } from "../store/private-paths.js";
 import { checkVerificationFreshness } from "../verify/freshness.js";
 
 export const protocolIssueCodes = {
   missingPath: "MISSING_PATH",
   frontMatterInvalid: "FRONT_MATTER_INVALID",
-  roadmapInvalid: "ROADMAP_INVALID",
   testResultsInvalid: "TEST_RESULTS_INVALID",
 } as const;
 
 export type ProtocolIssueCode = (typeof protocolIssueCodes)[keyof typeof protocolIssueCodes];
-export type RecoverySource = "handoff" | "state" | "quick_save" | "none";
+export type RecoverySource = "task" | "none";
 export type StatusVerificationState = VerificationStatus | "unchecked";
 
 export interface ProtocolIssue {
@@ -50,8 +49,13 @@ export interface ProtocolStatus {
   readonly complete: boolean;
   readonly issues: readonly ProtocolIssue[];
   readonly mode: LouisGoMode | null;
-  readonly phase: WorkPhase;
-  readonly currentTask: RoadmapTask | null;
+  readonly phase: "idle";
+  readonly currentTask: TaskMeta | null;
+  readonly privateTasks: readonly TaskMeta[];
+  readonly privateStore: {
+    readonly projectKey: string | null;
+    readonly path: string | null;
+  };
   readonly recoverySource: RecoverySource;
   readonly verificationStatus: StatusVerificationState;
   readonly hasConfirmReq: boolean;
@@ -66,9 +70,7 @@ export interface WorkspaceSummary {
   readonly samplePaths: readonly string[];
 }
 
-export interface StatusServiceOptions {
-  readonly cwd?: string;
-}
+export interface StatusServiceOptions extends PrivateStoreOptions {}
 
 interface RequiredPath {
   readonly filePath: string;
@@ -85,11 +87,14 @@ export async function checkProtocolStatus(
   await checkRequiredPaths(paths, issues);
 
   const mode = await readMissionMode(paths, issues);
-  const phase = await readWorkPhase(paths, issues);
-  const currentTask = await readCurrentTask(paths, issues);
+  const phase = "idle" as const;
+  const privateTask = await readPrivateCurrentTask(options);
+  const privateTasks = await listTaskMetas(options);
+  const currentTask = privateTask?.meta ?? null;
   await validateOptionalFrontMatter(paths, issues);
-  const recoverySource = await detectRecoverySource(paths);
-  const verificationStatus = await readVerificationStatus(paths, issues);
+  const recoverySource = privateTask === null ? "none" : "task";
+  const verificationStatus =
+    privateTask?.verification?.status ?? (await readVerificationStatus(paths, issues));
   const hasConfirmReq = await pathExists(paths.confirmReq);
   const adrDrafts = await listAdrDrafts(paths);
   const workspace = await readWorkspaceSummary(workspaceRoot);
@@ -101,6 +106,14 @@ export async function checkProtocolStatus(
     mode,
     phase,
     currentTask,
+    privateTasks,
+    privateStore:
+      privateTask === null
+        ? { projectKey: null, path: null }
+        : {
+            projectKey: privateTask.projectPaths.projectKey,
+            path: privateTask.projectPaths.projectDir,
+          },
     recoverySource,
     verificationStatus,
     hasConfirmReq,
@@ -113,7 +126,6 @@ async function checkRequiredPaths(paths: ProtocolPaths, issues: ProtocolIssue[])
   const requiredPaths: readonly RequiredPath[] = [
     { filePath: paths.louisgoDir, kind: "directory" },
     { filePath: paths.mission, kind: "file" },
-    { filePath: paths.state, kind: "file" },
     { filePath: paths.capabilities, kind: "file" },
   ];
 
@@ -163,41 +175,6 @@ async function readMissionMode(
   }
 }
 
-async function readWorkPhase(paths: ProtocolPaths, issues: ProtocolIssue[]): Promise<WorkPhase> {
-  if (!(await pathExists(paths.state))) {
-    return "idle";
-  }
-
-  try {
-    const document = await readFrontMatter(paths.state, stateFrontMatterSchema);
-    return document.frontMatter.phase ?? "idle";
-  } catch (error) {
-    issues.push(createFrontMatterIssue(paths, paths.state, error));
-    return "idle";
-  }
-}
-
-async function readCurrentTask(
-  paths: ProtocolPaths,
-  issues: ProtocolIssue[],
-): Promise<RoadmapTask | null> {
-  if (!(await pathExists(paths.roadmap))) {
-    return null;
-  }
-
-  try {
-    const roadmap = parseRoadmap(await readFile(paths.roadmap, "utf8"));
-    return roadmap.firstIncompleteTask;
-  } catch (error) {
-    const message =
-      error instanceof RoadmapParseError
-        ? error.issues.map((issue) => issue.message).join("；")
-        : "ROADMAP.md parse failed";
-    issues.push(createIssue(paths, protocolIssueCodes.roadmapInvalid, paths.roadmap, message));
-    return null;
-  }
-}
-
 async function validateOptionalFrontMatter(
   paths: ProtocolPaths,
   issues: ProtocolIssue[],
@@ -205,11 +182,7 @@ async function validateOptionalFrontMatter(
   const optionalFiles: readonly { readonly filePath: string; readonly schema: ZodType<unknown> }[] =
     [
       { filePath: paths.capabilities, schema: capabilitiesFrontMatterSchema },
-      { filePath: paths.quickSave, schema: quickSaveFrontMatterSchema },
-      { filePath: paths.handoff, schema: handoffFrontMatterSchema },
       { filePath: paths.confirmReq, schema: confirmReqFrontMatterSchema },
-      { filePath: paths.state, schema: stateFrontMatterSchema },
-      { filePath: paths.memory, schema: memoryFrontMatterSchema },
     ] as const;
 
   for (const file of optionalFiles) {
@@ -223,22 +196,6 @@ async function validateOptionalFrontMatter(
       issues.push(createFrontMatterIssue(paths, file.filePath, error));
     }
   }
-}
-
-async function detectRecoverySource(paths: ProtocolPaths): Promise<RecoverySource> {
-  if ((await statIfExists(paths.handoff)) !== null) {
-    return "handoff";
-  }
-
-  if ((await statIfExists(paths.state)) !== null) {
-    return "state";
-  }
-
-  if ((await statIfExists(paths.quickSave)) !== null) {
-    return "quick_save";
-  }
-
-  return "none";
 }
 
 async function listAdrDrafts(paths: ProtocolPaths): Promise<string[]> {

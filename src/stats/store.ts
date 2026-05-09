@@ -1,14 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-import { findGitRoot } from "../fs/workspace.js";
 import { isNodeError, pathExists } from "../internal/utils.js";
-import { createProtocolPaths } from "../protocol/paths.js";
+import { resolvePrivateProjectPaths, type PrivateStoreOptions } from "../store/private-paths.js";
 import { statsEventSchema, type StatsEvent } from "./events.js";
 
-export interface StatsStoreOptions {
-  readonly cwd?: string;
-}
+export interface StatsStoreOptions extends PrivateStoreOptions {}
 
 export interface AppendStatsEventsOptions extends StatsStoreOptions {
   readonly events: readonly StatsEvent[];
@@ -35,11 +32,9 @@ export interface StatsImportIndex {
 export async function appendStatsEvents(
   options: AppendStatsEventsOptions,
 ): Promise<AppendStatsEventsResult> {
-  const workspaceRoot = await findGitRoot(options.cwd);
-  const paths = createProtocolPaths(workspaceRoot);
-  const existingIds = new Set(
-    (await readStatsEvents({ cwd: workspaceRoot })).map((event) => event.id),
-  );
+  const paths = await resolvePrivateProjectPaths(options);
+  const workspaceRoot = paths.workspaceRoot;
+  const existingIds = new Set((await readStatsEvents(options)).map((event) => event.id));
   const nextEvents = options.events.filter((event) => !existingIds.has(event.id));
 
   if (nextEvents.length > 0) {
@@ -60,8 +55,7 @@ export async function appendStatsEvents(
 export async function readStatsEvents(
   options: StatsStoreOptions = {},
 ): Promise<readonly StatsEvent[]> {
-  const workspaceRoot = await findGitRoot(options.cwd);
-  const paths = createProtocolPaths(workspaceRoot);
+  const paths = await resolvePrivateProjectPaths(options);
   const content = await readFileIfExists(paths.statsEvents);
 
   if (content.length === 0) {
@@ -88,8 +82,7 @@ export async function readStatsEvents(
 export async function readStatsImportIndex(
   options: StatsStoreOptions = {},
 ): Promise<StatsImportIndex> {
-  const workspaceRoot = await findGitRoot(options.cwd);
-  const paths = createProtocolPaths(workspaceRoot);
+  const paths = await resolvePrivateProjectPaths(options);
   const content = await readFileIfExists(paths.statsImports);
 
   if (content.length === 0) {
@@ -110,8 +103,7 @@ export async function readStatsImportIndex(
 export async function writeStatsImportIndex(
   options: StatsStoreOptions & { readonly index: StatsImportIndex },
 ): Promise<void> {
-  const workspaceRoot = await findGitRoot(options.cwd);
-  const paths = createProtocolPaths(workspaceRoot);
+  const paths = await resolvePrivateProjectPaths(options);
   await mkdir(dirname(paths.statsImports), { recursive: true });
   await writeFile(paths.statsImports, `${JSON.stringify(options.index, null, 2)}\n`, "utf8");
 }

@@ -6,7 +6,7 @@ LouisGo is a task-continuity layer for AI coding work.
 
 It helps a developer continue a long-running coding task across context
 windows, Codex threads, devices, and bounded subagents without hand-maintaining
-large prompt documents.
+large transfer documents.
 
 LouisGo is not a team memory database, chat transcript archive, vector store, or
 agent swarm. It compiles the smallest useful context for the next AI action.
@@ -18,9 +18,9 @@ AI coding breaks down when a task is larger than one conversation:
 - The context window fills before the task is complete.
 - The developer must open a new thread and re-explain the task.
 - Work may need to continue on another device.
-- Large refactors need focused subtask handoffs, but one main model often owns
+- Large refactors need focused subtask context, but one main model often owns
   the whole task.
-- Manually maintained Markdown handoff files become noisy, stale, and expensive
+- Manually maintained Markdown transfer files become noisy, stale, and expensive
   to inject into prompts.
 
 The product must solve this specific problem first:
@@ -56,9 +56,8 @@ committed to the team repo.
 
 A project can have multiple active users, threads, tasks, and devices.
 
-LouisGo must not assume a single global project state such as one
-`STATE.md`/`HANDOFF.md` for the whole repository. The primary durable object is
-an active task.
+LouisGo must not assume a single global project state for the whole repository.
+The primary durable object is an active task.
 
 Minimum task state:
 
@@ -291,8 +290,8 @@ Project-level verification discovery can remain a project anchor.
 louisgo finish
 ```
 
-`finish` marks a task phase as complete. It creates a formal summary suitable
-for commit prep, PR description, or final handoff.
+`finish` marks a task phase as complete. It creates a private summary suitable
+for commit prep, PR description, or next-session prep.
 
 `finish` is not the primary recovery mechanism. Frequent continuity should be
 handled by `pause` and `resume`.
@@ -337,30 +336,37 @@ The principle is required now:
 The first implementation may simply avoid publishing entirely. A later command
 surface can add explicit promotion once private task continuity is working.
 
-## Multi-Agent Boundary
+## Subagent Boundary
 
-LouisGo should support bounded delegation before attempting automatic
-orchestration.
+Codex provides native subagent capabilities in the app and CLI. LouisGo should
+not duplicate Codex's spawn, routing, waiting, closing, permission, sandbox, or
+approval behavior.
 
 MVP:
 
-- Generate focused subtask capsules.
-- Include goal, files in scope, files out of scope, expected output, and
-  verification method.
-- Track returned summaries in the active task state.
+- Do not implement a LouisGo-owned subagent scheduler.
+- Keep the task model flexible enough to reference optional subtask capsules and
+  returned summaries later.
+- Keep `context --capsule --goal "<task>"` as a narrow context renderer that can
+  be handed to Codex-native subagents.
 
 Later:
 
-- Maintain an agent task queue.
-- Assign ownership boundaries.
-- Add verifier tasks.
-- Merge subagent results into checkpoints.
+- Add an adapter that formats LouisGo task capsules for Codex-native subagents.
+- Store returned summaries in the active private task when the user explicitly
+  asks to preserve them.
 
 Out of scope for now:
 
 - Fully autonomous agent scheduling.
 - Background worker pools.
 - Unbounded multi-agent conversations.
+- Reimplementing Codex-native subagent orchestration.
+
+Reference:
+
+- https://developers.openai.com/codex/subagents
+- https://developers.openai.com/codex/concepts/subagents
 
 ## What To Keep From The Current Project
 
@@ -391,9 +397,7 @@ must not drive the task-continuity refactor.
 What should be reframed:
 
 - `.louisgo/` should not mean "tracked project memory" by default.
-- `STATE.md` and `HANDOFF.md` should not be singletons for the whole project.
 - `finish` should not carry the full continuity burden.
-- `MEMORY.md` should not become a chat-log substitute.
 - `context` should compile task-relevant state, not expand protocol files.
 
 ## MVP Definition
@@ -437,7 +441,7 @@ A refactor should be judged against user outcomes, not protocol completeness:
 - Can another device continue using only private sync/export and the project
   repo?
 - Does `git status` avoid unrelated LouisGo noise in a team repo?
-- Is the resume context smaller than a manual handoff document?
+- Is the resume context smaller than a manually maintained transfer document?
 - Does the AI know what to do first after resume?
 - Does the AI know what not to touch?
 - Are verification gaps explicit?

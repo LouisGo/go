@@ -2,11 +2,9 @@ import type { Command } from "commander";
 import type { Writable } from "node:stream";
 
 import {
-  finishCleanupStatuses,
   finishLouisGo,
   FinishServiceError,
   finishServiceErrorCodes,
-  type FinishCleanupStatus,
   type FinishServiceOptions,
   type FinishServiceResult,
 } from "../services/finish-service.js";
@@ -25,7 +23,7 @@ export function registerFinishCommand(
 ): void {
   program
     .command("finish")
-    .description("🏁 Generate a LouisGo handoff")
+    .description("🏁 Finish the active private LouisGo task phase")
     .allowExcessArguments(false)
     .action(async () => {
       const stdout = options.stdout ?? process.stdout;
@@ -43,7 +41,7 @@ export function registerFinishCommand(
           cwd: result.workspaceRoot,
           command: "finish",
           outcome: "success",
-          note: `task=${result.frontMatter.taskId}; verification=${result.verification}; confirm_cleanup=${result.confirmReqCleanup}; quick_save_cleanup=${result.quickSaveCleanup}`,
+          note: `task=${result.task.meta.task_id}; verification=${result.verification}`,
         }).catch(() => undefined);
         setExitCode(0);
       } catch (error) {
@@ -79,29 +77,18 @@ function formatFinishReport(result: FinishServiceResult, stdout?: Writable): str
   const theme = createOutputTheme(stdout);
   return (
     [
-      headline(theme, "🏁", "LouisGo handoff updated", result.filePath),
-      field(theme, "Current task", result.frontMatter.taskId),
+      headline(theme, "🏁", "LouisGo private finish updated", result.filePath),
+      field(theme, "Current task", result.task.meta.task_id),
       field(theme, "Verification status", statusToken(theme, result.verification)),
-      field(theme, "Confirm Request", formatCleanup(result.confirmReqCleanup, theme)),
-      field(theme, "Quick Save", formatCleanup(result.quickSaveCleanup, theme)),
       field(
         theme,
-        "STATE.md",
-        `${statusToken(theme, "updated")} (${theme.path(result.statePath)})`,
+        "Task state",
+        `${statusToken(theme, "updated")} (${theme.path(result.task.taskPaths.state)})`,
       ),
       tip(
         theme,
-        `New sessions should prefer HANDOFF.md. Run ${theme.command("louisgo verify")} again after further changes.`,
+        `Task phase finished in the private store. Run ${theme.command("louisgo verify")} again after further changes.`,
       ),
     ].join("\n") + "\n"
   );
-}
-
-function formatCleanup(status: FinishCleanupStatus, theme = createOutputTheme()): string {
-  switch (status) {
-    case finishCleanupStatuses.cleaned:
-      return statusToken(theme, "promoted and cleaned");
-    case finishCleanupStatuses.absent:
-      return statusToken(theme, "absent");
-  }
 }

@@ -110,7 +110,7 @@ export function serializeConfirmReqFrontMatter(
 export function createConfirmReqBody(taskId?: string | null): string {
   const taskLine =
     taskId === undefined || taskId === null
-      ? `The current ROADMAP has no available task; task_id uses ${missingTaskId} as a placeholder.`
+      ? `No active task id was provided; task_id uses ${missingTaskId} as a placeholder.`
       : `Current task: ${taskId}`;
 
   return `# Confirm Request

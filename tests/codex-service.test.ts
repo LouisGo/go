@@ -17,7 +17,7 @@ describe("Codex 集成安装", () => {
 
     const result = await setupCodex({ cwd: repo.path, codexHome: codex.path });
 
-    expect(result.files).toHaveLength(22);
+    expect(result.files).toHaveLength(20);
     await expect(
       readFile(join(codex.path, "skills", "init", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo init");
@@ -48,9 +48,6 @@ describe("Codex 集成安装", () => {
     await expect(
       readFile(join(codex.path, "skills", "finish", "SKILL.md"), "utf8"),
     ).resolves.toContain("louisgo finish");
-    await expect(
-      readFile(join(codex.path, "skills", "handoff-promote", "SKILL.md"), "utf8"),
-    ).resolves.toContain("louisgo handoff promote");
     for (const skill of [
       "init",
       "start",
@@ -60,7 +57,6 @@ describe("Codex 集成安装", () => {
       "pause",
       "resume",
       "finish",
-      "handoff-promote",
     ]) {
       const openAiYaml = await readFile(
         join(codex.path, "skills", skill, "agents", "openai.yaml"),
@@ -73,13 +69,16 @@ describe("Codex 集成安装", () => {
     ).resolves.toContain("LouisGo Workflow");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
-    ).resolves.toContain("Restores project context from .louisgo/");
+    ).resolves.toContain("Restores LouisGo private task context");
+    await expect(
+      readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
+    ).resolves.not.toContain("$handoff-promote");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "SKILL.md"), "utf8"),
     ).resolves.toContain(".louisgo/skills/manifest.json");
     await expect(
       readFile(join(codex.path, "skills", "louisgo", "agents", "openai.yaml"), "utf8"),
-    ).resolves.toContain("read .louisgo memory");
+    ).resolves.toContain("recover private task context");
     await expect(readFile(join(codex.path, "AGENTS.md"), "utf8")).resolves.toContain(
       "louisgo-codex:start",
     );

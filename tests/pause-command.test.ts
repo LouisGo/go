@@ -25,6 +25,7 @@ describe("pause 命令", () => {
       cwd: repo.path,
       stdout,
       stderr,
+      louisgoHome: repo.louisgoHome,
       now: () => new Date("2026-05-01T12:10:00.000Z"),
       setExitCode: (code) => {
         exitCode = code;
@@ -35,10 +36,10 @@ describe("pause 命令", () => {
 
     expect(exitCode).toBe(0);
     expect(stderr.text).toBe("");
-    expect(stdout.text).toContain("LouisGo quick save created");
-    expect(stdout.text).toContain("Current task: NO_TASK");
+    expect(stdout.text).toContain("LouisGo private checkpoint created");
+    expect(stdout.text).toContain("Current task: T001");
     expect(stdout.text).toContain(
-      "→ Run louisgo status to inspect protocol state before resuming.",
+      "→ Run louisgo resume to restore this private task in a new session.",
     );
   });
 
@@ -82,16 +83,20 @@ class MemoryWritable extends Writable {
 
 interface TempRepo extends AsyncDisposable {
   readonly path: string;
+  readonly louisgoHome: string;
 }
 
 async function createGitRepo(): Promise<TempRepo> {
   const path = await mkdtemp(join(tmpdir(), "louisgo-"));
+  const louisgoHome = await mkdtemp(join(tmpdir(), "louisgo-home-"));
   await execFileAsync("git", ["init"], { cwd: path });
 
   return {
     path,
+    louisgoHome,
     async [Symbol.asyncDispose]() {
       await rm(path, { force: true, recursive: true });
+      await rm(louisgoHome, { force: true, recursive: true });
     },
   };
 }

@@ -1,8 +1,4 @@
-import { pathExists } from "../internal/utils.js";
-
-import { createProtocolPaths } from "../protocol/paths.js";
-import { writeQuickSave } from "../protocol/quick-save.js";
-import type { QuickSaveFrontMatter } from "../protocol/schemas.js";
+import { pauseTask, readCurrentTask, type TaskSnapshot } from "../store/task-store.js";
 import {
   checkProtocolStatus,
   type ProtocolIssue,
@@ -24,13 +20,15 @@ export type PauseServiceErrorCode =
 
 export interface PauseServiceOptions extends StatusServiceOptions {
   readonly now?: () => Date;
+  readonly taskId?: string;
+  readonly message?: string;
 }
 
 export interface PauseServiceResult {
   readonly workspaceRoot: string;
   readonly filePath: string;
   readonly status: PauseResultStatus;
-  readonly frontMatter: QuickSaveFrontMatter;
+  readonly task: TaskSnapshot;
 }
 
 export class PauseServiceError extends Error {
@@ -62,19 +60,25 @@ export async function pauseLouisGo(options: PauseServiceOptions = {}): Promise<P
     });
   }
 
-  const paths = createProtocolPaths(protocolStatus.workspaceRoot);
-  const quickSaveExists = await pathExists(paths.quickSave);
-  const result = await writeQuickSave({
+  const existing = await readCurrentTask({
     cwd: protocolStatus.workspaceRoot,
-    mode: protocolStatus.mode,
-    taskId: protocolStatus.currentTask?.id ?? null,
+    ...(options.env === undefined ? {} : { env: options.env }),
+    ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
+    ...(options.taskId === undefined ? {} : { taskId: options.taskId }),
+  });
+  const task = await pauseTask({
+    cwd: protocolStatus.workspaceRoot,
+    ...(options.env === undefined ? {} : { env: options.env }),
+    ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
+    ...(options.taskId === undefined ? {} : { taskId: options.taskId }),
+    ...(options.message === undefined ? {} : { message: options.message }),
     ...(options.now === undefined ? {} : { now: options.now }),
   });
 
   return {
-    workspaceRoot: result.workspaceRoot,
-    filePath: result.filePath,
-    status: quickSaveExists ? pauseResultStatuses.updated : pauseResultStatuses.created,
-    frontMatter: result.frontMatter,
+    workspaceRoot: task.projectPaths.workspaceRoot,
+    filePath: task.taskPaths.latestCheckpoint,
+    status: existing === null ? pauseResultStatuses.created : pauseResultStatuses.updated,
+    task,
   };
 }
