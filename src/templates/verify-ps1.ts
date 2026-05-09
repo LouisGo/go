@@ -13,7 +13,6 @@ function Get-FileSha256([string]$Path) {
 
 $StartedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 $Command = ".louisgo/scripts/verify.ps1"
-$ResultPath = ".louisgo/test-results.json"
 $GitHead = (git rev-parse --verify HEAD 2>$null)
 if ($LASTEXITCODE -ne 0 -or -not $GitHead) {
   $GitHead = "NO_HEAD"
@@ -50,8 +49,6 @@ $ExitCode = 0
 $Status = "skipped"
 $Summary = "No project verification command configured; skipped"
 
-New-Item -ItemType Directory -Force -Path ".louisgo" | Out-Null
-
 $CompletedAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 $Result = [ordered]@{
   schema = "louisgo-test-results-v1"
@@ -65,7 +62,7 @@ $Result = [ordered]@{
   summary = $Summary
 }
 
-$Result | ConvertTo-Json | Set-Content -Encoding UTF8 -Path $ResultPath
+$Result | ConvertTo-Json -Compress | Write-Output
 exit $ExitCode
 `;
 }

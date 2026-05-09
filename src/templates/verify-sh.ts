@@ -45,29 +45,14 @@ create_diff_hash() {
 
 STARTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 COMMAND=".louisgo/scripts/verify.sh"
-RESULT_PATH=".louisgo/test-results.json"
 GIT_HEAD="$(git rev-parse --verify HEAD 2>/dev/null || printf "NO_HEAD")"
 DIFF_HASH="$(create_diff_hash)"
 STATUS="skipped"
 EXIT_CODE=0
 SUMMARY="No project verification command configured; skipped"
 
-mkdir -p ".louisgo"
-
 COMPLETED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-cat > "$RESULT_PATH" <<JSON
-{
-  "schema": "louisgo-test-results-v1",
-  "command": "$COMMAND",
-  "exit_code": $EXIT_CODE,
-  "status": "$STATUS",
-  "git_head": "$GIT_HEAD",
-  "diff_hash": "$DIFF_HASH",
-  "started_at": "$STARTED_AT",
-  "completed_at": "$COMPLETED_AT",
-  "summary": "$SUMMARY"
-}
-JSON
+printf '{"schema":"louisgo-test-results-v1","command":"%s","exit_code":%s,"status":"%s","git_head":"%s","diff_hash":"%s","started_at":"%s","completed_at":"%s","summary":"%s"}\\n' "$COMMAND" "$EXIT_CODE" "$STATUS" "$GIT_HEAD" "$DIFF_HASH" "$STARTED_AT" "$COMPLETED_AT" "$SUMMARY"
 
 exit "$EXIT_CODE"
 `;

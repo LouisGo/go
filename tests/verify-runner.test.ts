@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -10,12 +10,7 @@ import { createProtocolPaths } from "../src/protocol/paths.js";
 import type { TestResultStatus } from "../src/protocol/schemas.js";
 import { initLouisGo } from "../src/services/init-service.js";
 import { getCurrentGitSnapshot } from "../src/verify/freshness.js";
-import {
-  runVerificationScript,
-  selectVerificationScript,
-  VerifyRunnerError,
-  verifyRunnerErrorCodes,
-} from "../src/verify/runner.js";
+import { runVerificationScript, selectVerificationScript } from "../src/verify/runner.js";
 
 const execFileAsync = promisify(execFile);
 const timestamp = "2026-05-01T20:00:00+08:00";
@@ -50,7 +45,7 @@ describe("verification runner", () => {
     });
   });
 
-  it("运行脚本后捕获退出码并检查 test-results.json", async () => {
+  it("运行脚本后兼容读取 test-results.json", async () => {
     await using repo = await createGitRepo();
     const paths = createProtocolPaths(repo.path);
 
@@ -75,8 +70,9 @@ describe("verification runner", () => {
     });
   });
 
-  it("没有项目脚本时使用全局 verify 写入 skipped 结果", async () => {
+  it("没有项目脚本时使用全局 verify 生成 skipped 结果", async () => {
     await using repo = await createGitRepo();
+    const paths = createProtocolPaths(repo.path);
 
     await initLouisGo({ cwd: repo.path, now });
 
@@ -92,6 +88,7 @@ describe("verification runner", () => {
       status: "skipped",
       staleReason: null,
     });
+    await expect(access(paths.testResults)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("未初始化项目脚本时也使用全局 verify 写入 skipped 结果", async () => {
@@ -103,20 +100,58 @@ describe("verification runner", () => {
     expect(result.freshness.status).toBe("skipped");
   });
 
-  it("脚本未生成结果时报错", async () => {
+  it("脚本未生成结构化结果时按退出码合成结果", async () => {
     await using repo = await createGitRepo();
     const paths = createProtocolPaths(repo.path);
 
     await mkdir(paths.scriptsDir, { recursive: true });
     await writeFile(paths.verifySh, "#!/usr/bin/env sh\nprintf 'no result\\n'\nexit 0\n", "utf8");
 
-    await expect(runVerificationScript({ cwd: repo.path, platform: "darwin" })).rejects.toSatisfy(
-      (error: unknown) =>
-        error instanceof VerifyRunnerError &&
-        error.code === verifyRunnerErrorCodes.resultMissing &&
-        error.exitCode === 0 &&
-        error.stdout?.includes("no result") === true,
+    const result = await runVerificationScript({ cwd: repo.path, platform: "darwin" });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("no result");
+    expect(result.freshness.testResults).toMatchObject({
+      status: "passed",
+      summary: "no result",
+    });
+    await expect(access(paths.testResults)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("脚本未更新兼容结果文件时忽略旧 test-results.json", async () => {
+    await using repo = await createGitRepo();
+    const paths = createProtocolPaths(repo.path);
+
+    await mkdir(paths.scriptsDir, { recursive: true });
+    await mkdir(paths.louisgoDir, { recursive: true });
+    await writeFile(
+      paths.verifySh,
+      "#!/usr/bin/env sh\nprintf 'fresh stdout\\n'\nexit 0\n",
+      "utf8",
     );
+    await writeFile(
+      paths.testResults,
+      `${JSON.stringify({
+        schema: "louisgo-test-results-v1",
+        command: "old",
+        exit_code: 1,
+        status: "failed",
+        git_head: "old-head",
+        diff_hash: "old-diff",
+        started_at: timestamp,
+        completed_at: completedAt,
+        summary: "old result",
+      })}\n`,
+      "utf8",
+    );
+
+    const result = await runVerificationScript({ cwd: repo.path, platform: "darwin" });
+
+    expect(result.freshness.testResults).toMatchObject({
+      command: ".louisgo/scripts/verify.sh",
+      status: "passed",
+      summary: "fresh stdout",
+    });
   });
 });
 

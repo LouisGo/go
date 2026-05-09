@@ -2,9 +2,9 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 import { isNodeError, pathExists } from "../internal/utils.js";
-import { createProtocolPaths } from "../protocol/paths.js";
 import { getGitHead } from "../git/git.js";
 import { resolvePrivateProjectPaths, type PrivateStoreOptions } from "../store/private-paths.js";
+import { readCurrentTask } from "../store/task-store.js";
 import {
   defaultRunLogMaxEvents,
   createRunLogTemplate,
@@ -48,7 +48,7 @@ export async function appendRunLogEvent(
   const timestamp = (options.now?.() ?? new Date()).toISOString();
   const existing = await readOrCreateRunLog(paths.runLog, timestamp);
   const parsed = parseRunLog(existing);
-  const diagnosticNote = await buildDiagnosticNote(workspaceRoot, options.note);
+  const diagnosticNote = await buildDiagnosticNote(options, workspaceRoot, options.note);
   const event = createRunLogEvent(timestamp, options.command, options.outcome, diagnosticNote);
   const events = [event, ...parsed.events].slice(0, defaultRunLogMaxEvents);
   const content = formatRunLog(parsed.head, events, timestamp);
@@ -124,6 +124,7 @@ function createRunLogEvent(
 }
 
 async function buildDiagnosticNote(
+  options: PrivateStoreOptions,
   workspaceRoot: string,
   userNote?: string,
 ): Promise<string | undefined> {
@@ -137,10 +138,12 @@ async function buildDiagnosticNote(
   }
 
   try {
-    const testResults = await readTestResultsSafe(workspaceRoot);
-    parts.push(`verify:${testResults.status}`);
+    const task = await readCurrentTask(options);
+    if (task?.verification !== null && task?.verification !== undefined) {
+      parts.push(`verify:${task.verification.status}`);
+    }
   } catch {
-    // test-results.json missing or invalid — skip
+    // Private task verification missing or unreadable — skip
   }
 
   const diagnostic = parts.join(" ");
@@ -149,15 +152,6 @@ async function buildDiagnosticNote(
   }
 
   return diagnostic.length > 0 ? diagnostic : undefined;
-}
-
-async function readTestResultsSafe(workspaceRoot: string): Promise<{ readonly status: string }> {
-  const paths = createProtocolPaths(workspaceRoot);
-  const raw = await readFile(paths.testResults, "utf8");
-  const json = JSON.parse(raw) as { readonly status?: unknown };
-  const status = typeof json.status === "string" ? json.status : "unknown";
-
-  return { status };
 }
 
 function parseRunLog(content: string): ParsedRunLog {

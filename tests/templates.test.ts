@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, chmod, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { promisify } from "node:util";
@@ -22,7 +22,6 @@ import { createMissionTemplate } from "../src/templates/mission.js";
 import { createLouisGoGitignoreTemplate, createRunLogTemplate } from "../src/templates/run-log.js";
 import { createVerifyPs1Template } from "../src/templates/verify-ps1.js";
 import { createVerifyShTemplate } from "../src/templates/verify-sh.js";
-import { checkVerificationFreshness } from "../src/verify/freshness.js";
 
 const execFileAsync = promisify(execFile);
 const timestamp = "2026-05-01T20:00:00+08:00";
@@ -135,7 +134,7 @@ describe("协议模板", () => {
     expect(document.body).not.toContain("## Alternatives");
   });
 
-  it("verify.sh 模板可以生成最小 test-results.json", async () => {
+  it("verify.sh 模板可以向 stdout 生成最小验证结果", async () => {
     await using tempDir = await createTempDir();
     const scriptPath = join(tempDir.path, ".louisgo", "scripts", "verify.sh");
     const resultPath = join(tempDir.path, ".louisgo", "test-results.json");
@@ -153,9 +152,9 @@ describe("协议模板", () => {
     await writeFile(scriptPath, createVerifyShTemplate(), "utf8");
     await chmod(scriptPath, 0o755);
     await writeFile(trackedPath, "two\n", "utf8");
-    await execFileAsync("sh", [scriptPath], { cwd: tempDir.path });
+    const first = await execFileAsync("sh", [scriptPath], { cwd: tempDir.path });
 
-    const result = testResultsSchema.parse(JSON.parse(await readFile(resultPath, "utf8")));
+    const result = testResultsSchema.parse(JSON.parse(first.stdout));
 
     expect(result).toMatchObject({
       schema: "louisgo-test-results-v1",
@@ -166,31 +165,25 @@ describe("协议模板", () => {
     });
     expect(result.gitHead.length).toBeGreaterThan(0);
     expect(result.diffHash).toMatch(/^[a-f0-9]{64}$/);
-    await expect(
-      checkVerificationFreshness({
-        cwd: tempDir.path,
-        testResultsPath: resultPath,
-      }),
-    ).resolves.toMatchObject({
-      status: "skipped",
-      staleReason: null,
-    });
+    await expect(access(resultPath)).rejects.toMatchObject({ code: "ENOENT" });
 
     await writeFile(trackedPath, "three\n", "utf8");
-    await execFileAsync("sh", [scriptPath], { cwd: tempDir.path });
+    const second = await execFileAsync("sh", [scriptPath], { cwd: tempDir.path });
 
-    const nextResult = testResultsSchema.parse(JSON.parse(await readFile(resultPath, "utf8")));
+    const nextResult = testResultsSchema.parse(JSON.parse(second.stdout));
     expect(nextResult.diffHash).not.toBe(result.diffHash);
   });
 
-  it("verify.ps1 模板包含 test-results.json 最小字段", async () => {
+  it("verify.ps1 模板向 stdout 输出验证结果", async () => {
     const template = createVerifyPs1Template();
 
     expect(template).toContain('schema = "louisgo-test-results-v1"');
     expect(template).toContain("git_head = $GitHead");
     expect(template).toContain("diff_hash = $DiffHash");
     expect(template).toContain("status = $Status");
-    expect(template).toContain(".louisgo/test-results.json");
+    expect(template).toContain("ConvertTo-Json -Compress");
+    expect(template).not.toContain("$ResultPath");
+    expect(template).not.toContain("Set-Content");
 
     if (!(await hasPwsh())) {
       return;
@@ -198,16 +191,19 @@ describe("协议模板", () => {
 
     await using tempDir = await createTempDir();
     const scriptPath = join(tempDir.path, ".louisgo", "scripts", "verify.ps1");
-    const resultPath = join(tempDir.path, ".louisgo", "test-results.json");
 
     await execFileAsync("git", ["init"], { cwd: tempDir.path });
     await mkdirForFile(scriptPath);
     await writeFile(scriptPath, template, "utf8");
-    await execFileAsync("pwsh", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath], {
-      cwd: tempDir.path,
-    });
+    const execution = await execFileAsync(
+      "pwsh",
+      ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath],
+      {
+        cwd: tempDir.path,
+      },
+    );
 
-    const result = testResultsSchema.parse(JSON.parse(await readFile(resultPath, "utf8")));
+    const result = testResultsSchema.parse(JSON.parse(execution.stdout));
     expect(result).toMatchObject({
       schema: "louisgo-test-results-v1",
       command: ".louisgo/scripts/verify.ps1",

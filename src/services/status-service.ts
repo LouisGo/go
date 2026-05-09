@@ -18,24 +18,21 @@ import {
   type LouisGoMode,
   type VerificationStatus,
 } from "../protocol/schemas.js";
-import { TestResultsError, testResultsErrorCodes } from "../protocol/test-results.js";
 import {
   listTaskMetas,
   readCurrentTask as readPrivateCurrentTask,
   type TaskMeta,
 } from "../store/task-store.js";
 import type { PrivateStoreOptions } from "../store/private-paths.js";
-import { checkVerificationFreshness } from "../verify/freshness.js";
 
 export const protocolIssueCodes = {
   missingPath: "MISSING_PATH",
   frontMatterInvalid: "FRONT_MATTER_INVALID",
-  testResultsInvalid: "TEST_RESULTS_INVALID",
 } as const;
 
 export type ProtocolIssueCode = (typeof protocolIssueCodes)[keyof typeof protocolIssueCodes];
 export type RecoverySource = "task" | "none";
-export type StatusVerificationState = VerificationStatus | "unchecked";
+export type StatusVerificationState = VerificationStatus;
 
 export interface ProtocolIssue {
   readonly code: ProtocolIssueCode;
@@ -93,8 +90,7 @@ export async function checkProtocolStatus(
   const currentTask = privateTask?.meta ?? null;
   await validateOptionalFrontMatter(paths, issues);
   const recoverySource = privateTask === null ? "none" : "task";
-  const verificationStatus =
-    privateTask?.verification?.status ?? (await readVerificationStatus(paths, issues));
+  const verificationStatus = privateTask?.verification?.status ?? "missing";
   const hasConfirmReq = await pathExists(paths.confirmReq);
   const adrDrafts = await listAdrDrafts(paths);
   const workspace = await readWorkspaceSummary(workspaceRoot);
@@ -208,33 +204,6 @@ async function listAdrDrafts(paths: ProtocolPaths): Promise<string[]> {
     .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
     .map((entry) => entry.name)
     .sort();
-}
-
-async function readVerificationStatus(
-  paths: ProtocolPaths,
-  issues: ProtocolIssue[],
-): Promise<StatusVerificationState> {
-  try {
-    const freshness = await checkVerificationFreshness({
-      cwd: paths.workspaceRoot,
-      testResultsPath: paths.testResults,
-    });
-    return freshness.status;
-  } catch (error) {
-    if (!(error instanceof TestResultsError) || error.code !== testResultsErrorCodes.invalid) {
-      throw error;
-    }
-
-    issues.push(
-      createIssue(
-        paths,
-        protocolIssueCodes.testResultsInvalid,
-        paths.testResults,
-        "Invalid test-results.json format",
-      ),
-    );
-    return "unchecked";
-  }
 }
 
 async function readWorkspaceSummary(workspaceRoot: string): Promise<WorkspaceSummary> {

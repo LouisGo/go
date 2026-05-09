@@ -105,10 +105,8 @@ function formatVerifyRunnerError(error: VerifyRunnerError): string {
   switch (error.code) {
     case verifyRunnerErrorCodes.scriptMissing:
       return "verification script is missing";
-    case verifyRunnerErrorCodes.resultMissing:
-      return "verification script did not generate .louisgo/test-results.json";
     case verifyRunnerErrorCodes.resultInvalid:
-      return "verification script generated an invalid test-results.json";
+      return "verification script generated an invalid structured result";
     case verifyRunnerErrorCodes.executionFailed:
       return error.message;
   }

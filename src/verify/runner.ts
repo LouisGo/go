@@ -3,15 +3,20 @@ import { stat } from "node:fs/promises";
 import { promisify } from "node:util";
 
 import { findGitRoot } from "../fs/workspace.js";
-import { writeTestResults } from "../protocol/test-results.js";
 import {
   createProtocolPaths,
   protocolRelativePaths,
   type ProtocolPaths,
 } from "../protocol/paths.js";
-import { TestResultsError, testResultsErrorCodes } from "../protocol/test-results.js";
 import {
-  checkVerificationFreshness,
+  readTestResults,
+  serializeTestResults,
+  TestResultsError,
+  testResultsErrorCodes,
+} from "../protocol/test-results.js";
+import { testResultsSchema, type TestResultStatus, type TestResults } from "../protocol/schemas.js";
+import {
+  checkTestResultsFreshness,
   getCurrentGitSnapshot,
   type VerificationFreshness,
 } from "./freshness.js";
@@ -21,7 +26,6 @@ const execFileAsync = promisify(execFile);
 export const verifyRunnerErrorCodes = {
   scriptMissing: "VERIFY_SCRIPT_MISSING",
   executionFailed: "VERIFY_EXECUTION_FAILED",
-  resultMissing: "VERIFY_RESULT_MISSING",
   resultInvalid: "VERIFY_RESULT_INVALID",
 } as const;
 
@@ -108,8 +112,18 @@ export async function runVerificationScript(
     return await runGlobalSkippedVerification(paths);
   }
 
+  const beforeCompatibilityResult = await statIfExists(paths.testResults);
   const execution = await executeScript(script, workspaceRoot, options.env);
-  const freshness = await readPostRunFreshness(paths, execution, script);
+  const testResults = await resolveScriptTestResults(
+    paths,
+    script,
+    execution,
+    beforeCompatibilityResult,
+  );
+  const freshness = await checkTestResultsFreshness({
+    cwd: paths.workspaceRoot,
+    testResults,
+  });
 
   return {
     workspaceRoot,
@@ -125,17 +139,18 @@ async function runGlobalSkippedVerification(paths: ProtocolPaths): Promise<RunVe
   const startedAt = new Date().toISOString();
   const snapshot = await getCurrentGitSnapshot({ cwd: paths.workspaceRoot });
   const completedAt = new Date().toISOString();
-
-  await writeTestResults(paths.testResults, {
-    command: "louisgo verify",
-    exitCode: 0,
-    status: "skipped",
-    gitHead: snapshot.gitHead,
-    diffHash: snapshot.diffHash,
-    startedAt,
-    completedAt,
-    summary: "No project verification command configured; skipped",
-  });
+  const testResults = testResultsSchema.parse(
+    serializeTestResults({
+      command: "louisgo verify",
+      exitCode: 0,
+      status: "skipped",
+      gitHead: snapshot.gitHead,
+      diffHash: snapshot.diffHash,
+      startedAt,
+      completedAt,
+      summary: "No project verification command configured; skipped",
+    }),
+  );
 
   return {
     workspaceRoot: paths.workspaceRoot,
@@ -149,9 +164,9 @@ async function runGlobalSkippedVerification(paths: ProtocolPaths): Promise<RunVe
     exitCode: 0,
     stdout: "",
     stderr: "",
-    freshness: await checkVerificationFreshness({
+    freshness: await checkTestResultsFreshness({
       cwd: paths.workspaceRoot,
-      testResultsPath: paths.testResults,
+      testResults,
     }),
   };
 }
@@ -183,6 +198,8 @@ interface ScriptExecutionResult {
   readonly exitCode: number;
   readonly stdout: string;
   readonly stderr: string;
+  readonly startedAt: string;
+  readonly completedAt: string;
 }
 
 async function hasScriptFile(script: VerificationScriptSelection): Promise<boolean> {
@@ -199,23 +216,13 @@ async function hasScriptFile(script: VerificationScriptSelection): Promise<boole
   return false;
 }
 
-async function assertScriptFile(script: VerificationScriptSelection): Promise<void> {
-  if (await hasScriptFile(script)) {
-    return;
-  }
-
-  throw new VerifyRunnerError({
-    code: verifyRunnerErrorCodes.scriptMissing,
-    scriptPath: script.filePath,
-    message: `Verification script does not exist: ${script.relativePath}`,
-  });
-}
-
 async function executeScript(
   script: VerificationScriptSelection,
   cwd: string,
   env: NodeJS.ProcessEnv | undefined,
 ): Promise<ScriptExecutionResult> {
+  const startedAt = new Date().toISOString();
+
   try {
     const result = await execFileAsync(script.command, [...script.args], {
       cwd,
@@ -228,6 +235,8 @@ async function executeScript(
       exitCode: 0,
       stdout: result.stdout,
       stderr: result.stderr,
+      startedAt,
+      completedAt: new Date().toISOString(),
     };
   } catch (error) {
     if (isExecError(error) && typeof error.code === "number") {
@@ -235,6 +244,8 @@ async function executeScript(
         exitCode: error.code,
         stdout: typeof error.stdout === "string" ? error.stdout : "",
         stderr: typeof error.stderr === "string" ? error.stderr : "",
+        startedAt,
+        completedAt: new Date().toISOString(),
       };
     }
 
@@ -247,51 +258,138 @@ async function executeScript(
   }
 }
 
-async function readPostRunFreshness(
+async function resolveScriptTestResults(
   paths: ProtocolPaths,
-  execution: ScriptExecutionResult,
   script: VerificationScriptSelection,
-): Promise<VerificationFreshness> {
-  try {
-    const freshness = await checkVerificationFreshness({
-      cwd: paths.workspaceRoot,
-      testResultsPath: paths.testResults,
-    });
+  execution: ScriptExecutionResult,
+  beforeCompatibilityResult: FileFingerprint | null,
+): Promise<TestResults> {
+  const stdoutResult = parseStdoutTestResults(execution.stdout);
 
-    if (freshness.status !== "missing") {
-      return freshness;
+  if (stdoutResult !== null) {
+    return stdoutResult;
+  }
+
+  if (await compatibilityResultChanged(paths.testResults, beforeCompatibilityResult)) {
+    try {
+      return await readTestResults(paths.testResults);
+    } catch (error) {
+      if (error instanceof TestResultsError && error.code === testResultsErrorCodes.invalid) {
+        throw new VerifyRunnerError({
+          code: verifyRunnerErrorCodes.resultInvalid,
+          scriptPath: script.filePath,
+          exitCode: execution.exitCode,
+          stdout: execution.stdout,
+          stderr: execution.stderr,
+          message: "Verification script generated an invalid compatibility test-results.json",
+          cause: error,
+        });
+      }
+
+      if (!(error instanceof TestResultsError && error.code === testResultsErrorCodes.missing)) {
+        throw error;
+      }
+    }
+  }
+
+  return await synthesizeTestResults(paths, script, execution);
+}
+
+function parseStdoutTestResults(stdout: string): TestResults | null {
+  for (const line of stdout.split(/\r?\n/)) {
+    const trimmed = line.trim();
+
+    if (!trimmed.startsWith("{") || !trimmed.includes("louisgo-test-results-v1")) {
+      continue;
     }
 
-    throw createResultMissingError(script, execution);
-  } catch (error) {
-    if (error instanceof TestResultsError && error.code === testResultsErrorCodes.invalid) {
+    try {
+      return testResultsSchema.parse(JSON.parse(trimmed));
+    } catch (error) {
       throw new VerifyRunnerError({
         code: verifyRunnerErrorCodes.resultInvalid,
-        scriptPath: script.filePath,
-        exitCode: execution.exitCode,
-        stdout: execution.stdout,
-        stderr: execution.stderr,
-        message: "Verification script generated an invalid test-results.json",
+        stdout,
+        message: "Verification script printed an invalid louisgo-test-results-v1 JSON result",
         cause: error,
       });
     }
+  }
 
-    throw error;
+  return null;
+}
+
+async function synthesizeTestResults(
+  paths: ProtocolPaths,
+  script: VerificationScriptSelection,
+  execution: ScriptExecutionResult,
+): Promise<TestResults> {
+  const snapshot = await getCurrentGitSnapshot({ cwd: paths.workspaceRoot });
+  const status: TestResultStatus = execution.exitCode === 0 ? "passed" : "failed";
+
+  return testResultsSchema.parse(
+    serializeTestResults({
+      command: script.relativePath,
+      exitCode: execution.exitCode,
+      status,
+      gitHead: snapshot.gitHead,
+      diffHash: snapshot.diffHash,
+      startedAt: execution.startedAt,
+      completedAt: execution.completedAt,
+      summary: createSyntheticSummary(status, execution),
+    }),
+  );
+}
+
+function createSyntheticSummary(
+  status: TestResultStatus,
+  execution: ScriptExecutionResult,
+): string {
+  return (
+    firstMeaningfulLine(execution.stdout) ??
+    firstMeaningfulLine(execution.stderr) ??
+    (status === "passed"
+      ? "Verification script completed successfully"
+      : `Verification script failed with exit code ${execution.exitCode}`)
+  );
+}
+
+function firstMeaningfulLine(value: string): string | null {
+  const line = value
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .find((item) => item.length > 0);
+
+  return line ?? null;
+}
+
+interface FileFingerprint {
+  readonly size: number;
+  readonly mtimeMs: number;
+}
+
+async function statIfExists(filePath: string): Promise<FileFingerprint | null> {
+  try {
+    const fileStat = await stat(filePath);
+    return {
+      size: fileStat.size,
+      mtimeMs: fileStat.mtimeMs,
+    };
+  } catch {
+    return null;
   }
 }
 
-function createResultMissingError(
-  script: VerificationScriptSelection,
-  execution: ScriptExecutionResult,
-): VerifyRunnerError {
-  return new VerifyRunnerError({
-    code: verifyRunnerErrorCodes.resultMissing,
-    scriptPath: script.filePath,
-    exitCode: execution.exitCode,
-    stdout: execution.stdout,
-    stderr: execution.stderr,
-    message: "Verification script did not generate .louisgo/test-results.json",
-  });
+async function compatibilityResultChanged(
+  filePath: string,
+  before: FileFingerprint | null,
+): Promise<boolean> {
+  const after = await statIfExists(filePath);
+
+  if (after === null) {
+    return false;
+  }
+
+  return before === null || after.size !== before.size || after.mtimeMs !== before.mtimeMs;
 }
 
 function isExecError(error: unknown): error is {

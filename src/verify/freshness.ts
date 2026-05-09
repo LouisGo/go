@@ -20,6 +20,10 @@ export interface CheckVerificationFreshnessOptions extends GitCommandOptions {
   readonly testResultsPath: string;
 }
 
+export interface CheckTestResultsFreshnessOptions extends GitCommandOptions {
+  readonly testResults: TestResults;
+}
+
 export async function checkVerificationFreshness(
   options: CheckVerificationFreshnessOptions,
 ): Promise<VerificationFreshness> {
@@ -40,21 +44,27 @@ export async function checkVerificationFreshness(
     throw error;
   }
 
+  return await checkTestResultsFreshness({ ...options, testResults });
+}
+
+export async function checkTestResultsFreshness(
+  options: CheckTestResultsFreshnessOptions,
+): Promise<VerificationFreshness> {
   const currentSnapshot = await getCurrentGitSnapshot(options);
-  const staleReason = getStaleReason(testResults, currentSnapshot);
+  const staleReason = getStaleReason(options.testResults, currentSnapshot);
 
   if (staleReason !== null) {
     return {
       status: "stale",
-      testResults,
+      testResults: options.testResults,
       currentSnapshot,
       staleReason,
     };
   }
 
   return {
-    status: testResults.status,
-    testResults,
+    status: options.testResults.status,
+    testResults: options.testResults,
     currentSnapshot,
     staleReason: null,
   };

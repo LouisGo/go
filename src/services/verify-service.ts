@@ -34,7 +34,7 @@ export async function verifyLouisGo(
   const testResults = runResult.freshness.testResults;
 
   if (testResults === null) {
-    throw new Error("test-results.json is missing after verification");
+    throw new Error("Verification result is missing after verification");
   }
 
   const freshness: VerificationFreshnessState =
@@ -50,7 +50,7 @@ export async function verifyLouisGo(
     ...(options.louisgoHome === undefined ? {} : { louisgoHome: options.louisgoHome }),
     ...(options.taskId === undefined ? {} : { taskId: options.taskId }),
     testResults,
-  }).catch(() => undefined);
+  });
 
   return {
     workspaceRoot: runResult.workspaceRoot,

@@ -7,10 +7,10 @@ import { promisify } from "node:util";
 import { describe, expect, it } from "vitest";
 
 import { createProtocolPaths } from "../src/protocol/paths.js";
-import { writeTestResults } from "../src/protocol/test-results.js";
 import { initLouisGo } from "../src/services/init-service.js";
 import { pauseLouisGo } from "../src/services/pause-service.js";
 import { checkProtocolStatus, protocolIssueCodes } from "../src/services/status-service.js";
+import { writeTaskVerification } from "../src/store/task-store.js";
 import { getCurrentGitSnapshot } from "../src/verify/freshness.js";
 
 const execFileAsync = promisify(execFile);
@@ -69,21 +69,25 @@ describe("status service", () => {
     );
   });
 
-  it("识别新鲜验证结果状态", async () => {
+  it("识别 private task 验证结果状态", async () => {
     await using repo = await createGitRepo();
-    const initResult = await initLouisGo({ cwd: repo.path, now });
-    const paths = createProtocolPaths(initResult.workspaceRoot);
+    await initLouisGo({ cwd: repo.path, now });
     const snapshot = await getCurrentGitSnapshot({ cwd: repo.path });
 
-    await writeTestResults(paths.testResults, {
-      command: "louisgo verify",
-      exitCode: 0,
-      status: "passed",
-      gitHead: snapshot.gitHead,
-      diffHash: snapshot.diffHash,
-      startedAt: timestamp,
-      completedAt: "2026-05-01T20:01:00+08:00",
-      summary: "验证通过",
+    await writeTaskVerification({
+      cwd: repo.path,
+      louisgoHome: repo.louisgoHome,
+      testResults: {
+        schema: "louisgo-test-results-v1",
+        command: "louisgo verify",
+        exitCode: 0,
+        status: "passed",
+        gitHead: snapshot.gitHead,
+        diffHash: snapshot.diffHash,
+        startedAt: timestamp,
+        completedAt: "2026-05-01T20:01:00+08:00",
+        summary: "验证通过",
+      },
     });
 
     const status = await checkProtocolStatus({ cwd: repo.path, louisgoHome: repo.louisgoHome });
@@ -92,7 +96,7 @@ describe("status service", () => {
     expect(status.verificationStatus).toBe("passed");
   });
 
-  it("报告非法 test-results.json", async () => {
+  it("忽略兼容 test-results.json", async () => {
     await using repo = await createGitRepo();
     const initResult = await initLouisGo({ cwd: repo.path, now });
     const paths = createProtocolPaths(initResult.workspaceRoot);
@@ -101,14 +105,9 @@ describe("status service", () => {
 
     const status = await checkProtocolStatus({ cwd: repo.path, louisgoHome: repo.louisgoHome });
 
-    expect(status.complete).toBe(false);
-    expect(status.verificationStatus).toBe("unchecked");
-    expect(status.issues).toContainEqual(
-      expect.objectContaining({
-        code: protocolIssueCodes.testResultsInvalid,
-        filePath: paths.testResults,
-      }),
-    );
+    expect(status.complete).toBe(true);
+    expect(status.verificationStatus).toBe("missing");
+    expect(status.issues).toEqual([]);
   });
 });
 
